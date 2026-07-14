@@ -21,8 +21,7 @@ Notes for that session:
   even though it's tempting to wire up together with movement.
 
 ## Done
-- **Milestone 0.1 — Project setup: 5 of 6 checkboxes complete** (deploy
-  pipeline written but blocked on a human step — see Backlog).
+- **Milestone 0.1 — Project setup: all 6 checkboxes complete.**
   - `dev` branch created on GitHub (points at `main`).
   - Vite + TypeScript + Phaser 3 scaffolded by hand (package.json, strict
     tsconfig, vite.config.ts, index.html, src/main.ts booting a placeholder
@@ -38,11 +37,14 @@ Notes for that session:
   - GitHub Actions CI (`.github/workflows/ci.yml`): typecheck + lint + test +
     build on every push/PR. Verified locally with `npm ci` (clean install
     matching the lockfile) running the exact same commands.
-  - GitHub Actions deploy (`.github/workflows/deploy.yml`) written, and CI
-    steps within it (typecheck/lint/test/build) verified green on a real push
-    to `dev`. The actual Pages publish step fails pending a one-time human
-    setup step — checkbox left unticked. See Backlog for the exact error and
-    fix.
+  - GitHub Actions deploy (`.github/workflows/deploy.yml`): fully verified
+    green (typecheck/lint/test/build/configure-pages/upload-pages-artifact/
+    deploy-pages), after two human-side settings were fixed (Pages source =
+    GitHub Actions; `github-pages` environment's branch restriction opened up
+    to allow `dev`). Live at
+    https://stevenseagalstreams.github.io/Ashes-of-azer/ — currently shows
+    the Milestone 0.2 scene-skeleton placeholder ("Ashes of Azer" text), not
+    real gameplay yet.
   - `CHANGELOG.md` created with an `## Unreleased` heading.
 - **Milestone 0.2, first checkbox: scene skeleton done.**
   - `src/scenes/BootScene.ts` — starts `WorldScene`, launches `UIScene` in
@@ -80,28 +82,14 @@ Notes for that session:
   data-driven systems, per CLAUDE.md's verification rules.
 
 ## Backlog
-- Enable branch protection on `main` (human, GitHub Settings → Branches).
-- **GitHub Pages: enabled, but deploy still blocked — one more setting.**
-  User enabled Pages (Settings → Pages → Source: GitHub Actions). Re-ran the
-  workflow: the `build` job now succeeds end-to-end (typecheck/lint/test/
-  build/configure-pages/upload-pages-artifact all green). But the `deploy`
-  job fails instantly every time with no runner ever assigned and no logs
-  (job never actually starts) — classic signature of a GitHub Actions
-  **environment protection rule** blocking the deploy before it's scheduled.
-  Likely cause: GitHub auto-created a `github-pages` environment with a
-  branch restriction that doesn't include `dev` (commonly defaults to the
-  repo's default branch only). Human action needed: repo Settings →
-  Environments → `github-pages` → "Deployment branches and tags" → change to
-  "No restriction" (or explicitly allow `dev`). Tried re-running the failed
-  job 3x after Pages was enabled to rule out propagation delay — same
-  instant failure each time, so this isn't a timing issue.
+- Enable branch protection on `main` (human, GitHub Settings → Branches) —
+  still outstanding, no tool available to me to do this.
 
 ## Needs human playtest
-- After enabling Pages (see Backlog), confirm the deploy workflow succeeds on
-  the next push to `dev` and the published page actually loads and boots.
-- Visually confirm the current placeholder boot screen ("Ashes of Azer" text
-  on a dark background at 960×540) looks right — no visual regressions
-  expected until Milestone 0.2 replaces it with real gameplay.
+- Visually confirm https://stevenseagalstreams.github.io/Ashes-of-azer/ loads
+  and shows the "Ashes of Azer" placeholder text on a dark background — no
+  visual regressions expected until Milestone 0.2 replaces it with real
+  gameplay.
 
 ## Asset requests
 (none yet)
