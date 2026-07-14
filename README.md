@@ -37,6 +37,8 @@ A playable vertical slice in a single self-contained HTML file — vanilla JS/Ca
 
 ## Roadmap
 
+See [ROADMAP.md](ROADMAP.md) for the full milestone-by-milestone development checklist, from technical foundation through 1.0 release.
+
 - More classes (Mage, Hunter) with generator/spender/ultimate kits
 - Walk animations, sound, and juicier hit feedback
 - Crafting, sockets, and vendor/repair loop in town
