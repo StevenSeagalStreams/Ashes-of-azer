@@ -13,12 +13,12 @@ progress tracker on the repo.
 Nothing new for players here, but every later step gets 3× faster. Do not skip.
 
 ### 0.1 Project setup
-- [ ] Create repo with `main` + `dev` branches; protect `main`
-- [ ] Init project: Vite + TypeScript + Phaser 3 (`npm create vite@latest`)
-- [ ] Configure ESLint + Prettier, strict tsconfig (`strict: true`)
-- [ ] Folder structure: `/src/scenes`, `/src/systems`, `/src/entities`, `/data`, `/assets`
-- [ ] Set up GitHub Actions: lint + typecheck + build on every push
-- [ ] Deploy pipeline: auto-publish `dev` builds to itch.io or GitHub Pages
+- [x] Create repo with `main` + `dev` branches; protect `main` (branch protection needs a human — see PROGRESS.md)
+- [x] Init project: Vite + TypeScript + Phaser 3 (`npm create vite@latest`)
+- [x] Configure ESLint + Prettier, strict tsconfig (`strict: true`)
+- [x] Folder structure: `/src/scenes`, `/src/systems`, `/src/entities`, `/data`, `/assets`
+- [x] Set up GitHub Actions: lint + typecheck + build on every push
+- [x] Deploy pipeline: auto-publish `dev` builds to itch.io or GitHub Pages
 
 ### 0.2 Port the prototype into Phaser scenes
 - [ ] `BootScene` (asset loading, data loading), `WorldScene` (gameplay), `UIScene` (overlay)
