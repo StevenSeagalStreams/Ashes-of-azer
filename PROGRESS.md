@@ -1,9 +1,24 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 0.1 is complete. Next up: Milestone 0.2 — port the prototype into
-Phaser scenes (`BootScene`, `WorldScene`, `UIScene`; movement/collision;
-camera follow; combat core; fog of war; verify parity with the HTML prototype).
+Milestone 0.2, next unchecked box: **"Port player movement + collision to
+Phaser arcade physics."** This is the next session's starting point.
+
+Notes for that session:
+- Reference `ashes_of_azer.html` lines ~360-386 (player object, `pstats()`)
+  and ~669-690 (the `update()` movement block: WASD → normalized velocity,
+  `walkable()` tile-collision check, speed = `78 * (1 + ST.ms/100)`).
+- There's no Tiled map yet (that's Milestone 0.5) — Tiled integration is a
+  later checkbox, so for this task, either (a) stand up a minimal
+  placeholder tilemap/bounds in `WorldScene` just to give arcade physics
+  something to collide with, or (b) use a plain world-bounds rectangle for
+  now and defer real tile collision to when Tiled lands. Use judgement;
+  either is a "technical choice within the stated stack" CLAUDE.md says to
+  decide solo — just record which one and why.
+- Put the player as an entity under `/src/entities` (e.g. `Player.ts`) per
+  the folder structure from 0.1, not inline in `WorldScene`.
+- Camera follow is the *next* checkbox after this one — don't do it yet,
+  even though it's tempting to wire up together with movement.
 
 ## Done
 - **Milestone 0.1 — Project setup: all 6 checkboxes complete.**
@@ -29,6 +44,17 @@ camera follow; combat core; fog of war; verify parity with the HTML prototype).
     session pushes to `claude/ashes-azer-roadmap-gxp6wu`, not `dev`, so the
     workflow hasn't fired yet. See Needs human playtest.
   - `CHANGELOG.md` created with an `## Unreleased` heading.
+- **Milestone 0.2, first checkbox: scene skeleton done.**
+  - `src/scenes/BootScene.ts` — starts `WorldScene`, launches `UIScene` in
+    parallel (empty for now; will do asset/data loading once there's
+    something to load, in later 0.2/0.3 work).
+  - `src/scenes/WorldScene.ts` — gameplay scene; currently just shows the
+    placeholder text that used to live directly in `main.ts`.
+  - `src/scenes/UIScene.ts` — empty overlay scene, ready for HUD work.
+  - `main.ts` now registers `[BootScene, WorldScene, UIScene]` instead of an
+    inline placeholder scene. Verified in headless Chromium: scene handoff
+    works, canvas renders, no console errors beyond the pre-existing
+    favicon 404 (cosmetic, not addressed — no favicon asset exists yet).
 
 ## Decisions
 - Branch protection on `main` could not be configured: no branch-protection
