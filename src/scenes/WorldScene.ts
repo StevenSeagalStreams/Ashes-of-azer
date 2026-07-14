@@ -31,9 +31,10 @@ export class WorldScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, layer);
 
-    // Static viewport centered on spawn; camera *follow* is the next roadmap task.
+    // Prototype: camX = clamp(player.x - W/2, 0, MAPW*TS - W) — a hard follow
+    // clamped to the world, which is startFollow + camera bounds in Phaser.
     this.cameras.main.setBounds(0, 0, MAPW * TS, MAPH * TS);
-    this.cameras.main.centerOn(this.player.x, this.player.y);
+    this.cameras.main.startFollow(this.player);
 
     window.__AZER = { player: this.player };
   }
