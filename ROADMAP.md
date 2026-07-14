@@ -21,7 +21,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Deploy pipeline: auto-publish `dev` builds to itch.io or GitHub Pages
 
 ### 0.2 Port the prototype into Phaser scenes
-- [ ] `BootScene` (asset loading, data loading), `WorldScene` (gameplay), `UIScene` (overlay)
+- [x] `BootScene` (asset loading, data loading), `WorldScene` (gameplay), `UIScene` (overlay)
 - [ ] Port player movement + collision to Phaser arcade physics
 - [ ] Port camera follow with world bounds
 - [ ] Port the combat core: hit detection, damage numbers, cooldowns
