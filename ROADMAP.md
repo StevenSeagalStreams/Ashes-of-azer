@@ -22,7 +22,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 
 ### 0.2 Port the prototype into Phaser scenes
 - [x] `BootScene` (asset loading, data loading), `WorldScene` (gameplay), `UIScene` (overlay)
-- [ ] Port player movement + collision to Phaser arcade physics
+- [x] Port player movement + collision to Phaser arcade physics
 - [ ] Port camera follow with world bounds
 - [ ] Port the combat core: hit detection, damage numbers, cooldowns
 - [ ] Port fog of war as a Phaser render texture / mask (test performance early)
