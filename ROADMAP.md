@@ -18,7 +18,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Configure ESLint + Prettier, strict tsconfig (`strict: true`)
 - [x] Folder structure: `/src/scenes`, `/src/systems`, `/src/entities`, `/data`, `/assets`
 - [x] Set up GitHub Actions: lint + typecheck + build on every push
-- [x] Deploy pipeline: auto-publish `dev` builds to itch.io or GitHub Pages
+- [ ] Deploy pipeline: auto-publish `dev` builds to itch.io or GitHub Pages (workflow written, blocked on a one-time human step — see PROGRESS.md)
 
 ### 0.2 Port the prototype into Phaser scenes
 - [x] `BootScene` (asset loading, data loading), `WorldScene` (gameplay), `UIScene` (overlay)

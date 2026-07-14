@@ -21,7 +21,8 @@ Notes for that session:
   even though it's tempting to wire up together with movement.
 
 ## Done
-- **Milestone 0.1 — Project setup: all 6 checkboxes complete.**
+- **Milestone 0.1 — Project setup: 5 of 6 checkboxes complete** (deploy
+  pipeline written but blocked on a human step — see Backlog).
   - `dev` branch created on GitHub (points at `main`).
   - Vite + TypeScript + Phaser 3 scaffolded by hand (package.json, strict
     tsconfig, vite.config.ts, index.html, src/main.ts booting a placeholder
@@ -37,12 +38,11 @@ Notes for that session:
   - GitHub Actions CI (`.github/workflows/ci.yml`): typecheck + lint + test +
     build on every push/PR. Verified locally with `npm ci` (clean install
     matching the lockfile) running the exact same commands.
-  - GitHub Actions deploy (`.github/workflows/deploy.yml`): builds and
-    publishes to GitHub Pages on push to `dev`, using
-    `actions/configure-pages` with `enablement: true` so it self-enables
-    Pages on first run. **Not yet verified against a real push** — this
-    session pushes to `claude/ashes-azer-roadmap-gxp6wu`, not `dev`, so the
-    workflow hasn't fired yet. See Needs human playtest.
+  - GitHub Actions deploy (`.github/workflows/deploy.yml`) written, and CI
+    steps within it (typecheck/lint/test/build) verified green on a real push
+    to `dev`. The actual Pages publish step fails pending a one-time human
+    setup step — checkbox left unticked. See Backlog for the exact error and
+    fix.
   - `CHANGELOG.md` created with an `## Unreleased` heading.
 - **Milestone 0.2, first checkbox: scene skeleton done.**
   - `src/scenes/BootScene.ts` — starts `WorldScene`, launches `UIScene` in
@@ -81,15 +81,20 @@ Notes for that session:
 
 ## Backlog
 - Enable branch protection on `main` (human, GitHub Settings → Branches).
-- Confirm the GitHub Pages deploy workflow actually succeeds on a real push
-  to `dev` (first run needs Pages permission on the token, which
-  `configure-pages`'s `enablement: true` should self-serve, but hasn't been
-  observed running for real yet).
+- **GitHub Pages needs a one-time manual enable.** Confirmed by a real push to
+  `dev`: `.github/workflows/deploy.yml` ran CI clean (typecheck/lint/test/build
+  all passed) but the `actions/configure-pages@v5` step failed with
+  `Create Pages site failed. Error: Resource not accessible by integration`.
+  `enablement: true` can only deploy to an *already-enabled* Pages site — it
+  can't turn Pages on for the first time; that's a repo-admin action the
+  default `GITHUB_TOKEN` isn't allowed to do. Human action needed: repo
+  Settings → Pages → set "Build and deployment source" to "GitHub Actions".
+  After that one-time step, this workflow should succeed on the next push to
+  `dev` with no changes needed on my end.
 
 ## Needs human playtest
-- Once this branch is merged and something lands on `dev`, check that the
-  GitHub Pages deploy workflow (`.github/workflows/deploy.yml`) actually
-  publishes and the page loads.
+- After enabling Pages (see Backlog), confirm the deploy workflow succeeds on
+  the next push to `dev` and the published page actually loads and boots.
 - Visually confirm the current placeholder boot screen ("Ashes of Azer" text
   on a dark background at 960×540) looks right — no visual regressions
   expected until Milestone 0.2 replaces it with real gameplay.
