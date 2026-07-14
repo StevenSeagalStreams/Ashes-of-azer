@@ -81,16 +81,20 @@ Notes for that session:
 
 ## Backlog
 - Enable branch protection on `main` (human, GitHub Settings → Branches).
-- **GitHub Pages needs a one-time manual enable.** Confirmed by a real push to
-  `dev`: `.github/workflows/deploy.yml` ran CI clean (typecheck/lint/test/build
-  all passed) but the `actions/configure-pages@v5` step failed with
-  `Create Pages site failed. Error: Resource not accessible by integration`.
-  `enablement: true` can only deploy to an *already-enabled* Pages site — it
-  can't turn Pages on for the first time; that's a repo-admin action the
-  default `GITHUB_TOKEN` isn't allowed to do. Human action needed: repo
-  Settings → Pages → set "Build and deployment source" to "GitHub Actions".
-  After that one-time step, this workflow should succeed on the next push to
-  `dev` with no changes needed on my end.
+- **GitHub Pages: enabled, but deploy still blocked — one more setting.**
+  User enabled Pages (Settings → Pages → Source: GitHub Actions). Re-ran the
+  workflow: the `build` job now succeeds end-to-end (typecheck/lint/test/
+  build/configure-pages/upload-pages-artifact all green). But the `deploy`
+  job fails instantly every time with no runner ever assigned and no logs
+  (job never actually starts) — classic signature of a GitHub Actions
+  **environment protection rule** blocking the deploy before it's scheduled.
+  Likely cause: GitHub auto-created a `github-pages` environment with a
+  branch restriction that doesn't include `dev` (commonly defaults to the
+  repo's default branch only). Human action needed: repo Settings →
+  Environments → `github-pages` → "Deployment branches and tags" → change to
+  "No restriction" (or explicitly allow `dev`). Tried re-running the failed
+  job 3x after Pages was enabled to rule out propagation delay — same
+  instant failure each time, so this isn't a timing issue.
 
 ## Needs human playtest
 - After enabling Pages (see Backlog), confirm the deploy workflow succeeds on
