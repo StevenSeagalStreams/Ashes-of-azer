@@ -1,24 +1,24 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 0.2, next unchecked box: **"Port player movement + collision to
-Phaser arcade physics."** This is the next session's starting point.
+Milestone 0.2, next unchecked box: **"Port the combat core: hit detection,
+damage numbers, cooldowns."** This is the next session's starting point.
 
 Notes for that session:
-- Reference `ashes_of_azer.html` lines ~360-386 (player object, `pstats()`)
-  and ~669-690 (the `update()` movement block: WASD → normalized velocity,
-  `walkable()` tile-collision check, speed = `78 * (1 + ST.ms/100)`).
-- There's no Tiled map yet (that's Milestone 0.5) — Tiled integration is a
-  later checkbox, so for this task, either (a) stand up a minimal
-  placeholder tilemap/bounds in `WorldScene` just to give arcade physics
-  something to collide with, or (b) use a plain world-bounds rectangle for
-  now and defer real tile collision to when Tiled lands. Use judgement;
-  either is a "technical choice within the stated stack" CLAUDE.md says to
-  decide solo — just record which one and why.
-- Put the player as an entity under `/src/entities` (e.g. `Player.ts`) per
-  the folder structure from 0.1, not inline in `WorldScene`.
-- Camera follow is the *next* checkbox after this one — don't do it yet,
-  even though it's tempting to wire up together with movement.
+- Reference `ashes_of_azer.html`: `playerAttack()` (~line 507), `dmgEnemy()`
+  (~462), `shockwave()` (~504), the fx damage-number system (~454-460 and the
+  render block ~867), skill cooldown handling in `trySkill()` (~642) and the
+  per-frame cooldown tick in `update()` (~691).
+- Combat needs something to hit: port the enemy spawn/chase basics only as
+  far as needed to verify hit detection (ETYPES ~424, spawnEnemy/populate
+  ~430-449, chase movement in update ~714-745). Full data-driven enemies come
+  in 0.3 — keep the port minimal and hardcoded-matching-prototype for parity.
+- Damage numbers: CLAUDE.md requires pooling from the start — pool the
+  floating-text objects (and any hit particles) rather than allocating per hit.
+- Cooldowns: prototype skills have cd/mana/rank; for *this* checkbox only the
+  cooldown/attack-timing mechanics need porting (atkCd 0.45s / aspd), not the
+  full 5-skill kit (that's Milestone 1.2's job).
+- The scene runs at 480x270 zoom 2 — all prototype pixel values carry over 1:1.
 
 ## Done
 - **Milestone 0.1 — Project setup: all 6 checkboxes complete.**
@@ -46,6 +46,35 @@ Notes for that session:
     the Milestone 0.2 scene-skeleton placeholder ("Ashes of Azer" text), not
     real gameplay yet.
   - `CHANGELOG.md` created with an `## Unreleased` heading.
+- **Milestone 0.2, checkboxes 2-3: movement + collision, camera follow.**
+  - `src/systems/mapgen.ts` — port of the prototype's Starter Plains
+    generator (same constants: 60x40 tiles of 16px, lake, path, clearings,
+    dungeon door at (48-49,15), spawn at (160,496)). Placeholder until Tiled
+    lands in 0.5. `solid()` = tree/water/dwall. 9 Vitest unit tests cover the
+    generator's invariants (dims, border, path, door, lake, clearing,
+    out-of-bounds lookups solid).
+  - `src/systems/pixelart.ts` — port of the prototype's GBA palette +
+    sprite-from-string-rows helper (hero sprite) and a generated 9-tile
+    tileset strip texture (grass/tree/water/path/door/dfloor/dwall/portal/
+    flowers).
+  - `src/entities/Player.ts` — arcade-physics sprite; WASD + arrows,
+    normalized diagonals, BASE_SPEED 78 px/s (prototype value), `facing`
+    vector kept for later skill aiming, `moveSpeedPct` stub for gear stats
+    (wired in 0.3), 10x10 body ≈ prototype's radius-5 circle.
+  - `WorldScene` builds the tilemap from the generated grid, sets collision
+    on solid tiles, world + camera bounds, `startFollow(player)` (equivalent
+    to the prototype's clamped hard-follow), and exposes `window.__AZER =
+    { player }` as a debug handle (used by headless smoke tests; also useful
+    for the 2.5 debug-tools task later).
+  - Game config: 480x270 internal resolution at 2x zoom = prototype's canvas
+    exactly, so every ported tuning value (speeds, radii, distances) is 1:1.
+  - Verified headless (Playwright + bundled Chromium against the prod
+    build): +54.6px after 0.7s holding right (~78 px/s); pushing left into
+    the border wall stops the body at x=21 (wall edge 16 + half-body 5) with
+    no clip-through and no vertical drift; camera keeps player at view
+    centre (scrollX = px-240 exactly) and clamps at world edges; zero
+    console errors. Screenshots eyeballed: world renders (grass/trees/path/
+    flowers/hero) in the right palette.
 - **Milestone 0.2, first checkbox: scene skeleton done.**
   - `src/scenes/BootScene.ts` — starts `WorldScene`, launches `UIScene` in
     parallel (empty for now; will do asset/data loading once there's
@@ -79,17 +108,28 @@ Notes for that session:
   alternative but needs a butler API key / new account setup.
 - Vitest set to `passWithNoTests: true` rather than adding a placeholder test
   — there's no real logic yet to test at 0.1; real tests start with 0.3's
-  data-driven systems, per CLAUDE.md's verification rules.
+  data-driven systems, per CLAUDE.md's verification rules. (First real tests
+  landed with mapgen in 0.2.)
+- Placeholder map: ported the prototype's generator into `src/systems/mapgen.ts`
+  (option "a" from last session's notes) instead of a bare bounds rectangle —
+  it gives collision something real to verify against, keeps visual parity,
+  and its pure functions are unit-testable. Tiled replaces it in 0.5.
+- Game internal resolution set to 480x270 with zoom 2 (not 960x540 native) so
+  the prototype's tuning values port 1:1 without rescaling every constant.
+- `window.__AZER` debug handle is exposed unconditionally (not dev-gated):
+  needed by headless smoke tests against prod builds, harmless to players,
+  and a head start on the 2.5 debug-tools task.
 
 ## Backlog
 - Enable branch protection on `main` (human, GitHub Settings → Branches) —
   still outstanding, no tool available to me to do this.
 
 ## Needs human playtest
-- Visually confirm https://stevenseagalstreams.github.io/Ashes-of-azer/ loads
-  and shows the "Ashes of Azer" placeholder text on a dark background — no
-  visual regressions expected until Milestone 0.2 replaces it with real
-  gameplay.
+- On https://stevenseagalstreams.github.io/Ashes-of-azer/ (after the next
+  `dev` deploy): walk around Starter Plains with WASD/arrows. Check movement
+  *feel* vs. the prototype (`ashes_of_azer.html`) — same speed, diagonals not
+  faster, trees/water/border blocking cleanly, camera follow smooth. Headless
+  tests verified the numbers; feel needs human hands.
 
 ## Asset requests
 (none yet)
