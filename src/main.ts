@@ -1,16 +1,7 @@
 import Phaser from 'phaser';
-
-class PlaceholderScene extends Phaser.Scene {
-  create(): void {
-    this.add
-      .text(this.scale.width / 2, this.scale.height / 2, 'Ashes of Azer', {
-        fontFamily: 'monospace',
-        fontSize: '24px',
-        color: '#e8b64c',
-      })
-      .setOrigin(0.5);
-  }
-}
+import { BootScene } from './scenes/BootScene.ts';
+import { WorldScene } from './scenes/WorldScene.ts';
+import { UIScene } from './scenes/UIScene.ts';
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -19,5 +10,5 @@ new Phaser.Game({
   height: 540,
   backgroundColor: '#1a1423',
   pixelArt: true,
-  scene: [PlaceholderScene],
+  scene: [BootScene, WorldScene, UIScene],
 });
