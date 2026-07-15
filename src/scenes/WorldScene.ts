@@ -9,6 +9,7 @@ import {
   rollHit,
 } from '../systems/combat.ts';
 import { DamageNumbers } from '../systems/DamageNumbers.ts';
+import { FogOfWar } from '../systems/fog.ts';
 import { genOverworld, MAPH, MAPW, SOLID_TILES, SPAWN, TS, walkable } from '../systems/mapgen.ts';
 import { addSlashTexture, addTilesetTexture } from '../systems/pixelart.ts';
 
@@ -32,7 +33,10 @@ export class WorldScene extends Phaser.Scene {
   private enemies!: Phaser.Physics.Arcade.Group;
   private numbers!: DamageNumbers;
   private slash!: Phaser.GameObjects.Image;
+  private fog!: FogOfWar;
   private spaceKey!: Phaser.Input.Keyboard.Key;
+  // Overworld is a bright zone; the dungeon (Milestone 0.5) will pass true.
+  private readonly isDarkZone = false;
 
   constructor() {
     super('World');
@@ -75,6 +79,8 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, MAPW * TS, MAPH * TS);
     this.cameras.main.startFollow(this.player);
 
+    this.fog = new FogOfWar(this, this.isDarkZone, this.player.visionBonus);
+
     window.__AZER = {
       player: this.player,
       enemies: () => this.enemies.getChildren() as Enemy[],
@@ -89,6 +95,9 @@ export class WorldScene extends Phaser.Scene {
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (e.active) e.updateEnemy(dt, this.player, this.numbers);
     }
+    // Fog centres on the player's on-screen position (world pos - camera scroll).
+    const cam = this.cameras.main;
+    this.fog.update(this.player.x - cam.scrollX, this.player.y - cam.scrollY);
   }
 
   private playerAttack(): void {

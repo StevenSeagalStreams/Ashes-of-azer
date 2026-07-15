@@ -18,6 +18,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   /** Gear stats stubs — real derived stats land with items in Milestone 0.3. */
   aspdPct = 0;
   critPct = 5; // prototype pstats() base crit
+  /** +Vision from gear pushes back the fog; real stat lands in Milestone 0.3. */
+  visionBonus = 0;
   level = 1;
   maxHp = 100; // prototype: 90 + level*10
   hp = 100;
