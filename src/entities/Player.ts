@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { addSpriteTexture, HERO_ROWS } from '../systems/pixelart.ts';
+import type { DamageNumbers } from '../systems/DamageNumbers.ts';
 
 // Prototype: spd = 78 * (1 + ST.ms/100) px/s (update() movement block).
 const BASE_SPEED = 78;
@@ -14,6 +15,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   readonly facing = new Phaser.Math.Vector2(1, 0);
   /** +% movement speed from gear; wired to real stats in Milestone 0.3. */
   moveSpeedPct = 0;
+  /** Gear stats stubs — real derived stats land with items in Milestone 0.3. */
+  aspdPct = 0;
+  critPct = 5; // prototype pstats() base crit
+  level = 1;
+  maxHp = 100; // prototype: 90 + level*10
+  hp = 100;
+  atkCd = 0;
 
   private readonly keys: MoveKeys;
 
@@ -37,5 +45,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const speed = BASE_SPEED * (1 + this.moveSpeedPct / 100);
     const v = new Phaser.Math.Vector2(dx, dy).normalize().scale(speed);
     this.setVelocity(v.x, v.y);
+  }
+
+  takeDamage(amount: number, numbers: DamageNumbers): void {
+    this.hp = Math.max(0, this.hp - amount);
+    numbers.spawn(this.x, this.y, amount, '#f08060');
+    this.setAlpha(0.55);
+    this.scene.time.delayedCall(150, () => this.setAlpha(1));
+    // Death/respawn flow is ported with the 0.2 parity checkbox.
   }
 }

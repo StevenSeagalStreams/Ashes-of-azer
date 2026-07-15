@@ -40,6 +40,23 @@ export const HERO_ROWS = [
   '..kk...kk..',
 ];
 
+export const SLIME_ROWS = [
+  '...GGGG...',
+  '..GGGGGG..',
+  '.GGkGGkGG.',
+  '.GGGGGGGG.',
+  'GGGGggGGGG',
+  '.gggggggg.',
+];
+
+export const BAT_ROWS = [
+  'p..pppp..p',
+  'ppPPPPPPpp',
+  '.pPkPPkPp.',
+  '..PPPPPP..',
+  '...p..p...',
+];
+
 export function addSpriteTexture(scene: Phaser.Scene, key: string, rows: string[]): void {
   if (scene.textures.exists(key)) return;
   const first = rows[0] ?? '';
@@ -57,6 +74,22 @@ export function addSpriteTexture(scene: Phaser.Scene, key: string, rows: string[
       }
     }
   });
+  scene.textures.addCanvas(key, c);
+}
+
+// Small white arc used as the melee slash flash (prototype fx.slash).
+export function addSlashTexture(scene: Phaser.Scene, key: string): void {
+  if (scene.textures.exists(key)) return;
+  const c = document.createElement('canvas');
+  c.width = 24;
+  c.height = 24;
+  const g = c.getContext('2d');
+  if (!g) throw new Error('2d canvas context unavailable');
+  g.strokeStyle = '#ffffff';
+  g.lineWidth = 2;
+  g.beginPath();
+  g.arc(12, 12, 10, -1, 1);
+  g.stroke();
   scene.textures.addCanvas(key, c);
 }
 

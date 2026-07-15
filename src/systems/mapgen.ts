@@ -68,3 +68,11 @@ export function genOverworld(): number[][] {
 
 // Prototype spawn point: player starts on the path in the spawn clearing.
 export const SPAWN = { x: 10 * TS, y: 31 * TS };
+
+// Prototype walkable(): a point is walkable when none of the four corners of
+// a radius-r box around it sits on a solid tile.
+export function walkable(grid: number[][], px: number, py: number, r: number): boolean {
+  const corner = (x: number, y: number): boolean =>
+    solid(tileAt(grid, Math.floor(x / TS), Math.floor(y / TS)));
+  return !corner(px - r, py - r) && !corner(px + r, py - r) && !corner(px - r, py + r) && !corner(px + r, py + r);
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { genOverworld, MAPH, MAPW, solid, TILE, tileAt } from './mapgen.ts';
+import { genOverworld, MAPH, MAPW, solid, TILE, tileAt, TS, walkable } from './mapgen.ts';
 
 describe('solid', () => {
   it('marks trees, water and dungeon walls as solid', () => {
@@ -63,5 +63,27 @@ describe('genOverworld', () => {
   it('treats out-of-bounds lookups as solid trees', () => {
     expect(tileAt(grid, -1, 5)).toBe(TILE.TREE);
     expect(tileAt(grid, 5, MAPH)).toBe(TILE.TREE);
+  });
+});
+
+describe('walkable', () => {
+  const grid = genOverworld();
+
+  it('accepts a point in the middle of the path', () => {
+    // Path rows 30-31 are always clear; centre of tile (20,30).
+    expect(walkable(grid, 20 * TS + 8, 30 * TS + 8, 5)).toBe(true);
+  });
+
+  it('rejects a point on the tree border', () => {
+    expect(walkable(grid, 8, 8, 5)).toBe(false);
+  });
+
+  it('rejects a point whose radius overlaps a solid tile', () => {
+    // Point just inside the border tile's neighbour, radius poking into the wall.
+    expect(walkable(grid, TS + 2, 30 * TS + 8, 5)).toBe(false);
+  });
+
+  it('rejects out-of-bounds points', () => {
+    expect(walkable(grid, -20, -20, 5)).toBe(false);
   });
 });
