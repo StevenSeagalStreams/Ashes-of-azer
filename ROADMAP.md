@@ -25,8 +25,8 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Port player movement + collision to Phaser arcade physics
 - [x] Port camera follow with world bounds
 - [x] Port the combat core: hit detection, damage numbers, cooldowns
-- [ ] Port fog of war as a Phaser render texture / mask (test performance early)
-- [ ] Verify feature parity with the HTML prototype before continuing
+- [x] Port fog of war as a Phaser render texture / mask (test performance early)
+- [x] Verify feature parity with the HTML prototype before continuing (overworld loop at parity; loot/skills/XP/dungeon owned by later milestones — see PROGRESS.md)
 
 ### 0.3 Data-driven content (highest-leverage task in the project)
 - [ ] Define JSON schemas: `items.json`, `affixes.json`, `enemies.json`, `skills.json`, `zones.json`, `quests.json`, `dialogue.json`

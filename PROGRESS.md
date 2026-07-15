@@ -1,30 +1,86 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 0.2, next unchecked box: **"Port fog of war as a Phaser render
-texture / mask (test performance early)."**
+**Milestone 0.2 is COMPLETE.** Next up: **Milestone 0.3 — Data-driven content**
+(the highest-leverage task in the project per CLAUDE.md). First unchecked box:
+"Define JSON schemas: items.json, affixes.json, enemies.json, skills.json,
+zones.json, quests.json, dialogue.json."
 
 Notes for that session:
-- Reference `ashes_of_azer.html` fog block in `draw()` (~line 872-886): radial
-  gradient centred on player; base radius 100 overworld / 62 dungeon
-  (`map.dark`), +vision from gear (stub a `visionBonus` on Player, real stat
-  in 0.3); darkness 0.82 overworld / 0.95 dungeon; gradient stops at 0.45R
-  (clear), 0.8R (dark*0.7), R (dark).
-- Roadmap explicitly says test performance early — after implementing, extend
-  the headless smoke test to sample FPS (game.loop.actualFps over a few
-  seconds) with fog on and assert it stays near 60 in the headless run, and
-  note real-hardware verification under Needs human playtest.
-- Suggested approach: fullscreen dark RenderTexture redrawn per frame with an
-  erase-blend radial-gradient brush texture at the player position (brush can
-  be a pre-generated canvas texture; only position changes per frame).
-- After fog, the last 0.2 checkbox is the parity check vs. the prototype —
-  known gaps to close or explicitly defer there: player death/respawn flow,
-  healing well, overworld enemy respawning, XP/levels, map transitions
-  (door/portal tiles do nothing yet), skills 1-5, loot. Several of those
-  belong to later milestones (0.3 data, 1.x skills); the parity checkbox
-  should decide and document what "parity" means for 0.2 exactly.
+- The architectural rule that overrides most others (CLAUDE.md): adding content
+  must never require code changes. Everything currently hardcoded moves to
+  `/data/*.json` validated with **zod** at load, failing loudly on bad data.
+- Install `zod` (not yet a dependency). Write a schema + inferred TS type per
+  content file, and a loader run at boot (BootScene is the natural home —
+  it already exists and does nothing yet).
+- What's hardcoded right now and must migrate to JSON:
+  - `src/systems/combat.ts` → `ETYPES` (slime/bat stats) → `enemies.json`.
+    Also the skel/boss defs still only live in the prototype; add them to
+    `enemies.json` too so the dungeon (0.5) can use them without code.
+  - The prototype (`ashes_of_azer.html`) still holds the authoritative content
+    not yet ported: items/bases (`BASES` ~288), affixes (`AFFIX_POOL` ~295),
+    legendaries (`LEGENDARIES` ~308), rarity table (`RARITY` ~319), skills
+    (`SKILLS` ~389). Port these straight into JSON rather than into TS first.
+  - Tuning constants in `combat.ts`/`fog.ts` are fine to leave as code for now
+    UNLESS the roadmap task says otherwise — the rule targets *content*
+    (items/affixes/enemies/skills/zones/quests/dialogue), not engine constants.
+- The 0.3 acceptance test is explicit: "add a new enemy type by editing JSON
+  only — zero code changes." Build toward that as the proof.
+- Vite serves `/data/*.json`: import via `import enemies from '../../data/enemies.json'`
+  (Vite bundles JSON) OR fetch at runtime. Importing is simpler and lets zod
+  validate the bundled object; decide and record which.
+
+### Parity assessment (deliverable of the 0.2 "verify parity" checkbox)
+Decision on what "parity" means for Milestone 0.2 (whose scope is *porting the
+prototype's core gameplay into Phaser scenes*, not rebuilding every system):
+
+**At parity now** (0.2-scoped systems, verified vs. prototype):
+- Movement + collision (WASD/arrows, 78px/s, tree/water/border blocking)
+- Camera follow clamped to world
+- Combat core: primary attack, hit detection, pooled damage numbers,
+  crits, attack cooldown, slime/bat chase + contact damage
+- Fog of war (radius, darkness, brush geometry all match)
+- Player death → "YOU DIED" → R respawn; HP HUD; overworld enemy respawn
+
+**Deliberately deferred to their owning milestones** (NOT 0.2 gaps):
+- Loot drops, items, inventory, equipment, affixes/legendaries → **0.3** (data)
+  and the item system. Enemies give no XP/drops yet.
+- XP / leveling / skill points → **1.1** (build system). `player.level` exists
+  and scales damage but never increases yet.
+- Skills 1-5 (Shield Slam, Whirlwind, Leap, Execute, War Cry), mana → **1.2**
+  (Warrior kit). Only the primary attack is ported.
+- Skeletons, boss (Rotfang), the dungeon map, dungeon fog, healing well,
+  map transitions (door/portal tiles are inert) → **0.5** (Tiled pipeline +
+  trigger system explicitly owns zone transitions).
+- Legendary powers (Frostheart etc.) → **1.5** (item-modifies-skill system).
+Nothing above is a regression; each is scheduled work. This is the correct
+"parity for 0.2" boundary.
 
 ## Done
+- **Milestone 0.2 is COMPLETE — all 6 checkboxes ticked.** The prototype's
+  core overworld gameplay now runs in Phaser (scenes, movement, camera,
+  combat, fog, death/respawn), verified vs. the HTML prototype (see the parity
+  assessment under Current task for the exact scope boundary).
+- **Milestone 0.2, checkbox 6: fog of war.**
+  - `src/systems/fog.ts` — `fogParams()` pure (radius 100/62 + vision,
+    darkness 0.82/0.95) with tests; `FogOfWar` class fills a scrollFactor-0
+    RenderTexture at `darkness` and erases a radial sight brush at the player
+    each frame. Brush gradient tuned so erase leaves darkness*0.7 at the 0.8
+    stop, matching the prototype. O(1) per frame.
+  - `Player.visionBonus` stub (real +Vision stat with gear in 0.3).
+  - Verified headless: bright centre (95) / dark far corner (36) sampled from
+    the screenshot, ~59 fps with fog redrawing every frame (roadmap's "test
+    perf early"); screenshot matches prototype look.
+- **Milestone 0.2, checkbox 4b (parity): death/respawn, HUD, overworld respawn.**
+  - `Player`: `dead` flag (locks movement/attacks), `respawn(x,y)` to full hp;
+    death triggers at hp<=0 in `takeDamage`.
+  - `UIScene`: HP bar + text from the `hud` registry key (WorldScene
+    publishes it each frame — decoupled), "YOU DIED" overlay container.
+  - `WorldScene`: keydown-R respawn (event handler, not JustDown polling —
+    the latter was flaky under headless press timing), overworld respawn
+    timer topping up toward 10 enemies every 4s clear of the player.
+  - Verified headless: death→overlay→hud all set; R respawns to full hp at
+    (160,496); emptied overworld refills after the interval.
 - **Milestone 0.2, checkbox 4: combat core.**
   - `src/systems/combat.ts` — prototype combat math as pure functions with
     unit tests: attackCooldown (0.45/(1+aspd%)), playerBaseDamage (8+2*lvl),
@@ -153,12 +209,17 @@ Notes for that session:
 - ~~Movement/collision/camera feel~~ — **confirmed by user 2026-07-14**:
   walking works, trees and water block correctly.
 - On https://stevenseagalstreams.github.io/Ashes-of-azer/ (after the next
-  `dev` deploy): **combat feel** vs. the prototype — hold SPACE to attack
-  (slash flashes in your facing direction), slimes/bats should chase when
-  you get close, hit you for 6/5 damage, die in ~3 swings with floating
-  damage numbers (yellow = crit). Known gaps, deliberate: you can't die yet
-  (death/respawn comes with the parity pass), no XP/loot yet (Milestone 0.3),
-  dungeon door does nothing yet (0.5).
+  `dev` deploy): **the full 0.2 overworld loop** vs. the prototype —
+  - Combat feel: hold SPACE to attack (slash flashes toward facing),
+    slimes/bats chase and hit for 6/5, die in ~3 swings, floating damage
+    numbers (yellow = crit).
+  - Fog: sight radius around you, plains fading to dark — should read like
+    the prototype's overworld, no flicker/seams; check it holds 60fps and
+    doesn't tank on weaker hardware (headless run measured ~59fps).
+  - Death: let a monster kill you → "YOU DIED" → press R → back at spawn full
+    hp. HP bar top-left.
+  Known gaps, deliberate (owned by later milestones, not bugs): no XP/loot
+  (0.3), no skills 1-5 (1.2), dungeon door inert / no dungeon (0.5).
 
 ## Asset requests
 (none yet)
