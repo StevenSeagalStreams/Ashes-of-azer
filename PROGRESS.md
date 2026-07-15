@@ -1,26 +1,51 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 0.2, next unchecked box: **"Port the combat core: hit detection,
-damage numbers, cooldowns."** This is the next session's starting point.
+Milestone 0.2, next unchecked box: **"Port fog of war as a Phaser render
+texture / mask (test performance early)."**
 
 Notes for that session:
-- Reference `ashes_of_azer.html`: `playerAttack()` (~line 507), `dmgEnemy()`
-  (~462), `shockwave()` (~504), the fx damage-number system (~454-460 and the
-  render block ~867), skill cooldown handling in `trySkill()` (~642) and the
-  per-frame cooldown tick in `update()` (~691).
-- Combat needs something to hit: port the enemy spawn/chase basics only as
-  far as needed to verify hit detection (ETYPES ~424, spawnEnemy/populate
-  ~430-449, chase movement in update ~714-745). Full data-driven enemies come
-  in 0.3 — keep the port minimal and hardcoded-matching-prototype for parity.
-- Damage numbers: CLAUDE.md requires pooling from the start — pool the
-  floating-text objects (and any hit particles) rather than allocating per hit.
-- Cooldowns: prototype skills have cd/mana/rank; for *this* checkbox only the
-  cooldown/attack-timing mechanics need porting (atkCd 0.45s / aspd), not the
-  full 5-skill kit (that's Milestone 1.2's job).
-- The scene runs at 480x270 zoom 2 — all prototype pixel values carry over 1:1.
+- Reference `ashes_of_azer.html` fog block in `draw()` (~line 872-886): radial
+  gradient centred on player; base radius 100 overworld / 62 dungeon
+  (`map.dark`), +vision from gear (stub a `visionBonus` on Player, real stat
+  in 0.3); darkness 0.82 overworld / 0.95 dungeon; gradient stops at 0.45R
+  (clear), 0.8R (dark*0.7), R (dark).
+- Roadmap explicitly says test performance early — after implementing, extend
+  the headless smoke test to sample FPS (game.loop.actualFps over a few
+  seconds) with fog on and assert it stays near 60 in the headless run, and
+  note real-hardware verification under Needs human playtest.
+- Suggested approach: fullscreen dark RenderTexture redrawn per frame with an
+  erase-blend radial-gradient brush texture at the player position (brush can
+  be a pre-generated canvas texture; only position changes per frame).
+- After fog, the last 0.2 checkbox is the parity check vs. the prototype —
+  known gaps to close or explicitly defer there: player death/respawn flow,
+  healing well, overworld enemy respawning, XP/levels, map transitions
+  (door/portal tiles do nothing yet), skills 1-5, loot. Several of those
+  belong to later milestones (0.3 data, 1.x skills); the parity checkbox
+  should decide and document what "parity" means for 0.2 exactly.
 
 ## Done
+- **Milestone 0.2, checkbox 4: combat core.**
+  - `src/systems/combat.ts` — prototype combat math as pure functions with
+    unit tests: attackCooldown (0.45/(1+aspd%)), playerBaseDamage (8+2*lvl),
+    rollHit (2x crit, injectable rng), scaledEnemyHp (base*(1+lvl*0.12)),
+    reach/radius/contact constants, ETYPES slime+bat (skel/boss arrive with
+    the dungeon; all of it moves to JSON in 0.3).
+  - `src/entities/Enemy.ts` — chase player inside aggro, stop at contact
+    range, 0.9s contact-attack cooldown, hp bar (two rectangles), white hit
+    flash, death destroys cleanly. Collides with the tile layer.
+  - `src/entities/Player.ts` — hp/maxHp (100 @ lvl1), critPct 5, aspdPct 0
+    stubs, takeDamage with red number + hurt alpha flash. Death/respawn flow
+    deliberately deferred to the parity checkbox.
+  - `src/systems/DamageNumbers.ts` — pooled floating text (recycled through
+    tween-complete), black stroke, crits yellow #ffd84a, player dmg #f08060.
+  - WorldScene: SPACE attacks along facing (slash arc flash), prototype
+    populate() port spawns 14 slimes/bats on walkable tiles ≥90px from spawn.
+  - Verified headless: enemy teleported next to player chased to 12.6px
+    (contact range) and stopped; died to expected swing count; player hp
+    dropped by exactly prototype damage values (slime 6 + bat 5); zero
+    console errors; screenshot eyeballed (numbers float/fade, hp bars).
+    21 unit tests green.
 - **Milestone 0.1 — Project setup: all 6 checkboxes complete.**
   - `dev` branch created on GitHub (points at `main`).
   - Vite + TypeScript + Phaser 3 scaffolded by hand (package.json, strict
@@ -125,11 +150,15 @@ Notes for that session:
   still outstanding, no tool available to me to do this.
 
 ## Needs human playtest
+- ~~Movement/collision/camera feel~~ — **confirmed by user 2026-07-14**:
+  walking works, trees and water block correctly.
 - On https://stevenseagalstreams.github.io/Ashes-of-azer/ (after the next
-  `dev` deploy): walk around Starter Plains with WASD/arrows. Check movement
-  *feel* vs. the prototype (`ashes_of_azer.html`) — same speed, diagonals not
-  faster, trees/water/border blocking cleanly, camera follow smooth. Headless
-  tests verified the numbers; feel needs human hands.
+  `dev` deploy): **combat feel** vs. the prototype — hold SPACE to attack
+  (slash flashes in your facing direction), slimes/bats should chase when
+  you get close, hit you for 6/5 damage, die in ~3 swings with floating
+  damage numbers (yellow = crit). Known gaps, deliberate: you can't die yet
+  (death/respawn comes with the parity pass), no XP/loot yet (Milestone 0.3),
+  dungeon door does nothing yet (0.5).
 
 ## Asset requests
 (none yet)
