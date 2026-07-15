@@ -35,8 +35,13 @@ export class WorldScene extends Phaser.Scene {
   private slash!: Phaser.GameObjects.Image;
   private fog!: FogOfWar;
   private spaceKey!: Phaser.Input.Keyboard.Key;
+  private grid!: number[][];
+  private respawnTimer = 0;
   // Overworld is a bright zone; the dungeon (Milestone 0.5) will pass true.
   private readonly isDarkZone = false;
+  // Prototype: refill the overworld toward ~10 enemies every 4s.
+  private static readonly OVERWORLD_CAP = 10;
+  private static readonly RESPAWN_INTERVAL = 4;
 
   constructor() {
     super('World');
@@ -46,6 +51,7 @@ export class WorldScene extends Phaser.Scene {
     addTilesetTexture(this, 'tiles');
     addSlashTexture(this, 'slash');
     const grid = genOverworld();
+    this.grid = grid;
     const map = this.make.tilemap({ data: grid, tileWidth: TS, tileHeight: TS });
     const tileset = map.addTilesetImage('tiles');
     if (!tileset) throw new Error('failed to add tileset');
@@ -73,6 +79,9 @@ export class WorldScene extends Phaser.Scene {
     const kb = this.input.keyboard;
     if (!kb) throw new Error('keyboard plugin unavailable');
     this.spaceKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    kb.on('keydown-R', () => {
+      if (this.player.dead) this.player.respawn(SPAWN.x, SPAWN.y);
+    });
 
     // Prototype: camX = clamp(player.x - W/2, 0, MAPW*TS - W) — a hard follow
     // clamped to the world, which is startFollow + camera bounds in Phaser.
@@ -80,6 +89,9 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player);
 
     this.fog = new FogOfWar(this, this.isDarkZone, this.player.visionBonus);
+
+    // UIScene (the HUD overlay) reads these; keeps the two scenes decoupled.
+    this.publishHud();
 
     window.__AZER = {
       player: this.player,
@@ -90,14 +102,50 @@ export class WorldScene extends Phaser.Scene {
   override update(_time: number, delta: number): void {
     const dt = delta / 1000;
     this.player.update();
-    this.player.atkCd = Math.max(0, this.player.atkCd - dt);
-    if (this.spaceKey.isDown) this.playerAttack();
+
+    // Respawn is handled by the keydown-R listener registered in create().
+    if (!this.player.dead) {
+      this.player.atkCd = Math.max(0, this.player.atkCd - dt);
+      if (this.spaceKey.isDown) this.playerAttack();
+    }
+
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (e.active) e.updateEnemy(dt, this.player, this.numbers);
     }
+    this.tickOverworldRespawn(dt);
+    this.publishHud();
+
     // Fog centres on the player's on-screen position (world pos - camera scroll).
     const cam = this.cameras.main;
     this.fog.update(this.player.x - cam.scrollX, this.player.y - cam.scrollY);
+  }
+
+  private publishHud(): void {
+    this.registry.set('hud', {
+      hp: this.player.hp,
+      maxHp: this.player.maxHp,
+      dead: this.player.dead,
+    });
+  }
+
+  // Prototype: every RESPAWN_INTERVAL seconds, top the overworld back up to
+  // OVERWORLD_CAP so the farm never runs dry. New spawns keep clear of the
+  // player so nothing pops in on top of them.
+  private tickOverworldRespawn(dt: number): void {
+    this.respawnTimer -= dt;
+    if (this.respawnTimer > 0) return;
+    this.respawnTimer = WorldScene.RESPAWN_INTERVAL;
+    const alive = (this.enemies.getChildren() as Enemy[]).filter((e) => e.active).length;
+    if (alive >= WorldScene.OVERWORLD_CAP) return;
+    for (let tries = 0; tries < 20; tries++) {
+      const { x, y } = findSpawnPoint(this.grid);
+      if (Math.hypot(x - this.player.x, y - this.player.y) > 120) {
+        const type = Math.random() < 0.7 ? 'slime' : 'bat';
+        // Group members collide with the tile layer via the collider set in create().
+        this.enemies.add(new Enemy(this, type, x, y, this.player.level));
+        return;
+      }
+    }
   }
 
   private playerAttack(): void {

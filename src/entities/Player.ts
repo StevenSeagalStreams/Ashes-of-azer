@@ -24,6 +24,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   maxHp = 100; // prototype: 90 + level*10
   hp = 100;
   atkCd = 0;
+  dead = false;
 
   private readonly keys: MoveKeys;
 
@@ -40,6 +41,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   override update(): void {
+    if (this.dead) {
+      this.setVelocity(0, 0);
+      return;
+    }
     const k = this.keys;
     const dx = Number(k.D.isDown || k.RIGHT.isDown) - Number(k.A.isDown || k.LEFT.isDown);
     const dy = Number(k.S.isDown || k.DOWN.isDown) - Number(k.W.isDown || k.UP.isDown);
@@ -50,10 +55,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   takeDamage(amount: number, numbers: DamageNumbers): void {
+    if (this.dead) return;
     this.hp = Math.max(0, this.hp - amount);
     numbers.spawn(this.x, this.y, amount, '#f08060');
     this.setAlpha(0.55);
-    this.scene.time.delayedCall(150, () => this.setAlpha(1));
-    // Death/respawn flow is ported with the 0.2 parity checkbox.
+    this.scene.time.delayedCall(150, () => {
+      if (!this.dead) this.setAlpha(1);
+    });
+    if (this.hp <= 0) this.dead = true;
+  }
+
+  respawn(x: number, y: number): void {
+    this.dead = false;
+    this.hp = this.maxHp;
+    this.setAlpha(1);
+    this.setPosition(x, y);
+    this.setVelocity(0, 0);
   }
 }
