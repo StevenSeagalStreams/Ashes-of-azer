@@ -27,8 +27,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   gold = 0;
   maxHp = 100; // prototype: 90 + level*10
   hp = 100;
+  maxMp = 55; // prototype: 50 + level*5
+  mp = 55;
+  cdrPct = 0; // gear stat stub (m0.3 data, wired with items)
   atkCd = 0;
   dead = false;
+  /** War Cry: +damage% while the timer runs. */
+  damageBuffPct = 0;
+  private damageBuffT = 0;
 
   private readonly keys: MoveKeys;
 
@@ -75,5 +81,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setAlpha(1);
     this.setPosition(x, y);
     this.setVelocity(0, 0);
+  }
+
+  applyDamageBuff(pct: number, duration: number): void {
+    this.damageBuffPct = pct;
+    this.damageBuffT = duration;
+  }
+
+  /** Ticks timed effects; called from the scene's update. */
+  tickEffects(dt: number): void {
+    if (this.damageBuffT > 0) {
+      this.damageBuffT -= dt;
+      if (this.damageBuffT <= 0) this.damageBuffPct = 0;
+    }
   }
 }

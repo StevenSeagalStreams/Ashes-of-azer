@@ -10,6 +10,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   hp: number;
   readonly maxHp: number;
   private atkCd = 0;
+  private stunT = 0;
   private slamT = 3; // prototype: first boss slam 3s after spawn
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
@@ -33,6 +34,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   updateEnemy(dt: number, player: Player, numbers: DamageNumbers): void {
     this.atkCd = Math.max(0, this.atkCd - dt);
+    // Prototype: stunned enemies neither move nor attack (nor slam).
+    if (this.stunT > 0) {
+      this.stunT -= dt;
+      this.setVelocity(0, 0);
+      this.positionHpBar();
+      return;
+    }
     const d = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
     if (d < this.def.aggro && d > 2) {
       const vx = (player.x - this.x) / d;
@@ -59,11 +67,19 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         if (d < slam.radius) player.takeDamage(slam.damage, numbers);
       }
     }
+    this.positionHpBar();
+  }
+
+  private positionHpBar(): void {
     const barWidth = this.def.boss ? 30 : 12;
     const barY = this.y - this.height / 2 - 6;
     this.hpBarBg.setPosition(this.x, barY);
     this.hpBarFg.setPosition(this.x - barWidth / 2, barY);
     this.hpBarFg.setScale(Phaser.Math.Clamp(this.hp / this.maxHp, 0, 1), 1);
+  }
+
+  applyStun(duration: number): void {
+    this.stunT = Math.max(this.stunT, duration);
   }
 
   takeHit(hit: HitResult, numbers: DamageNumbers): void {
@@ -75,6 +91,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   private die(): void {
+    this.scene.events.emit('enemy-died', this.def);
     this.hpBarBg.destroy();
     this.hpBarFg.destroy();
     this.destroy();

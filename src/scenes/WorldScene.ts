@@ -17,8 +17,19 @@ import { addRingTexture, addSlashTexture, addTilesetTexture } from '../systems/p
 import { exportSave, importSave } from '../systems/save/codec.ts';
 import { defaultSave, type SaveData } from '../systems/save/schema.ts';
 import { SaveStore } from '../systems/save/store.ts';
+import {
+  applyXp,
+  castBlock,
+  MANA_REGEN,
+  manaMaxFor,
+  rankOf,
+  scaleValue,
+  skillCooldown,
+  xpToNext,
+} from '../systems/skills.ts';
 import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects } from '../systems/triggers.ts';
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
+import type { SkillData } from '../data/schemas/index.ts';
 
 declare global {
   interface Window {
@@ -65,6 +76,11 @@ export class WorldScene extends Phaser.Scene {
   private saveData: SaveData = defaultSave();
   private entry: ZoneInit = {};
   private transitioning = false;
+  // Hotbar: keys 1-6 cast these skills. Until the loadout UI sub-task lands,
+  // the first 6 skills in skills.json order fill the slots (matches the
+  // prototype's fixed 1-5 binding).
+  private hotbar: (SkillData | null)[] = [];
+  private readonly skillCooldowns = new Map<string, number>();
 
   constructor() {
     super('World');
@@ -130,6 +146,16 @@ export class WorldScene extends Phaser.Scene {
     const kb = this.input.keyboard;
     if (!kb) throw new Error('keyboard plugin unavailable');
     this.spaceKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.hotbar = this.gameData.skills.slice(0, 6);
+    this.skillCooldowns.clear();
+    (['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'] as const).forEach((keyName, i) => {
+      kb.on(`keydown-${keyName}`, () => {
+        const skill = this.hotbar[i];
+        if (skill && !this.player.dead && !this.transitioning) this.castSkill(skill);
+      });
+    });
+    this.events.off('enemy-died');
+    this.events.on('enemy-died', (def: EnemyData) => this.onEnemyDied(def));
     kb.on('keydown-R', () => {
       // Prototype: rising again always returns you to the overworld spawn.
       if (this.player.dead) {
@@ -166,7 +192,15 @@ export class WorldScene extends Phaser.Scene {
     const dt = delta / 1000;
     this.player.update();
 
+    this.player.tickEffects(dt);
+    for (const [id, t] of this.skillCooldowns) {
+      const left = t - dt;
+      if (left <= 0) this.skillCooldowns.delete(id);
+      else this.skillCooldowns.set(id, left);
+    }
+
     if (!this.player.dead) {
+      this.player.mp = Math.min(this.player.mp + MANA_REGEN * dt, this.player.maxMp);
       this.player.atkCd = Math.max(0, this.player.atkCd - dt);
       if (this.spaceKey.isDown) this.playerAttack();
 
@@ -255,10 +289,12 @@ export class WorldScene extends Phaser.Scene {
     this.player.level = this.saveData.character.level;
     this.player.xp = this.saveData.character.xp;
     this.player.gold = this.saveData.character.gold;
-    // maxHp derives from level (prototype: 90 + level*10); hp is transient
-    // combat state and always restores full on load.
+    // maxHp/maxMp derive from level (prototype: 90 + level*10, 50 + level*5);
+    // hp/mp are transient combat state and always restore full on load.
     this.player.maxHp = 90 + this.player.level * 10;
     this.player.hp = this.player.maxHp;
+    this.player.maxMp = manaMaxFor(this.player.level);
+    this.player.mp = this.player.maxMp;
   }
 
   private snapshot(): SaveData {
@@ -278,8 +314,125 @@ export class WorldScene extends Phaser.Scene {
     this.registry.set('hud', {
       hp: this.player.hp,
       maxHp: this.player.maxHp,
+      mp: this.player.mp,
+      maxMp: this.player.maxMp,
+      xp: this.player.xp,
+      xpNext: xpToNext(this.player.level),
+      level: this.player.level,
       dead: this.player.dead,
     });
+  }
+
+  // ---------- skills & xp ----------
+
+  private effectiveDamage(): number {
+    return playerBaseDamage(this.player.level) * (1 + this.player.damageBuffPct / 100);
+  }
+
+  private aoeRing(x: number, y: number, radius: number, color: string): void {
+    const key = `ring-${color}`;
+    addRingTexture(this, key, color);
+    const ring = this.add.image(x, y, key).setDepth(7).setScale((radius * 2) / 64);
+    this.tweens.add({ targets: ring, alpha: 0, duration: 350, onComplete: () => ring.destroy() });
+  }
+
+  private hitEnemiesWithin(x: number, y: number, radius: number, damage: number, stun?: number): void {
+    for (const e of this.enemies.getChildren() as Enemy[]) {
+      if (!e.active || Phaser.Math.Distance.Between(e.x, e.y, x, y) >= radius + 6) continue;
+      if (stun) e.applyStun(stun);
+      e.takeHit(rollHit(damage, this.player.critPct), this.numbers);
+    }
+  }
+
+  private castSkill(skill: SkillData): void {
+    const rank = rankOf(skill, this.saveData.skillRanks);
+    const block = castBlock(skill, {
+      level: this.player.level,
+      rank,
+      mp: this.player.mp,
+      cooldownRemaining: this.skillCooldowns.get(skill.id) ?? 0,
+    });
+    if (block) return;
+    this.player.mp -= skill.manaCost;
+    this.skillCooldowns.set(skill.id, skillCooldown(skill.cooldown, this.player.cdrPct));
+
+    const p = this.player;
+    switch (skill.mechanic) {
+      case 'shockwave': {
+        const radius = scaleValue(skill.radius, rank);
+        const stun = skill.stunDuration ? scaleValue(skill.stunDuration, rank) : undefined;
+        this.aoeRing(p.x, p.y, radius, skill.fxColor ?? '#ffffff');
+        this.hitEnemiesWithin(p.x, p.y, radius, this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank), stun);
+        break;
+      }
+      case 'leap': {
+        // Prototype: try the farthest walkable landing point along facing.
+        for (let d = scaleValue(skill.distance, rank); d > 0; d -= 6) {
+          const nx = p.x + p.facing.x * d;
+          const ny = p.y + p.facing.y * d;
+          if (walkableMask(this.solidMask, nx, ny, 5)) {
+            p.body?.reset(nx, ny);
+            break;
+          }
+        }
+        this.aoeRing(p.x, p.y, skill.landingRadius, skill.fxColor ?? '#ffffff');
+        this.hitEnemiesWithin(
+          p.x,
+          p.y,
+          skill.landingRadius,
+          this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank),
+          skill.stunDuration,
+        );
+        break;
+      }
+      case 'execute': {
+        let best: Enemy | null = null;
+        let bestD = skill.range;
+        for (const e of this.enemies.getChildren() as Enemy[]) {
+          if (!e.active) continue;
+          const d = Phaser.Math.Distance.Between(e.x, e.y, p.x, p.y);
+          if (d < bestD) {
+            bestD = d;
+            best = e;
+          }
+        }
+        if (!best) {
+          // Prototype: no target refunds the mana, tiny 0.3s cooldown.
+          p.mp += skill.manaCost;
+          this.skillCooldowns.set(skill.id, 0.3);
+          return;
+        }
+        const low = (best.hp / best.maxHp) * 100 < scaleValue(skill.lifeThresholdPct, rank);
+        const mult = low ? scaleValue(skill.damageMultiplierLow, rank) : skill.damageMultiplierHigh;
+        best.takeHit(rollHit(this.effectiveDamage() * mult, p.critPct), this.numbers);
+        break;
+      }
+      case 'buff': {
+        p.applyDamageBuff(scaleValue(skill.damageBonusPct, rank), skill.duration);
+        this.aoeRing(p.x, p.y, 30, skill.fxColor ?? '#d8503f');
+        break;
+      }
+    }
+  }
+
+  private onEnemyDied(def: EnemyData): void {
+    if (def.boss && !this.saveData.world.killedBosses.includes(def.id)) {
+      this.saveData.world.killedBosses.push(def.id);
+      this.saveNow();
+    }
+    const res = applyXp({ level: this.player.level, xp: this.player.xp }, def.xp);
+    this.player.xp = res.xp;
+    if (res.levelsGained > 0) {
+      this.player.level = res.level;
+      // Prototype level-up: stats refresh, full heal, full mana.
+      this.player.maxHp = 90 + res.level * 10;
+      this.player.hp = this.player.maxHp;
+      this.player.maxMp = manaMaxFor(res.level);
+      this.player.mp = this.player.maxMp;
+      this.numbers.spawn(this.player.x, this.player.y - 12, `LEVEL ${res.level}!`, '#9bd44a');
+      this.aoeRing(this.player.x, this.player.y, 50, '#9bd44a');
+      this.saveNow();
+    }
   }
 
   // ---------- combat ----------
@@ -297,7 +450,7 @@ export class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: this.slash, alpha: 0, duration: 150 });
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (e.active && Phaser.Math.Distance.Between(e.x, e.y, ax, ay) < ATTACK_RADIUS) {
-        e.takeHit(rollHit(playerBaseDamage(this.player.level), this.player.critPct), this.numbers);
+        e.takeHit(rollHit(this.effectiveDamage(), this.player.critPct), this.numbers);
       }
     }
   }

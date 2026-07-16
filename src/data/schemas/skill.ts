@@ -15,8 +15,10 @@ const SkillCommon = z.object({
   name: z.string(),
   unlockLevel: z.number().int().nonnegative(),
   maxRank: z.number().int().positive(),
+  startingRank: z.number().int().nonnegative().default(0), // ranks known at character creation
   cooldown: z.number().positive(),
   manaCost: z.number().nonnegative(),
+  fxColor: z.string().optional(), // AoE ring tint; omit for skills with other fx
 });
 
 export const SkillSchema = z.discriminatedUnion('mechanic', [
