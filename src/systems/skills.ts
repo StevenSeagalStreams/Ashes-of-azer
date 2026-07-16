@@ -66,6 +66,26 @@ export function availableSkillPoints(
   return earned - spent;
 }
 
+// Human-readable effect line for a rank, built generically from the
+// mechanic data (kept out of skills.json for now — recorded decision;
+// a descTemplate content field can replace this if wording needs authoring).
+export function describeSkill(skill: SkillData, rank: number): string {
+  const r = Math.max(rank, 1);
+  const pct = (s: { base: number; perRank: number }): number => Math.round(scaleValue(s, r) * 100);
+  switch (skill.mechanic) {
+    case 'shockwave': {
+      const stun = skill.stunDuration ? `, stun ${scaleValue(skill.stunDuration, r).toFixed(1)}s` : '';
+      return `Hit foes in ${Math.round(scaleValue(skill.radius, r))}px for ${pct(skill.damageMultiplier)}% dmg${stun}`;
+    }
+    case 'leap':
+      return `Leap ${Math.round(scaleValue(skill.distance, r))}px; landing hits for ${pct(skill.damageMultiplier)}% dmg`;
+    case 'execute':
+      return `Strike nearest foe: ${pct(skill.damageMultiplierLow)}% dmg below ${Math.round(scaleValue(skill.lifeThresholdPct, r))}% life, else ${Math.round(skill.damageMultiplierHigh * 100)}%`;
+    case 'buff':
+      return `+${Math.round(scaleValue(skill.damageBonusPct, r))}% damage for ${skill.duration}s`;
+  }
+}
+
 export type CastBlock = 'unlearned' | 'locked' | 'cooldown' | 'mana';
 
 export function castBlock(

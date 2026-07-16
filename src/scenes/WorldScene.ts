@@ -19,6 +19,7 @@ import { defaultSave, type SaveData } from '../systems/save/schema.ts';
 import { SaveStore } from '../systems/save/store.ts';
 import {
   applyXp,
+  availableSkillPoints,
   castBlock,
   MANA_REGEN,
   manaMaxFor,
@@ -29,6 +30,7 @@ import {
 } from '../systems/skills.ts';
 import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects } from '../systems/triggers.ts';
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
+import { SkillUI } from '../ui/SkillUI.ts';
 import type { SkillData } from '../data/schemas/index.ts';
 
 declare global {
@@ -81,6 +83,7 @@ export class WorldScene extends Phaser.Scene {
   // prototype's fixed 1-5 binding).
   private hotbar: (SkillData | null)[] = [];
   private readonly skillCooldowns = new Map<string, number>();
+  private skillUI!: SkillUI;
 
   constructor() {
     super('World');
@@ -146,7 +149,7 @@ export class WorldScene extends Phaser.Scene {
     const kb = this.input.keyboard;
     if (!kb) throw new Error('keyboard plugin unavailable');
     this.spaceKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    this.hotbar = this.gameData.skills.slice(0, 6);
+    this.hotbar = Array.from({ length: 6 }, (_, i) => this.gameData.skills[i] ?? null);
     this.skillCooldowns.clear();
     (['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'] as const).forEach((keyName, i) => {
       kb.on(`keydown-${keyName}`, () => {
@@ -156,6 +159,28 @@ export class WorldScene extends Phaser.Scene {
     });
     this.events.off('enemy-died');
     this.events.on('enemy-died', (def: EnemyData) => this.onEnemyDied(def));
+
+    this.skillUI = new SkillUI({
+      skills: this.gameData.skills,
+      hotbar: () => this.hotbar,
+      level: () => this.player.level,
+      skillRanks: () => this.saveData.skillRanks,
+      slotState: (skill) => {
+        const cooldownRemaining = this.skillCooldowns.get(skill.id) ?? 0;
+        return {
+          cooldownRemaining,
+          block: castBlock(skill, {
+            level: this.player.level,
+            rank: rankOf(skill, this.saveData.skillRanks),
+            mp: this.player.mp,
+            cooldownRemaining,
+          }),
+        };
+      },
+      rankUp: (skillId) => this.rankUpSkill(skillId),
+    });
+    this.events.once('shutdown', () => this.skillUI.destroy());
+    kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-R', () => {
       // Prototype: rising again always returns you to the overworld spawn.
       if (this.player.dead) {
@@ -220,6 +245,7 @@ export class WorldScene extends Phaser.Scene {
     }
     this.tickRegionRespawns(dt);
     this.publishHud();
+    this.skillUI.refresh();
 
     const cam = this.cameras.main;
     this.fog.update(this.player.x - cam.scrollX, this.player.y - cam.scrollY);
@@ -413,6 +439,16 @@ export class WorldScene extends Phaser.Scene {
         break;
       }
     }
+  }
+
+  private rankUpSkill(skillId: string): void {
+    const skill = this.gameData.skills.find((s) => s.id === skillId);
+    if (!skill) return;
+    const rank = rankOf(skill, this.saveData.skillRanks);
+    const points = availableSkillPoints(this.player.level, this.gameData.skills, this.saveData.skillRanks);
+    if (points <= 0 || rank >= skill.maxRank || this.player.level < skill.unlockLevel) return;
+    this.saveData.skillRanks[skill.id] = rank + 1;
+    this.saveNow();
   }
 
   private onEnemyDied(def: EnemyData): void {
