@@ -32,8 +32,8 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Define JSON schemas: `items.json`, `affixes.json`, `enemies.json`, `skills.json`, `zones.json`, `quests.json`, `dialogue.json`
 - [x] Write TypeScript types for every schema (`zod` recommended — validates at load time)
 - [x] Loader that reads all JSON at boot and fails loudly on invalid data
-- [ ] Move every hardcoded item, affix, enemy, and skill from the prototype into JSON
-- [ ] Test: add a new enemy type by editing JSON only — zero code changes
+- [x] Move every hardcoded item, affix, enemy, and skill from the prototype into JSON
+- [x] Test: add a new enemy type by editing JSON only — zero code changes
 
 ### 0.4 Save system
 - [ ] Serialize: character (level, xp, stats), gear, bag, skill ranks, gold

@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- All game content (enemies, items, affixes, skills, zones) now lives in
+  editable JSON data files instead of code (internal — no visible change;
+  this is what lets future content updates ship without touching code).
 - Phaser build: you can die now — run out of health and a "YOU DIED" screen
   appears; press R to rise again at the spawn. A health bar sits top-left, and
   the plains keep repopulating with monsters so there's always a fight nearby.
