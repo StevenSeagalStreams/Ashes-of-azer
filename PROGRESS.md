@@ -1,10 +1,19 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 1.1, first checkbox is split into sub-boxes (see ROADMAP). The
-**skill execution engine + XP/leveling sub-box is DONE**. Next sub-box:
-**"Skill panel UI (HTML/CSS overlay): library, rank-up with skill points,
-hotbar with cooldown/mana state."**
+Milestone 1.1, first checkbox is split into sub-boxes (see ROADMAP). Engine
+and skill-panel-UI sub-boxes are DONE. Next sub-box: **"Drag skills from
+library into 6 active slots (keys 1-6), loadout persisted in the save."**
+
+Notes: hotbar is currently auto-filled (first 6 skills in skills.json
+order) in WorldScene.create; the loadout sub-task replaces that with a
+persisted choice → save schema needs a `loadout` field (actives: 6 ids or
+null) → **save v3 migration** (framework ready, see MIGRATIONS in
+src/systems/save/migrations.ts; v1→v2 is the pattern to copy). Drag & drop:
+HTML5 draggable on .azer-sk rows → drop targets on .azer-slot; also support
+click-to-assign as a fallback. After this: passive skill type in
+skills.json (schema union variant + example passives), 6 passive slots UI,
+respec (free reset button; "town trainer" home comes with m2.3).
 
 Notes for that session:
 - **CLAUDE.md technical constraint: UI overlay is HTML/CSS, not canvas.**
@@ -37,6 +46,13 @@ Notes for that session:
   comes with m2.3).
 
 ## Done
+- **Milestone 1.1 sub-box 2: skill panel UI + hotbar (first DOM overlay).**
+  `src/ui/SkillUI.ts` (hotbar with live cooldown/mana/locked states via
+  castBlock; K panel with pips, per-rank descriptions from describeSkill,
+  + buttons spending derived points via WorldScene.rankUpSkill → autosave).
+  Destroyed/rebuilt across zone transitions via scene shutdown event.
+  Verified headless incl. learning Execute through a real DOM click and the
+  rank surviving reload. Screenshot eyeballed — prototype panel look.
 - **Milestone 1.1 sub-box 1: skill execution engine + XP/leveling.**
   - `src/systems/skills.ts` (pure, tested): xpToNext 40×1.5-rounded chain,
     applyXp with multi-level carry, scaleValue, skillCooldown (60% CDR cap),
@@ -265,6 +281,10 @@ Notes for that session:
   - **Open assets/maps/overworld.json in the Tiled editor** (install from
     mapeditor.org) — it should open cleanly with visible art (tiles.png)
     and editable layers. This is the one part of 0.5 I can't verify.
+- **Skill panel (m1.1 UI)**: press K — spend points (kill slimes to level
+  up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
+  bottom: cooldown numbers, blue outline when out of mana. Does the panel
+  read well at the game's scale?
 - **Skills (m1.1 engine)**: in combat try 1 (Shield Slam — gold ring, stun),
   2 (Whirlwind — bigger orange ring), 3 (Leap — dash + green ring). Watch
   the blue mana bar drain/refill and cooldowns gate spamming. Kill slimes

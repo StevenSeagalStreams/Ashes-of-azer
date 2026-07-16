@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- Skill panel and hotbar! Press K to open your skills, spend skill points
+  (+ buttons) to learn Execute and War Cry or rank up your other skills. The
+  hotbar at the bottom shows keys 1-6 with live cooldowns; a blue outline
+  means not enough mana.
 - Skills are live! Press 1 (Shield Slam — AoE + stun), 2 (Whirlwind), 3
   (Leap) in combat — they cost mana (blue bar, regenerates), have cooldowns,
   and scale with rank. Execute (4) and War Cry (5) exist but must be learned
