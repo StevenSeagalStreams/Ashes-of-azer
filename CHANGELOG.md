@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- Skills are live! Press 1 (Shield Slam — AoE + stun), 2 (Whirlwind), 3
+  (Leap) in combat — they cost mana (blue bar, regenerates), have cooldowns,
+  and scale with rank. Execute (4) and War Cry (5) exist but must be learned
+  with skill points once the skill panel arrives.
+- Monsters now grant XP — fill the green bar to level up: full heal, more
+  health and mana, and a skill point per level (spending UI coming next).
 - The Hollow Barrow is open! Walk through the dark doorway east of the plains
   to enter the dungeon — skeletons and bats lurk in tight, dark corridors,
   and ROTFANG, BARROW TYRANT waits in the far room with a ground-slam attack.

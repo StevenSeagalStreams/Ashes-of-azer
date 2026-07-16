@@ -56,7 +56,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 
 ### 1.1 The 6 active / 6 passive build system
 - [ ] Skill loadout UI: drag skills from library into 6 active slots (keys 1–6)
-  - [ ] Skill execution engine: cast the 5 warrior skills from skills.json (mana pool/regen, per-skill cooldowns, rank scaling, stun) + XP → levels → skill points (implied dependency, no other owning checkbox)
+  - [x] Skill execution engine: cast the 5 warrior skills from skills.json (mana pool/regen, per-skill cooldowns, rank scaling, stun) + XP → levels → skill points (implied dependency, no other owning checkbox)
   - [ ] Skill panel UI (HTML/CSS overlay): library, rank-up with skill points, hotbar with cooldown/mana state
   - [ ] Drag skills from library into 6 active slots (keys 1–6), loadout persisted in the save
 - [ ] Passive skill type in `skills.json` (always-on modifiers)

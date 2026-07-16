@@ -1,43 +1,59 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 0 (Technical Foundation) IS COMPLETE** — all 5 sections, all
-criteria: prototype gameplay runs in Phaser ✓, all content lives in JSON ✓,
-saves persist across refresh ✓, maps are made in Tiled ✓.
-
-Next up: **Milestone 1.1 — The 6 active / 6 passive build system.** First
-unchecked box: "Skill loadout UI: drag skills from library into 6 active
-slots (keys 1–6)."
+Milestone 1.1, first checkbox is split into sub-boxes (see ROADMAP). The
+**skill execution engine + XP/leveling sub-box is DONE**. Next sub-box:
+**"Skill panel UI (HTML/CSS overlay): library, rank-up with skill points,
+hotbar with cooldown/mana state."**
 
 Notes for that session:
 - **CLAUDE.md technical constraint: UI overlay is HTML/CSS, not canvas.**
-  The loadout UI (drag & drop, slots) should be DOM elements over the game
-  canvas — the first real HTML UI in the project. The HP bar currently in
-  UIScene (canvas) can stay for now; don't rebuild it unless the task
-  demands it (backlog it if it itches).
-- Prerequisites hiding inside this task, decide/sequence deliberately:
-  - **Skill execution engine**: skills.json already models all 5 warrior
-    actives as per-rank data (mechanics: shockwave/leap/execute/buff), but
-    nothing executes them. Keys 1-6 need casting: mana pool
-    (prototype: 50 + 5*level, regen 4/s), per-skill cooldowns
-    (cd * (1 - cdr/100)), rank-based scaling. shockwave() AoE + stun needs
-    an enemy `stun` field (prototype: stunned enemies stop moving/attacking).
-  - **Skill points/ranks**: prototype grants 1 point per level, rank up to
-    5. Without XP (still unwired — no owning checkbox until... actually
-    XP-on-kill exists in enemies.json data but gainXp is unowned; consider
-    wiring XP/level-up as part of 1.1 since skill points are meaningless
-    without leveling — it's arguably in-scope for "build system." If that
-    feels like scope creep, ask the user.)
-  - Passive skills (2nd/3rd boxes) need `type: "passive"` entries in
-    skills.json — schema currently only models the 4 active mechanics; add
-    a passive variant to the discriminated union.
-- `skillRanks` in the save schema is already persisted; loadout (which 6
-  active/passive are slotted) will need a save field → save v3 migration.
-- Respec (4th box) mentions "town trainer" — no town/NPCs until m2.2/2.3.
-  A free respec button in the skill UI satisfies the mechanic; the trainer
-  becomes its home later. Note it as the likely reading, decide there.
+  This is the first real DOM UI in the project. Pattern suggestion: a
+  `src/ui/` module that owns a DOM root appended over the canvas (game
+  container is `#app` in index.html), styled like the prototype's panels
+  (ashes_of_azer.html has full CSS for .skill/.sk/#skillPanel — port the
+  look). Keep game↔DOM communication through the registry / typed events,
+  same as the UIScene hud pattern.
+- What exists to build on (all in WorldScene + src/systems/skills.ts):
+  - `hotbar` array (currently first 6 skills in skills.json order),
+    `skillCooldowns` map, `castSkill`, `castBlock` (returns WHY a cast is
+    blocked — perfect for greying out buttons / showing mana-blue outline
+    like the prototype).
+  - `availableSkillPoints(level, skills, skillRanks)` derives spendable
+    points; rank-up = increment `saveData.skillRanks[id]` (respect maxRank
+    + unlockLevel + points > 0) then saveNow. K key toggled the prototype
+    panel — reuse that binding.
+  - Prototype reference: renderSkills() (~line 550) for panel content:
+    name, desc at current/next rank, pips (●○), + button when affordable.
+- Skill descriptions: prototype desc functions are per-rank strings —
+  build them from the mechanic data generically (e.g. shockwave: "Slam
+  nearby foes for {mult}x dmg, stun {s}s") rather than adding desc
+  templates to JSON — or add a `descTemplate` to skills.json (content!)
+  with {placeholders}. Latter is more data-driven; decide there.
+- After the panel: the drag-into-6-slots loadout sub-box (loadout needs a
+  save field → v3 migration; note hotbar currently auto-fills).
+- Then passive type (schema union variant + example passives) + 6 passive
+  slots UI + respec (free reset button in the panel; "town trainer" home
+  comes with m2.3).
 
 ## Done
+- **Milestone 1.1 sub-box 1: skill execution engine + XP/leveling.**
+  - `src/systems/skills.ts` (pure, tested): xpToNext 40×1.5-rounded chain,
+    applyXp with multi-level carry, scaleValue, skillCooldown (60% CDR cap),
+    manaMaxFor, rankOf (save skillRanks ?? data startingRank),
+    availableSkillPoints (derived: level-1 minus ranks bought beyond free
+    starting ranks — never stored), castBlock reasons.
+  - Keys 1-5 cast the five warrior skills from skills.json (schema gained
+    `startingRank` + `fxColor`): shockwave AoE+stun (enemies have a stun
+    state halting move/attack/slam), leap dash+landing AoE, execute with
+    low-hp threshold + mana refund on no target, War Cry damage buff
+    (applies to basic attacks AND skills via effectiveDamage()).
+  - Mana pool + 4/s regen; enemy deaths grant JSON xp → prototype level-up
+    (full heal/mana, +10 hp/+5 mp per level) with autosave; killedBosses
+    recorded on boss deaths. HUD: mana bar, XP bar, level text.
+  - Verified headless with prototype-exact numbers (slam 13 dmg = 10×1.3,
+    mana 18, stun freeze, leap 110px, unlearned block, 43xp→lvl2 rem 3).
+    84 unit tests.
 - **Milestone 0.5 is COMPLETE — all 4 checkboxes ticked. Milestone 0 done.**
   - Maps are authored Tiled JSON in `assets/maps/` (conventions documented
     in `assets/maps/README.md`; layouts frozen from the prototype's
@@ -249,6 +265,12 @@ Notes for that session:
   - **Open assets/maps/overworld.json in the Tiled editor** (install from
     mapeditor.org) — it should open cleanly with visible art (tiles.png)
     and editable layers. This is the one part of 0.5 I can't verify.
+- **Skills (m1.1 engine)**: in combat try 1 (Shield Slam — gold ring, stun),
+  2 (Whirlwind — bigger orange ring), 3 (Leap — dash + green ring). Watch
+  the blue mana bar drain/refill and cooldowns gate spamming. Kill slimes
+  until the green XP bar fills → "LEVEL 2!" burst, full heal. Does casting
+  feel responsive? (4/5 are locked until the skill panel lets you spend
+  points — next sub-task.)
 
 ## Asset requests
 (none yet)
