@@ -1,0 +1,249 @@
+// One-shot generator that froze the prototype's procedural layouts into
+// authored Tiled JSON maps (assets/maps/*.json). The committed map files are
+// the source of truth now — this script is kept only as a regeneration tool
+// (deterministic: seeded RNG). Run: node scripts/generate-maps.mjs
+import { writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const TS = 16;
+const MAPW = 60;
+const MAPH = 40;
+const TILE = { GRASS: 0, TREE: 1, WATER: 2, PATH: 3, DOOR: 4, DFLOOR: 5, DWALL: 6, PORTAL: 7, FLOWERS: 8 };
+const SOLID = [TILE.TREE, TILE.WATER, TILE.DWALL];
+
+function mulberry32(seed) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Port of the prototype's genOverworld(), seeded for a fixed layout.
+function genOverworld(rnd) {
+  const m = [];
+  for (let y = 0; y < MAPH; y++) {
+    const row = [];
+    for (let x = 0; x < MAPW; x++) {
+      let t = TILE.GRASS;
+      if (x === 0 || y === 0 || x === MAPW - 1 || y === MAPH - 1) t = TILE.TREE;
+      else if (rnd() < 0.07) t = TILE.TREE;
+      else if (rnd() < 0.04) t = TILE.FLOWERS;
+      row.push(t);
+    }
+    m.push(row);
+  }
+  for (let y = 4; y < 11; y++)
+    for (let x = 42; x < 54; x++) if (Math.hypot(x - 48, y - 7.5) < 5.5) m[y][x] = TILE.WATER;
+  for (let x = 8; x < 50; x++) {
+    m[30][x] = TILE.PATH;
+    m[31][x] = TILE.PATH;
+  }
+  for (let y = 18; y < 32; y++) {
+    m[y][48] = TILE.PATH;
+    m[y][49] = TILE.PATH;
+  }
+  for (let y = 27; y < 35; y++)
+    for (let x = 5; x < 15; x++) if (m[y][x] === TILE.TREE) m[y][x] = TILE.GRASS;
+  for (let y = 14; y < 20; y++)
+    for (let x = 44; x < 54; x++) if (m[y][x] === TILE.TREE) m[y][x] = TILE.GRASS;
+  m[15][48] = TILE.DOOR;
+  m[15][49] = TILE.DOOR;
+  return m;
+}
+
+// Port of the prototype's genDungeon() (fully deterministic already).
+function genDungeon() {
+  const m = [];
+  for (let y = 0; y < MAPH; y++) m.push(new Array(MAPW).fill(TILE.DWALL));
+  const rooms = [
+    [4, 28, 12, 10],
+    [20, 26, 10, 8],
+    [34, 24, 12, 12],
+    [24, 10, 14, 10],
+    [6, 8, 12, 8],
+    [44, 6, 12, 12],
+  ];
+  for (const [rx, ry, rw, rh] of rooms)
+    for (let y = ry; y < ry + rh; y++) for (let x = rx; x < rx + rw; x++) m[y][x] = TILE.DFLOOR;
+  const cor = (x1, y1, x2, y2) => {
+    for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      m[y1][x] = TILE.DFLOOR;
+      m[y1 + 1][x] = TILE.DFLOOR;
+    }
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      m[y][x2] = TILE.DFLOOR;
+      m[y][x2 + 1] = TILE.DFLOOR;
+    }
+  };
+  cor(10, 32, 24, 30);
+  cor(28, 30, 38, 28);
+  cor(30, 28, 30, 15);
+  cor(30, 12, 12, 12);
+  cor(36, 14, 48, 12);
+  m[33][6] = TILE.PORTAL;
+  m[33][7] = TILE.PORTAL;
+  return m;
+}
+
+const prop = (name, type, value) => ({ name, type, value });
+
+function tiledMap({ grid, spawnObjects, triggerObjects }) {
+  let nextObjectId = 1;
+  const withIds = (objs) => objs.map((o) => ({ visible: true, rotation: 0, ...o, id: nextObjectId++ }));
+  const spawns = withIds(spawnObjects);
+  const triggers = withIds(triggerObjects);
+  return {
+    type: 'map',
+    version: '1.10',
+    tiledversion: '1.10.2',
+    orientation: 'orthogonal',
+    renderorder: 'right-down',
+    infinite: false,
+    width: MAPW,
+    height: MAPH,
+    tilewidth: TS,
+    tileheight: TS,
+    nextlayerid: 4,
+    nextobjectid: nextObjectId,
+    layers: [
+      {
+        id: 1,
+        name: 'ground',
+        type: 'tilelayer',
+        width: MAPW,
+        height: MAPH,
+        x: 0,
+        y: 0,
+        opacity: 1,
+        visible: true,
+        data: grid.flat().map((t) => t + 1), // Tiled GIDs are 1-based (firstgid below)
+      },
+      { id: 2, name: 'spawns', type: 'objectgroup', x: 0, y: 0, opacity: 1, visible: true, objects: spawns },
+      { id: 3, name: 'triggers', type: 'objectgroup', x: 0, y: 0, opacity: 1, visible: true, objects: triggers },
+    ],
+    tilesets: [
+      {
+        firstgid: 1,
+        name: 'tiles',
+        image: 'tiles.png',
+        imagewidth: 9 * TS,
+        imageheight: TS,
+        tilewidth: TS,
+        tileheight: TS,
+        tilecount: 9,
+        columns: 9,
+        margin: 0,
+        spacing: 0,
+        tiles: SOLID.map((id) => ({ id, properties: [prop('solid', 'bool', true)] })),
+      },
+    ],
+  };
+}
+
+const overworld = tiledMap({
+  grid: genOverworld(mulberry32(1337)),
+  spawnObjects: [
+    { name: 'player', type: 'player_spawn', point: true, x: 10 * TS, y: 31 * TS },
+    {
+      name: 'field',
+      type: 'enemy_region',
+      x: TS,
+      y: TS,
+      width: (MAPW - 2) * TS,
+      height: (MAPH - 2) * TS,
+      properties: [
+        prop('count', 'int', 14),
+        prop('respawn', 'bool', true),
+        prop('respawnCap', 'int', 10),
+        prop('respawnInterval', 'float', 4),
+      ],
+    },
+  ],
+  triggerObjects: [
+    {
+      name: 'barrow-door',
+      type: 'transition',
+      x: 48 * TS,
+      y: 15 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'dungeon'),
+        prop('targetX', 'float', 6 * TS + 8),
+        prop('targetY', 'float', 31 * TS),
+      ],
+    },
+    {
+      name: 'healing-well',
+      type: 'heal',
+      x: 8 * TS - 20 + 8, // prototype: heals within 20px of tile centre (8,29)
+      y: 29 * TS - 20 + 8,
+      width: 40,
+      height: 40,
+      properties: [prop('rate', 'float', 20)],
+    },
+  ],
+});
+
+const DUNGEON_SPOTS = [
+  [8, 32],
+  [12, 30],
+  [24, 29],
+  [26, 31],
+  [38, 28],
+  [40, 30],
+  [30, 20],
+  [30, 14],
+  [26, 13],
+  [34, 12],
+  [10, 10],
+  [14, 12],
+];
+
+const dungeon = tiledMap({
+  grid: genDungeon(),
+  spawnObjects: [
+    { name: 'player', type: 'player_spawn', point: true, x: 6 * TS + 8, y: 31 * TS },
+    ...DUNGEON_SPOTS.map(([x, y], i) => ({
+      name: `mob-${i + 1}`,
+      type: 'enemy_spawn',
+      point: true,
+      x: x * TS,
+      y: y * TS,
+      properties: [prop('pool', 'string', 'skel,bat')],
+    })),
+    {
+      name: 'rotfang',
+      type: 'enemy_spawn',
+      point: true,
+      x: 50 * TS,
+      y: 12 * TS,
+      properties: [prop('pool', 'string', 'boss')],
+    },
+  ],
+  triggerObjects: [
+    {
+      name: 'exit-portal',
+      type: 'transition',
+      x: 6 * TS,
+      y: 33 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'overworld'),
+        prop('targetX', 'float', 48.5 * TS),
+        prop('targetY', 'float', 17 * TS),
+      ],
+    },
+  ],
+});
+
+const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'maps');
+writeFileSync(join(out, 'overworld.json'), JSON.stringify(overworld));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify(dungeon));
+console.log('wrote', join(out, 'overworld.json'));
+console.log('wrote', join(out, 'dungeon.json'));
