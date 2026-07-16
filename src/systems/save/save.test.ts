@@ -87,6 +87,27 @@ describe('migrateAndValidate (real chain)', () => {
     expect(migrateAndValidate(save)).toEqual(save);
   });
 
+  it('upgrades a real v1 save to the current version (v1 had no currentZone)', () => {
+    const v1 = {
+      saveVersion: 1,
+      updatedAt: 123,
+      character: { level: 5, xp: 700, gold: 12 },
+      gear: {},
+      bag: [],
+      skillRanks: { whirlwind: 2 },
+      world: { questFlags: { met_elder: true }, killedBosses: ['boss'], discoveredZones: [], corruption: 25 },
+    };
+    const out = migrateAndValidate(v1);
+    expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(out.world.currentZone).toBe('overworld');
+    expect(out.world.discoveredZones).toContain('overworld');
+    // Nothing else was lost in the upgrade.
+    expect(out.character).toEqual(v1.character);
+    expect(out.skillRanks).toEqual(v1.skillRanks);
+    expect(out.world.killedBosses).toEqual(['boss']);
+    expect(out.world.corruption).toBe(25);
+  });
+
   it('rejects a structurally invalid save even at the right version', () => {
     const bad = { saveVersion: CURRENT_SAVE_VERSION, character: { level: 0 } };
     expect(() => migrateAndValidate(bad)).toThrow(SaveError);

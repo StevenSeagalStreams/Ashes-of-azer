@@ -15,6 +15,14 @@ export const EnemySchema = z.object({
   height: z.number().positive(),
   boss: z.boolean().optional(),
   name: z.string().optional(), // display name shown over boss health bars
+  // Periodic AoE ground slam (prototype: Rotfang, every 4.5s, 22 dmg, 64px).
+  slam: z
+    .object({
+      interval: z.number().positive(),
+      damage: z.number().positive(),
+      radius: z.number().positive(),
+    })
+    .optional(),
 });
 export type EnemyData = z.infer<typeof EnemySchema>;
 

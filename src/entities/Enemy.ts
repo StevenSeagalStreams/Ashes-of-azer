@@ -10,6 +10,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   hp: number;
   readonly maxHp: number;
   private atkCd = 0;
+  private slamT = 3; // prototype: first boss slam 3s after spawn
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
@@ -43,6 +44,20 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (d < CONTACT_RANGE && this.atkCd <= 0) {
       this.atkCd = ENEMY_ATTACK_COOLDOWN;
       player.takeDamage(this.def.dmg, numbers);
+    }
+    // Data-driven AoE ground slam (prototype: Rotfang every 4.5s).
+    const slam = this.def.slam;
+    if (slam) {
+      this.slamT -= dt;
+      if (this.slamT <= 0) {
+        this.slamT = slam.interval;
+        const ring = this.scene.add
+          .image(this.x, this.y, 'ring')
+          .setDepth(7)
+          .setScale((slam.radius * 2) / 64);
+        this.scene.tweens.add({ targets: ring, alpha: 0, duration: 400, onComplete: () => ring.destroy() });
+        if (d < slam.radius) player.takeDamage(slam.damage, numbers);
+      }
     }
     const barWidth = this.def.boss ? 30 : 12;
     const barY = this.y - this.height / 2 - 6;

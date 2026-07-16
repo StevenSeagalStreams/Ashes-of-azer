@@ -8,7 +8,7 @@ import { ItemSlotSchema } from '../../data/schemas/item.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 1;
+export const CURRENT_SAVE_VERSION = 2; // v2 (m0.5): world.currentZone
 
 // An item *instance* the player owns (rolled affixes and all) — distinct
 // from the item content definitions in data/items.json.
@@ -37,6 +37,7 @@ export const SaveSchema = z.object({
   bag: z.array(ItemInstanceSchema),
   skillRanks: z.record(z.string(), z.number().int().min(0)),
   world: z.object({
+    currentZone: z.string(), // zone id from data/zones.json (since v2)
     questFlags: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])),
     killedBosses: z.array(z.string()),
     discoveredZones: z.array(z.string()),
@@ -53,6 +54,12 @@ export function defaultSave(now: number = Date.now()): SaveData {
     gear: {},
     bag: [],
     skillRanks: {},
-    world: { questFlags: {}, killedBosses: [], discoveredZones: [], corruption: 0 },
+    world: {
+      currentZone: 'overworld',
+      questFlags: {},
+      killedBosses: [],
+      discoveredZones: ['overworld'],
+      corruption: 0,
+    },
   };
 }

@@ -119,6 +119,22 @@ export function addSpriteTexture(scene: Phaser.Scene, key: string, rows: string[
   scene.textures.addCanvas(key, c);
 }
 
+// 64x64 circle outline; scaled at use-sites for AoE telegraphs (boss slam).
+export function addRingTexture(scene: Phaser.Scene, key: string, color: string): void {
+  if (scene.textures.exists(key)) return;
+  const c = document.createElement('canvas');
+  c.width = 64;
+  c.height = 64;
+  const g = c.getContext('2d');
+  if (!g) throw new Error('2d canvas context unavailable');
+  g.strokeStyle = color;
+  g.lineWidth = 2;
+  g.beginPath();
+  g.arc(32, 32, 30, 0, Math.PI * 2);
+  g.stroke();
+  scene.textures.addCanvas(key, c);
+}
+
 // Small white arc used as the melee slash flash (prototype fx.slash).
 export function addSlashTexture(scene: Phaser.Scene, key: string): void {
   if (scene.textures.exists(key)) return;

@@ -13,6 +13,7 @@
     "width": 16,
     "height": 12,
     "boss": true,
-    "name": "ROTFANG, BARROW TYRANT"
+    "name": "ROTFANG, BARROW TYRANT",
+    "slam": { "interval": 4.5, "damage": 22, "radius": 64 }
   }
 ]

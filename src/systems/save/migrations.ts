@@ -10,11 +10,22 @@ export class SaveError extends Error {
 export type Migration = (raw: Record<string, unknown>) => Record<string, unknown>;
 
 // One entry per historical version: MIGRATIONS[n] upgrades a version-n save
-// to version n+1. Empty today because v1 is the first format — but the
-// walking logic below is live from the start, so old saves survive every
-// future format change by adding one function here (plus bumping
-// CURRENT_SAVE_VERSION and the schema).
-export const MIGRATIONS: Record<number, Migration> = {};
+// to version n+1 (the walker stamps the new saveVersion itself).
+export const MIGRATIONS: Record<number, Migration> = {
+  // v1 → v2 (m0.5): zones became real; saves now remember where you are.
+  1: (raw) => {
+    const world = (raw['world'] ?? {}) as Record<string, unknown>;
+    const discovered = Array.isArray(world['discoveredZones']) ? (world['discoveredZones'] as unknown[]) : [];
+    return {
+      ...raw,
+      world: {
+        ...world,
+        currentZone: 'overworld',
+        discoveredZones: discovered.includes('overworld') ? discovered : [...discovered, 'overworld'],
+      },
+    };
+  },
+};
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */
 export function applyMigrations(

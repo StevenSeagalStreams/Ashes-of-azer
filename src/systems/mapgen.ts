@@ -1,9 +1,9 @@
-// Port of the prototype's Starter Plains generator (ashes_of_azer.html).
-// Placeholder until Milestone 0.5 replaces generated grids with Tiled maps.
+// Tile constants + walkability helpers. The prototype's procedural map
+// generators that used to live here were retired in Milestone 0.5 — maps
+// are authored Tiled JSON now (assets/maps/, generated once by
+// scripts/generate-maps.mjs and hand-editable since).
 
 export const TS = 16;
-export const MAPW = 60;
-export const MAPH = 40;
 
 export const TILE = {
   GRASS: 0,
@@ -17,62 +17,13 @@ export const TILE = {
   FLOWERS: 8,
 } as const;
 
-export const SOLID_TILES: number[] = [TILE.TREE, TILE.WATER, TILE.DWALL];
-
-export const solid = (t: number): boolean => SOLID_TILES.includes(t);
-
-export const tileAt = (grid: number[][], x: number, y: number): number =>
-  (grid[y] ?? [])[x] ?? TILE.TREE;
-
-const set = (grid: number[][], x: number, y: number, v: number): void => {
-  const row = grid[y];
-  if (row) row[x] = v;
-};
-
-export function genOverworld(): number[][] {
-  const m: number[][] = [];
-  for (let y = 0; y < MAPH; y++) {
-    const row: number[] = [];
-    for (let x = 0; x < MAPW; x++) {
-      let t: number = TILE.GRASS;
-      if (x === 0 || y === 0 || x === MAPW - 1 || y === MAPH - 1) t = TILE.TREE;
-      else if (Math.random() < 0.07) t = TILE.TREE;
-      else if (Math.random() < 0.04) t = TILE.FLOWERS;
-      row.push(t);
-    }
-    m.push(row);
-  }
-  // lake
-  for (let y = 4; y < 11; y++)
-    for (let x = 42; x < 54; x++) if (Math.hypot(x - 48, y - 7.5) < 5.5) set(m, x, y, TILE.WATER);
-  // path from spawn to dungeon
-  for (let x = 8; x < 50; x++) {
-    set(m, x, 30, TILE.PATH);
-    set(m, x, 31, TILE.PATH);
-  }
-  for (let y = 18; y < 32; y++) {
-    set(m, 48, y, TILE.PATH);
-    set(m, 49, y, TILE.PATH);
-  }
-  // clearing at spawn
-  for (let y = 27; y < 35; y++)
-    for (let x = 5; x < 15; x++) if (tileAt(m, x, y) === TILE.TREE) set(m, x, y, TILE.GRASS);
-  // clearing at dungeon mouth
-  for (let y = 14; y < 20; y++)
-    for (let x = 44; x < 54; x++) if (tileAt(m, x, y) === TILE.TREE) set(m, x, y, TILE.GRASS);
-  // dungeon door
-  set(m, 48, 15, TILE.DOOR);
-  set(m, 49, 15, TILE.DOOR);
-  return m;
-}
-
-// Prototype spawn point: player starts on the path in the spawn clearing.
-export const SPAWN = { x: 10 * TS, y: 31 * TS };
-
-// Prototype walkable(): a point is walkable when none of the four corners of
-// a radius-r box around it sits on a solid tile.
-export function walkable(grid: number[][], px: number, py: number, r: number): boolean {
-  const corner = (x: number, y: number): boolean =>
-    solid(tileAt(grid, Math.floor(x / TS), Math.floor(y / TS)));
-  return !corner(px - r, py - r) && !corner(px + r, py - r) && !corner(px - r, py + r) && !corner(px + r, py + r);
+/**
+ * Prototype walkable(): a point is walkable when none of the four corners
+ * of a radius-r box around it sits on a solid tile. `mask[y][x]` is true
+ * where the tile is solid; out-of-bounds counts as solid.
+ */
+export function walkableMask(mask: boolean[][], px: number, py: number, r: number): boolean {
+  const solidAt = (x: number, y: number): boolean =>
+    (mask[Math.floor(y / TS)] ?? [])[Math.floor(x / TS)] ?? true;
+  return !solidAt(px - r, py - r) && !solidAt(px + r, py - r) && !solidAt(px - r, py + r) && !solidAt(px + r, py + r);
 }

@@ -2,9 +2,19 @@ import Phaser from 'phaser';
 import { DataValidationError } from '../data/loader.ts';
 import { loadGameData } from '../data/gameData.ts';
 
+// The zones with authored maps. The one place map files are enumerated —
+// a new zone adds its id here plus assets/maps/<id>.json + data/zones.json.
+const MAP_ZONES = ['overworld', 'dungeon'];
+
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
+  }
+
+  preload(): void {
+    for (const zone of MAP_ZONES) {
+      this.load.tilemapTiledJSON(`map-${zone}`, `maps/${zone}.json`);
+    }
   }
 
   create(): void {
