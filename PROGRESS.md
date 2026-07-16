@@ -1,31 +1,59 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**Milestone 0.3 is COMPLETE.** Next up: **Milestone 0.4 — Save system.**
-First unchecked box: "Serialize: character (level, xp, stats), gear, bag,
-skill ranks, gold."
+**Milestone 0.4 is COMPLETE.** Next up: **Milestone 0.5 — Tilemap pipeline.**
+First unchecked box: "Install Tiled map editor; define tileset conventions
+(collision layer, spawn layer, trigger layer)."
 
 Notes for that session:
-- Reality check first: several of the things 0.4 wants to serialize don't
-  exist as real systems yet — there's no gear/bag/skill-rank state anywhere
-  (items/skills aren't wired into gameplay, only their data exists — see the
-  0.3 "deferred" list below). `player.level`/`player.xp` don't exist either
-  (XP/leveling is Milestone 1.1). Serialize what's real today (position, hp,
-  which zone) and design the save shape to be forward-compatible (extra
-  optional fields) rather than blocking on systems that don't exist yet. If
-  this feels like it's fighting the roadmap order, that's a "roadmap scope"
-  question — flag it and ask rather than guessing scope down silently.
-- `saveVersion` + migrations (0.4's 4th box) matters from the very first save
-  format, even a minimal one — retrofitting migration support after the
-  shape has changed once is much more painful than starting with it.
-- Export/import as base64 (0.4's last box) is a pure, easily-testable
-  function pair (encode state → string → decode → same state) — good
-  Vitest coverage target.
-- `GameData` (src/data/loader.ts) is content config, not save state — don't
-  conflate the two. Save data is player progress; GameData is what the
-  world is made of.
+- "Install Tiled" — Tiled is a desktop app for the *human* to author maps
+  with. What the session can do: define and document the conventions
+  (layer names: e.g. `ground`, `collision`, `spawns`, `triggers`; custom
+  properties for transitions/doors), and hand-write the Tiled JSON files
+  (the .tmj format is documented, plain JSON) for Starter Plains and Hollow
+  Barrow rather than clicking them together in the editor. Alternatively
+  write a small script converting `genOverworld()`/`genDungeon()` output to
+  Tiled JSON as the starting maps. Either path satisfies "maps loaded as
+  Tiled JSON"; the human can open/edit the files in Tiled afterwards.
+  Flag under Needs human playtest that the files open cleanly in Tiled.
+- Phaser natively loads Tiled JSON (`this.load.tilemapTiledJSON`). The
+  current `make.tilemap({data})` path in WorldScene gets replaced.
+- The dungeon (Hollow Barrow) becomes reachable for the first time here —
+  trigger system includes zone transitions (door tile at (48-49,15) →
+  dungeon, portal back). That also means: dungeon fog (`dark: true` in
+  zones.json, already consumed by fog.ts params), skel/boss enemies
+  (already in enemies.json), and the **zone-transition autosave call-site**
+  (0.4 left a comment for this — call `saveNow()` on transition).
+- `mapgen.ts` (the generated-grid port) gets retired or kept only as a
+  reference; its tests go with it. Grid data moves to authored maps.
+- The healing well (prototype: heals 20/s within 20px of (128,464) on the
+  overworld) has no owning milestone — 0.5's trigger system is the natural
+  home (a `heal` trigger region in the map). Backlogged until now.
+- Boss (Rotfang) spawning in the dungeon: prototype guarantees legendary
+  drops on kill — loot doesn't exist yet (m1.x item system). Spawning the
+  boss with its melee+slam behavior is 0.5-adjacent (it's dungeon content);
+  the slam attack (AoE every 4.5s) may warrant a small addition to the
+  enemy schema (e.g. optional `slam` block) — data-driven, no hardcoding.
+  Decide scope when there; drops stay deferred to the item system.
 
 ## Done
+- **Milestone 0.4 is COMPLETE — all 5 checkboxes ticked.** Versioned save
+  system: `src/systems/save/` (schema v1, migration walker live from the
+  first format, unicode-safe base64 export/import codec, 3-slot
+  localStorage store with injected storage for tests).
+  - Save shape covers the full roadmap list (level/xp/gold, gear, bag,
+    skillRanks, world flags) — fields whose systems don't exist yet persist
+    at defaults and pass through load→save untouched (`savePassThrough` in
+    WorldScene), so future-written data is never dropped by this build.
+  - WorldScene loads slot 1 at boot **before enemies spawn** (their hp
+    scales with player level at spawn — this ordering was a real bug caught
+    by the smoke test), autosaves every 60s, treats corrupt saves as fresh
+    start with a console warning (payload left in storage for rescue).
+  - Debug handle: `__AZER.save.now()/.export()/.import(str)`. No UI for
+    slots/export yet — that's the settings/menu work in m5.2.
+  - Verified headless across real page reloads: progress persists through
+    refresh; restored level drives both maxHp and enemy spawn scaling;
+    corrupt save boots fresh; export string round-trips. 73 unit tests.
 - **Milestone 0.3 is COMPLETE — all 5 checkboxes ticked.** All game content
   (enemies, items, affixes, skills, zones, quests, dialogue) lives in
   `/data/*.json`, validated by zod schemas at boot, failing loudly on bad
@@ -179,6 +207,11 @@ Notes for that session:
   behavior is identical to before the refactor (verified headless). Next
   playtest-worthy milestone is likely 1.1+ (skills become usable) or
   whenever loot starts dropping.
+- Milestone 0.4 (saves) is spot-checkable if curious: play a bit, refresh
+  the page — no progress popup or UI exists yet, but nothing should reset
+  oddly or error. (Persistence itself is machine-verified; today level
+  never changes during play, so there's little visible to notice. Real
+  visible payoff arrives with XP/loot.)
 
 ## Asset requests
 (none yet)

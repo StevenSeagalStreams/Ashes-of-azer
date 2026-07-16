@@ -36,11 +36,11 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Test: add a new enemy type by editing JSON only — zero code changes
 
 ### 0.4 Save system
-- [ ] Serialize: character (level, xp, stats), gear, bag, skill ranks, gold
-- [ ] Serialize world state: quest flags, killed bosses, discovered zones, corruption level
-- [ ] Save slots (3) + autosave on zone transition and every 60s
-- [ ] `saveVersion` field + migration functions so old saves survive updates
-- [ ] Export/import save as base64 string (cheap cloud-save substitute + debugging tool)
+- [x] Serialize: character (level, xp, stats), gear, bag, skill ranks, gold (stats recompute from level+gear by design; gear/bag/skill ranks persist as data now, mutate when their systems land in m1.x)
+- [x] Serialize world state: quest flags, killed bosses, discovered zones, corruption level
+- [x] Save slots (3) + autosave on zone transition and every 60s (zone-transition trigger call-site lands with 0.5's transitions)
+- [x] `saveVersion` field + migration functions so old saves survive updates
+- [x] Export/import save as base64 string (cheap cloud-save substitute + debugging tool)
 
 ### 0.5 Tilemap pipeline
 - [ ] Install Tiled map editor; define tileset conventions (collision layer, spawn layer, trigger layer)

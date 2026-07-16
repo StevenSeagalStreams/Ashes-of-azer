@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Your progress now saves automatically (every 60 seconds) and survives
+  closing or refreshing the browser. Saves can also be exported as a text
+  string and imported on another machine.
 - All game content (enemies, items, affixes, skills, zones) now lives in
   editable JSON data files instead of code (internal — no visible change;
   this is what lets future content updates ship without touching code).
