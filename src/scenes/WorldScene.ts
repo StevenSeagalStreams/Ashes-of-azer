@@ -14,13 +14,26 @@ import { DamageNumbers } from '../systems/DamageNumbers.ts';
 import { FogOfWar } from '../systems/fog.ts';
 import { genOverworld, MAPH, MAPW, SOLID_TILES, SPAWN, TS, walkable } from '../systems/mapgen.ts';
 import { addSlashTexture, addTilesetTexture } from '../systems/pixelart.ts';
+import { exportSave, importSave } from '../systems/save/codec.ts';
+import { defaultSave, type SaveData } from '../systems/save/schema.ts';
+import { SaveStore } from '../systems/save/store.ts';
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 
 declare global {
   interface Window {
-    __AZER?: { player: Player; enemies: () => Enemy[] };
+    __AZER?: {
+      player: Player;
+      enemies: () => Enemy[];
+      save: { now: () => void; export: () => string; import: (s: string) => void };
+    };
   }
 }
+
+// Slot 1 is the implicit active slot until a title/load-game menu exists
+// (menus arrive with class selection in m1.3 / UI work in m5.2). The store
+// itself supports all 3 slots already.
+const ACTIVE_SLOT = 1;
+const AUTOSAVE_MS = 60_000; // roadmap: autosave every 60s (+ on zone transition, once 0.5 adds transitions)
 
 const ZONE_ID = 'overworld'; // this scene's zone in data/zones.json; multi-zone selection is m0.5's job
 
@@ -43,6 +56,11 @@ export class WorldScene extends Phaser.Scene {
   private grid!: number[][];
   private enemyDefs!: EnemyData[];
   private respawnTimer = 0;
+  private saveStore!: SaveStore;
+  // Carries save fields whose owning systems don't exist yet (gear, bag,
+  // skill ranks, world flags) through load→autosave untouched, so nothing
+  // a future version wrote is ever dropped by this build.
+  private savePassThrough: SaveData = defaultSave();
   // Overworld is a bright zone; the dungeon (Milestone 0.5) will pass true.
   private readonly isDarkZone = false;
   // Prototype: refill the overworld toward ~10 enemies every 4s.
@@ -73,6 +91,11 @@ export class WorldScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, layer);
 
+    // Load the save BEFORE anything reads player state — enemy hp scales
+    // with player level at spawn time, so this must precede populate().
+    this.saveStore = new SaveStore(window.localStorage);
+    this.loadSave();
+
     this.numbers = new DamageNumbers(this);
     this.slash = this.add.image(0, 0, 'slash').setVisible(false).setDepth(8);
 
@@ -99,13 +122,59 @@ export class WorldScene extends Phaser.Scene {
 
     this.fog = new FogOfWar(this, this.isDarkZone, this.player.visionBonus);
 
+    this.time.addEvent({ delay: AUTOSAVE_MS, loop: true, callback: () => this.saveNow() });
+
     // UIScene (the HUD overlay) reads these; keeps the two scenes decoupled.
     this.publishHud();
 
     window.__AZER = {
       player: this.player,
       enemies: () => this.enemies.getChildren() as Enemy[],
+      save: {
+        now: () => this.saveNow(),
+        export: () => exportSave(this.snapshot()),
+        import: (s: string) => {
+          this.applySave(importSave(s));
+          this.saveNow();
+        },
+      },
     };
+  }
+
+  private loadSave(): void {
+    try {
+      const loaded = this.saveStore.load(ACTIVE_SLOT);
+      if (loaded) this.applySave(loaded);
+    } catch (err) {
+      // A damaged save must not brick the game: start fresh, keep the
+      // corrupt payload untouched in storage for manual rescue.
+      console.warn('Ignoring corrupt save in slot', ACTIVE_SLOT, err);
+    }
+  }
+
+  private applySave(save: SaveData): void {
+    this.savePassThrough = save;
+    this.player.level = save.character.level;
+    this.player.xp = save.character.xp;
+    this.player.gold = save.character.gold;
+    // maxHp derives from level (prototype: 90 + level*10); hp is transient
+    // combat state and always restores full on load, like the prototype's
+    // respawn.
+    this.player.maxHp = 90 + this.player.level * 10;
+    this.player.hp = this.player.maxHp;
+  }
+
+  private snapshot(): SaveData {
+    return {
+      ...this.savePassThrough,
+      saveVersion: this.savePassThrough.saveVersion,
+      updatedAt: Date.now(),
+      character: { level: this.player.level, xp: this.player.xp, gold: this.player.gold },
+    };
+  }
+
+  private saveNow(): void {
+    this.saveStore.save(ACTIVE_SLOT, this.snapshot());
   }
 
   override update(_time: number, delta: number): void {

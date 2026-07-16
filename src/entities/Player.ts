@@ -21,6 +21,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   /** +Vision from gear pushes back the fog; real stat lands in Milestone 0.3. */
   visionBonus = 0;
   level = 1;
+  /** Earned but unused until XP/leveling lands (m1.1); persisted by saves. */
+  xp = 0;
+  /** No economy until the vendor (m2.3); persisted by saves. */
+  gold = 0;
   maxHp = 100; // prototype: 90 + level*10
   hp = 100;
   atkCd = 0;
