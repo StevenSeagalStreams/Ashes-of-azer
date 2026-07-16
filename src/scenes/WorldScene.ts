@@ -14,6 +14,7 @@ import { DamageNumbers } from '../systems/DamageNumbers.ts';
 import { FogOfWar } from '../systems/fog.ts';
 import { genOverworld, MAPH, MAPW, SOLID_TILES, SPAWN, TS, walkable } from '../systems/mapgen.ts';
 import { addSlashTexture, addTilesetTexture } from '../systems/pixelart.ts';
+import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 
 declare global {
   interface Window {
@@ -30,20 +31,6 @@ function findSpawnPoint(grid: number[][]): { x: number; y: number } {
     const y = Phaser.Math.Between(3, MAPH - 3) * TS;
     if (walkable(grid, x, y, 6) && Math.hypot(x - SPAWN.x, y - SPAWN.y) > 90) return { x, y };
   }
-}
-
-// The enemy defs spawnable in this zone, resolved from data/zones.json's
-// enemyTypes against data/enemies.json — adding a new enemy to a zone is a
-// JSON-only edit, no code change.
-function zoneEnemyDefs(data: GameData): EnemyData[] {
-  const zone = data.zones.find((z) => z.id === ZONE_ID);
-  if (!zone) throw new Error(`zone "${ZONE_ID}" not found in zones.json`);
-  const byId = new Map(data.enemies.map((e) => [e.id, e]));
-  return zone.enemyTypes.map((id) => {
-    const def = byId.get(id);
-    if (!def) throw new Error(`zone "${ZONE_ID}" references unknown enemy id "${id}"`);
-    return def;
-  });
 }
 
 export class WorldScene extends Phaser.Scene {
@@ -68,7 +55,7 @@ export class WorldScene extends Phaser.Scene {
 
   create(): void {
     const gameData = this.registry.get('gameData') as GameData;
-    this.enemyDefs = zoneEnemyDefs(gameData);
+    this.enemyDefs = zoneEnemyDefs(gameData, ZONE_ID);
 
     addTilesetTexture(this, 'tiles');
     addSlashTexture(this, 'slash');
