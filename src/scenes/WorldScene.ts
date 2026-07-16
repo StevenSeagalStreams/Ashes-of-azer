@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import type { GameData } from '../data/loader.ts';
+import type { EnemyData } from '../data/schemas/index.ts';
 import { Enemy } from '../entities/Enemy.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -19,6 +21,8 @@ declare global {
   }
 }
 
+const ZONE_ID = 'overworld'; // this scene's zone in data/zones.json; multi-zone selection is m0.5's job
+
 // Prototype populate(): random walkable overworld tile at least 90px from spawn.
 function findSpawnPoint(grid: number[][]): { x: number; y: number } {
   for (;;) {
@@ -26,6 +30,20 @@ function findSpawnPoint(grid: number[][]): { x: number; y: number } {
     const y = Phaser.Math.Between(3, MAPH - 3) * TS;
     if (walkable(grid, x, y, 6) && Math.hypot(x - SPAWN.x, y - SPAWN.y) > 90) return { x, y };
   }
+}
+
+// The enemy defs spawnable in this zone, resolved from data/zones.json's
+// enemyTypes against data/enemies.json — adding a new enemy to a zone is a
+// JSON-only edit, no code change.
+function zoneEnemyDefs(data: GameData): EnemyData[] {
+  const zone = data.zones.find((z) => z.id === ZONE_ID);
+  if (!zone) throw new Error(`zone "${ZONE_ID}" not found in zones.json`);
+  const byId = new Map(data.enemies.map((e) => [e.id, e]));
+  return zone.enemyTypes.map((id) => {
+    const def = byId.get(id);
+    if (!def) throw new Error(`zone "${ZONE_ID}" references unknown enemy id "${id}"`);
+    return def;
+  });
 }
 
 export class WorldScene extends Phaser.Scene {
@@ -36,6 +54,7 @@ export class WorldScene extends Phaser.Scene {
   private fog!: FogOfWar;
   private spaceKey!: Phaser.Input.Keyboard.Key;
   private grid!: number[][];
+  private enemyDefs!: EnemyData[];
   private respawnTimer = 0;
   // Overworld is a bright zone; the dungeon (Milestone 0.5) will pass true.
   private readonly isDarkZone = false;
@@ -48,6 +67,9 @@ export class WorldScene extends Phaser.Scene {
   }
 
   create(): void {
+    const gameData = this.registry.get('gameData') as GameData;
+    this.enemyDefs = zoneEnemyDefs(gameData);
+
     addTilesetTexture(this, 'tiles');
     addSlashTexture(this, 'slash');
     const grid = genOverworld();
@@ -67,12 +89,12 @@ export class WorldScene extends Phaser.Scene {
     this.numbers = new DamageNumbers(this);
     this.slash = this.add.image(0, 0, 'slash').setVisible(false).setDepth(8);
 
-    // Prototype populate(): 14 slimes/bats on walkable overworld tiles, away from spawn.
+    // Prototype populate(): 14 enemies on walkable overworld tiles, away from spawn.
     this.enemies = this.physics.add.group({ runChildUpdate: false });
     for (let i = 0; i < 14; i++) {
       const { x, y } = findSpawnPoint(grid);
-      const type = Math.random() < 0.7 ? 'slime' : 'bat';
-      this.enemies.add(new Enemy(this, type, x, y, this.player.level));
+      const def = Phaser.Utils.Array.GetRandom(this.enemyDefs);
+      this.enemies.add(new Enemy(this, def, x, y, this.player.level));
     }
     this.physics.add.collider(this.enemies, layer);
 
@@ -140,9 +162,9 @@ export class WorldScene extends Phaser.Scene {
     for (let tries = 0; tries < 20; tries++) {
       const { x, y } = findSpawnPoint(this.grid);
       if (Math.hypot(x - this.player.x, y - this.player.y) > 120) {
-        const type = Math.random() < 0.7 ? 'slime' : 'bat';
+        const def = Phaser.Utils.Array.GetRandom(this.enemyDefs);
         // Group members collide with the tile layer via the collider set in create().
-        this.enemies.add(new Enemy(this, type, x, y, this.player.level));
+        this.enemies.add(new Enemy(this, def, x, y, this.player.level));
         return;
       }
     }

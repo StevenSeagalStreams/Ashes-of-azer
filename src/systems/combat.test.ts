@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  attackCooldown,
-  BASE_ATTACK_COOLDOWN,
-  ETYPES,
-  playerBaseDamage,
-  rollHit,
-  scaledEnemyHp,
-} from './combat.ts';
+import { attackCooldown, BASE_ATTACK_COOLDOWN, playerBaseDamage, rollHit, scaledEnemyHp } from './combat.ts';
 
 describe('attackCooldown', () => {
   it('is the prototype base with no attack speed', () => {
@@ -28,8 +21,9 @@ describe('playerBaseDamage', () => {
 
 describe('scaledEnemyHp', () => {
   it('scales prototype base hp by player level', () => {
-    expect(scaledEnemyHp(ETYPES.slime.hp, 1)).toBeCloseTo(22 * 1.12);
-    expect(scaledEnemyHp(ETYPES.bat.hp, 3)).toBeCloseTo(16 * 1.36);
+    // Values from data/enemies.json (slime hp:22, bat hp:16), not hardcoded here.
+    expect(scaledEnemyHp(22, 1)).toBeCloseTo(22 * 1.12);
+    expect(scaledEnemyHp(16, 3)).toBeCloseTo(16 * 1.36);
   });
 });
 

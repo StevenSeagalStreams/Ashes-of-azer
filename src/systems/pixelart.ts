@@ -57,6 +57,48 @@ export const BAT_ROWS = [
   '...p..p...',
 ];
 
+export const SKEL_ROWS = [
+  '...wwww...',
+  '..wwwwww..',
+  '..wkwwkw..',
+  '...wwww...',
+  '..mwwwwm..',
+  '...wwww...',
+  '...w..w...',
+  '..kk..kk..',
+];
+
+export const BOSS_ROWS = [
+  '....kkkkkkkk....',
+  '..kkrrrrrrrrkk..',
+  '.krrRRrrrrRRrrk.',
+  '.krRyyRrrRyyRrk.',
+  '.krrRRrrrrRRrrk.',
+  '..krrrrkkrrrrk..',
+  '..krrrrrrrrrrk..',
+  '.kdrrrrrrrrrrdk.',
+  '.kddrrrrrrrrddk.',
+  '..kddddddddddk..',
+  '...kdd....ddk...',
+  '...kkk....kkk...',
+];
+
+// Fallback for a `sprite` key in enemies.json that has no dedicated art
+// (e.g. a freshly-added enemy type) — a plain magenta blob, so content
+// authors can add a new enemy purely in JSON without the game crashing on
+// a missing texture. Real art can follow later.
+export const DEFAULT_ENEMY_ROWS = ['.pp.', 'pppp', 'pppp', '.pp.'];
+
+const SPRITE_ROW_SETS: Record<string, string[]> = {
+  hero: HERO_ROWS,
+  slime: SLIME_ROWS,
+  bat: BAT_ROWS,
+  skel: SKEL_ROWS,
+  boss: BOSS_ROWS,
+};
+
+export const spriteRowsFor = (key: string): string[] => SPRITE_ROW_SETS[key] ?? DEFAULT_ENEMY_ROWS;
+
 export function addSpriteTexture(scene: Phaser.Scene, key: string, rows: string[]): void {
   if (scene.textures.exists(key)) return;
   const first = rows[0] ?? '';
