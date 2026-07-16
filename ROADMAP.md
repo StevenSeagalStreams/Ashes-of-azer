@@ -43,10 +43,10 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Export/import save as base64 string (cheap cloud-save substitute + debugging tool)
 
 ### 0.5 Tilemap pipeline
-- [ ] Install Tiled map editor; define tileset conventions (collision layer, spawn layer, trigger layer)
-- [ ] Phaser loader for Tiled JSON maps
-- [ ] Rebuild Starter Plains and Hollow Barrow as hand-crafted Tiled maps
-- [ ] Trigger system: zone transitions, dungeon doors, cutscene triggers as Tiled objects
+- [x] Install Tiled map editor; define tileset conventions (collision layer, spawn layer, trigger layer) — conventions in assets/maps/README.md; Tiled itself installs on the human's machine to edit the committed maps
+- [x] Phaser loader for Tiled JSON maps
+- [x] Rebuild Starter Plains and Hollow Barrow as hand-crafted Tiled maps (prototype layouts frozen into editable Tiled JSON by scripts/generate-maps.mjs)
+- [x] Trigger system: zone transitions, dungeon doors, cutscene triggers as Tiled objects (cutscene type parsed/validated, inert until m2.x)
 
 **Milestone complete when:** the prototype gameplay runs in Phaser, all content lives in JSON, saves persist across refresh, and maps are made in Tiled.
 

@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- The Hollow Barrow is open! Walk through the dark doorway east of the plains
+  to enter the dungeon — skeletons and bats lurk in tight, dark corridors,
+  and ROTFANG, BARROW TYRANT waits in the far room with a ground-slam attack.
+  A glowing portal leads back home, and the game remembers which zone you
+  were in when you return.
+- The healing well near the spawn now works — stand close to recover health.
+- Maps are now hand-editable files (Tiled editor format) instead of
+  code-generated, so world layouts can be redesigned without programming.
 - Your progress now saves automatically (every 60 seconds) and survives
   closing or refreshing the browser. Saves can also be exported as a text
   string and imported on another machine.

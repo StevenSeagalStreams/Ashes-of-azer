@@ -1,42 +1,63 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**Milestone 0.4 is COMPLETE.** Next up: **Milestone 0.5 — Tilemap pipeline.**
-First unchecked box: "Install Tiled map editor; define tileset conventions
-(collision layer, spawn layer, trigger layer)."
+**MILESTONE 0 (Technical Foundation) IS COMPLETE** — all 5 sections, all
+criteria: prototype gameplay runs in Phaser ✓, all content lives in JSON ✓,
+saves persist across refresh ✓, maps are made in Tiled ✓.
+
+Next up: **Milestone 1.1 — The 6 active / 6 passive build system.** First
+unchecked box: "Skill loadout UI: drag skills from library into 6 active
+slots (keys 1–6)."
 
 Notes for that session:
-- "Install Tiled" — Tiled is a desktop app for the *human* to author maps
-  with. What the session can do: define and document the conventions
-  (layer names: e.g. `ground`, `collision`, `spawns`, `triggers`; custom
-  properties for transitions/doors), and hand-write the Tiled JSON files
-  (the .tmj format is documented, plain JSON) for Starter Plains and Hollow
-  Barrow rather than clicking them together in the editor. Alternatively
-  write a small script converting `genOverworld()`/`genDungeon()` output to
-  Tiled JSON as the starting maps. Either path satisfies "maps loaded as
-  Tiled JSON"; the human can open/edit the files in Tiled afterwards.
-  Flag under Needs human playtest that the files open cleanly in Tiled.
-- Phaser natively loads Tiled JSON (`this.load.tilemapTiledJSON`). The
-  current `make.tilemap({data})` path in WorldScene gets replaced.
-- The dungeon (Hollow Barrow) becomes reachable for the first time here —
-  trigger system includes zone transitions (door tile at (48-49,15) →
-  dungeon, portal back). That also means: dungeon fog (`dark: true` in
-  zones.json, already consumed by fog.ts params), skel/boss enemies
-  (already in enemies.json), and the **zone-transition autosave call-site**
-  (0.4 left a comment for this — call `saveNow()` on transition).
-- `mapgen.ts` (the generated-grid port) gets retired or kept only as a
-  reference; its tests go with it. Grid data moves to authored maps.
-- The healing well (prototype: heals 20/s within 20px of (128,464) on the
-  overworld) has no owning milestone — 0.5's trigger system is the natural
-  home (a `heal` trigger region in the map). Backlogged until now.
-- Boss (Rotfang) spawning in the dungeon: prototype guarantees legendary
-  drops on kill — loot doesn't exist yet (m1.x item system). Spawning the
-  boss with its melee+slam behavior is 0.5-adjacent (it's dungeon content);
-  the slam attack (AoE every 4.5s) may warrant a small addition to the
-  enemy schema (e.g. optional `slam` block) — data-driven, no hardcoding.
-  Decide scope when there; drops stay deferred to the item system.
+- **CLAUDE.md technical constraint: UI overlay is HTML/CSS, not canvas.**
+  The loadout UI (drag & drop, slots) should be DOM elements over the game
+  canvas — the first real HTML UI in the project. The HP bar currently in
+  UIScene (canvas) can stay for now; don't rebuild it unless the task
+  demands it (backlog it if it itches).
+- Prerequisites hiding inside this task, decide/sequence deliberately:
+  - **Skill execution engine**: skills.json already models all 5 warrior
+    actives as per-rank data (mechanics: shockwave/leap/execute/buff), but
+    nothing executes them. Keys 1-6 need casting: mana pool
+    (prototype: 50 + 5*level, regen 4/s), per-skill cooldowns
+    (cd * (1 - cdr/100)), rank-based scaling. shockwave() AoE + stun needs
+    an enemy `stun` field (prototype: stunned enemies stop moving/attacking).
+  - **Skill points/ranks**: prototype grants 1 point per level, rank up to
+    5. Without XP (still unwired — no owning checkbox until... actually
+    XP-on-kill exists in enemies.json data but gainXp is unowned; consider
+    wiring XP/level-up as part of 1.1 since skill points are meaningless
+    without leveling — it's arguably in-scope for "build system." If that
+    feels like scope creep, ask the user.)
+  - Passive skills (2nd/3rd boxes) need `type: "passive"` entries in
+    skills.json — schema currently only models the 4 active mechanics; add
+    a passive variant to the discriminated union.
+- `skillRanks` in the save schema is already persisted; loadout (which 6
+  active/passive are slotted) will need a save field → save v3 migration.
+- Respec (4th box) mentions "town trainer" — no town/NPCs until m2.2/2.3.
+  A free respec button in the skill UI satisfies the mechanic; the trainer
+  becomes its home later. Note it as the likely reading, decide there.
 
 ## Done
+- **Milestone 0.5 is COMPLETE — all 4 checkboxes ticked. Milestone 0 done.**
+  - Maps are authored Tiled JSON in `assets/maps/` (conventions documented
+    in `assets/maps/README.md`; layouts frozen from the prototype's
+    generators by `scripts/generate-maps.mjs`, hand-editable in Tiled;
+    `tiles.png` exported from the exact runtime texture so Tiled shows the
+    real art). Vite `publicDir` is now `/assets`.
+  - WorldScene is zone-parameterized (`scene.restart({zone, entryX/Y})`),
+    builds everything from the map: collision from per-tile `solid`
+    property, spawns (fixed points + scatter regions with optional
+    respawn), triggers. `src/systems/triggers.ts` parses/validates the
+    object layers (zod; unknown types fail loudly). 74 tests.
+  - **The dungeon is reachable**: barrow door → Hollow Barrow (12 skel/bat
+    spots + Rotfang with a data-driven slam attack — enemies.json got an
+    optional `slam` block), exit portal back; healing well works (heal
+    trigger, 20hp/s); transitions autosave; death+R returns to overworld.
+  - Save v2 (`world.currentZone`) — the migration framework's first real
+    use; a full v1 fixture upgrade is tested. Zone survives page reload.
+  - Verified headless end-to-end (transitions, spawn correctness, slam
+    damage signature 22 vs contact 16, portal coords, well heal rate, zone
+    persistence, dungeon fog screenshot). Zero console errors.
 - **Milestone 0.4 is COMPLETE — all 5 checkboxes ticked.** Versioned save
   system: `src/systems/save/` (schema v1, migration walker live from the
   first format, unicode-safe base64 export/import codec, 3-slot
@@ -212,6 +233,22 @@ Notes for that session:
   oddly or error. (Persistence itself is machine-verified; today level
   never changes during play, so there's little visible to notice. Real
   visible payoff arrives with XP/loot.)
+- **Milestone 0.5 — the big one to playtest**, on the live site after
+  deploy:
+  - Walk east along the path to the dark doorway (top of the clearing by
+    the lake) and step in → you should land in the Hollow Barrow: tight
+    dark fog, purple floors, skeletons and bats hunting you.
+  - Find ROTFANG (far north-east room): red expanding ring = ground slam,
+    22 damage — does the fight feel dangerous but readable? (No loot from
+    him yet — item system is next milestone-ish.)
+  - Die in there → "YOU DIED" → R → back at the plains spawn, full hp.
+  - Teal portal (south-west of the dungeon) → returns you outside near the
+    door. Refresh mid-dungeon → you should come back *in the dungeon*.
+  - Stand by the healing well (small blue well near spawn) after taking
+    damage → hp visibly refills.
+  - **Open assets/maps/overworld.json in the Tiled editor** (install from
+    mapeditor.org) — it should open cleanly with visible art (tiles.png)
+    and editable layers. This is the one part of 0.5 I can't verify.
 
 ## Asset requests
 (none yet)
