@@ -28,7 +28,9 @@ export type LegendaryData = z.infer<typeof LegendarySchema>;
 
 export const ItemsFileSchema = z.object({
   slots: z.array(ItemSlotSchema),
-  bases: z.record(ItemSlotSchema, z.array(ItemBaseSchema)),
+  // Not every slot needs bases yet (future slots from Milestone 4.x can be
+  // added to `slots` before any base items exist for them).
+  bases: z.partialRecord(ItemSlotSchema, z.array(ItemBaseSchema)),
   rarities: z.array(RarityTierSchema),
   legendaries: z.array(LegendarySchema),
 });

@@ -1,0 +1,4 @@
+[
+  { "id": "overworld", "name": "Starter Plains", "dark": false, "enemyTypes": ["slime", "bat"] },
+  { "id": "dungeon", "name": "Hollow Barrow", "dark": true, "enemyTypes": ["skel", "bat", "boss"] }
+]

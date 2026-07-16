@@ -1,0 +1,18 @@
+[
+  { "id": "slime", "sprite": "slime", "hp": 22, "dmg": 6, "spd": 26, "xp": 8, "aggro": 90, "width": 10, "height": 6 },
+  { "id": "bat", "sprite": "bat", "hp": 16, "dmg": 5, "spd": 52, "xp": 10, "aggro": 120, "width": 10, "height": 5 },
+  { "id": "skel", "sprite": "skel", "hp": 40, "dmg": 10, "spd": 34, "xp": 18, "aggro": 110, "width": 8, "height": 8 },
+  {
+    "id": "boss",
+    "sprite": "boss",
+    "hp": 420,
+    "dmg": 16,
+    "spd": 30,
+    "xp": 150,
+    "aggro": 999,
+    "width": 16,
+    "height": 12,
+    "boss": true,
+    "name": "ROTFANG, BARROW TYRANT"
+  }
+]

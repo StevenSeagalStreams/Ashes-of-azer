@@ -1,0 +1,61 @@
+{
+  "slots": ["Weapon", "Helmet", "Chest", "Boots", "Ring"],
+  "bases": {
+    "Weapon": [
+      { "name": "Rusty Sword", "base": 3 },
+      { "name": "Broad Axe", "base": 5 },
+      { "name": "War Maul", "base": 7 },
+      { "name": "Kingsteel Blade", "base": 9 }
+    ],
+    "Helmet": [
+      { "name": "Leather Cap", "base": 2 },
+      { "name": "Iron Helm", "base": 4 },
+      { "name": "Crested Helm", "base": 6 }
+    ],
+    "Chest": [
+      { "name": "Padded Vest", "base": 3 },
+      { "name": "Chainmail", "base": 5 },
+      { "name": "Titan Plate", "base": 8 }
+    ],
+    "Boots": [
+      { "name": "Worn Boots", "base": 2 },
+      { "name": "Striders", "base": 4 },
+      { "name": "Windwalkers", "base": 6 }
+    ],
+    "Ring": [
+      { "name": "Copper Ring", "base": 1 },
+      { "name": "Silver Band", "base": 3 },
+      { "name": "Runed Loop", "base": 5 }
+    ]
+  },
+  "rarities": [
+    { "id": "white", "dropChance": 0.42, "affixCount": 0 },
+    { "id": "magic", "dropChance": 0.34, "affixCount": 1 },
+    { "id": "rare", "dropChance": 0.16, "affixCount": 2 },
+    { "id": "epic", "dropChance": 0.06, "affixCount": 3 },
+    { "id": "legendary", "dropChance": 0.02, "affixCount": 3 }
+  ],
+  "legendaries": [
+    {
+      "name": "Frostheart",
+      "slot": "Ring",
+      "power": "frostheart",
+      "text": "Frozen enemies explode for 40 damage.",
+      "forcedAffixes": [{ "key": "frost", "value": 30 }]
+    },
+    {
+      "name": "Thornroot Boots",
+      "slot": "Boots",
+      "power": "thornroot",
+      "text": "Movement leaves damaging vines behind you.",
+      "forcedAffixes": [{ "key": "ms", "value": 12 }]
+    },
+    {
+      "name": "Crown of the First King",
+      "slot": "Helmet",
+      "power": "ghostking",
+      "text": "Every third attack summons a ghost knight strike.",
+      "forcedAffixes": [{ "key": "dmg", "value": 6 }]
+    }
+  ]
+}

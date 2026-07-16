@@ -29,9 +29,9 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Verify feature parity with the HTML prototype before continuing (overworld loop at parity; loot/skills/XP/dungeon owned by later milestones — see PROGRESS.md)
 
 ### 0.3 Data-driven content (highest-leverage task in the project)
-- [ ] Define JSON schemas: `items.json`, `affixes.json`, `enemies.json`, `skills.json`, `zones.json`, `quests.json`, `dialogue.json`
-- [ ] Write TypeScript types for every schema (`zod` recommended — validates at load time)
-- [ ] Loader that reads all JSON at boot and fails loudly on invalid data
+- [x] Define JSON schemas: `items.json`, `affixes.json`, `enemies.json`, `skills.json`, `zones.json`, `quests.json`, `dialogue.json`
+- [x] Write TypeScript types for every schema (`zod` recommended — validates at load time)
+- [x] Loader that reads all JSON at boot and fails loudly on invalid data
 - [ ] Move every hardcoded item, affix, enemy, and skill from the prototype into JSON
 - [ ] Test: add a new enemy type by editing JSON only — zero code changes
 

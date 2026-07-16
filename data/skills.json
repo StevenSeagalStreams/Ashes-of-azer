@@ -1,0 +1,72 @@
+[
+  {
+    "id": "shield_slam",
+    "mechanic": "shockwave",
+    "key": "1",
+    "icon": "🛡",
+    "name": "Shield Slam",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 5,
+    "manaCost": 18,
+    "radius": { "base": 40, "perRank": 3 },
+    "damageMultiplier": { "base": 1, "perRank": 0.3 },
+    "stunDuration": { "base": 0.9, "perRank": 0.3 }
+  },
+  {
+    "id": "whirlwind",
+    "mechanic": "shockwave",
+    "key": "2",
+    "icon": "🌀",
+    "name": "Whirlwind",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 8,
+    "manaCost": 28,
+    "radius": { "base": 50, "perRank": 5 },
+    "damageMultiplier": { "base": 1.6, "perRank": 0.4 }
+  },
+  {
+    "id": "leap",
+    "mechanic": "leap",
+    "key": "3",
+    "icon": "💨",
+    "name": "Leap",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 6,
+    "manaCost": 14,
+    "distance": { "base": 95, "perRank": 15 },
+    "damageMultiplier": { "base": 0.7, "perRank": 0.2 },
+    "landingRadius": 36,
+    "stunDuration": 0.5
+  },
+  {
+    "id": "execute",
+    "mechanic": "execute",
+    "key": "4",
+    "icon": "⚔",
+    "name": "Execute",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "cooldown": 7,
+    "manaCost": 20,
+    "range": 42,
+    "damageMultiplierLow": { "base": 4, "perRank": 0.6 },
+    "damageMultiplierHigh": 1.5,
+    "lifeThresholdPct": { "base": 22, "perRank": 3 }
+  },
+  {
+    "id": "war_cry",
+    "mechanic": "buff",
+    "key": "5",
+    "icon": "🔥",
+    "name": "War Cry",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "cooldown": 15,
+    "manaCost": 25,
+    "damageBonusPct": { "base": 25, "perRank": 10 },
+    "duration": 6
+  }
+]
