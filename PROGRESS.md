@@ -20,36 +20,6 @@ Notes for that session:
   reset button in panel clears skillRanks beyond startingRank; trainer
   home in m2.3).
 
-Notes for that session:
-- **CLAUDE.md technical constraint: UI overlay is HTML/CSS, not canvas.**
-  This is the first real DOM UI in the project. Pattern suggestion: a
-  `src/ui/` module that owns a DOM root appended over the canvas (game
-  container is `#app` in index.html), styled like the prototype's panels
-  (ashes_of_azer.html has full CSS for .skill/.sk/#skillPanel — port the
-  look). Keep game↔DOM communication through the registry / typed events,
-  same as the UIScene hud pattern.
-- What exists to build on (all in WorldScene + src/systems/skills.ts):
-  - `hotbar` array (currently first 6 skills in skills.json order),
-    `skillCooldowns` map, `castSkill`, `castBlock` (returns WHY a cast is
-    blocked — perfect for greying out buttons / showing mana-blue outline
-    like the prototype).
-  - `availableSkillPoints(level, skills, skillRanks)` derives spendable
-    points; rank-up = increment `saveData.skillRanks[id]` (respect maxRank
-    + unlockLevel + points > 0) then saveNow. K key toggled the prototype
-    panel — reuse that binding.
-  - Prototype reference: renderSkills() (~line 550) for panel content:
-    name, desc at current/next rank, pips (●○), + button when affordable.
-- Skill descriptions: prototype desc functions are per-rank strings —
-  build them from the mechanic data generically (e.g. shockwave: "Slam
-  nearby foes for {mult}x dmg, stun {s}s") rather than adding desc
-  templates to JSON — or add a `descTemplate` to skills.json (content!)
-  with {placeholders}. Latter is more data-driven; decide there.
-- After the panel: the drag-into-6-slots loadout sub-box (loadout needs a
-  save field → v3 migration; note hotbar currently auto-fills).
-- Then passive type (schema union variant + example passives) + 6 passive
-  slots UI + respec (free reset button in the panel; "town trainer" home
-  comes with m2.3).
-
 ## Done
 - **Milestone 1.1 sub-box 3: drag-and-drop loadout (save v3).** Pure
   helpers defaultActives/resolveLoadout/assignSlot (swap semantics) in
