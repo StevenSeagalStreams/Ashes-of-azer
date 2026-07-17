@@ -17,6 +17,7 @@ export interface SkillUIHost {
   skillRanks: () => Record<string, number>;
   slotState: (skill: SkillData) => HotbarSlotState;
   rankUp: (skillId: string) => void;
+  setSlot: (slot: number, skillId: string | null) => void;
 }
 
 const STYLE_ID = 'azer-skill-ui-style';
@@ -42,6 +43,11 @@ const CSS = `
   .azer-sk .pips .on{color:#e07830;}
   .azer-sk button{position:absolute;right:6px;top:6px;width:26px;height:26px;font-size:16px;font-weight:bold;border:2px solid #8a6d3b;border-radius:5px;background:#e8b64c;cursor:pointer;font-family:inherit;}
   .azer-sk button:hover{background:#f2c96a;}
+  .azer-sk[data-skill]{cursor:grab;}
+  .azer-slot{pointer-events:auto;}
+  .azer-slot.droptarget{outline:2px solid #ffd84a;}
+  #azer-drag-ghost{position:fixed;pointer-events:none;z-index:50;font-size:22px;opacity:.85;
+    text-shadow:1px 1px 0 #000;transform:translate(-50%,-50%);font-family:"Courier New",monospace;}
 `;
 
 export class SkillUI {
@@ -77,7 +83,55 @@ export class SkillUI {
   }
 
   destroy(): void {
+    this.endDrag();
     this.root.remove();
+  }
+
+  // ---- drag & drop: library row → hotbar slot (mouse-event based) ----
+
+  private dragSkillId: string | null = null;
+  private ghost: HTMLElement | null = null;
+  private readonly onDragMove = (e: MouseEvent): void => {
+    if (this.ghost) {
+      this.ghost.style.left = `${e.clientX}px`;
+      this.ghost.style.top = `${e.clientY}px`;
+    }
+    const slot = this.slotAt(e.clientX, e.clientY);
+    this.slotEls.forEach((s, i) => s.el.classList.toggle('droptarget', slot === i));
+  };
+  private readonly onDragUp = (e: MouseEvent): void => {
+    const slot = this.slotAt(e.clientX, e.clientY);
+    const skillId = this.dragSkillId;
+    this.endDrag();
+    if (slot !== null && skillId) this.host.setSlot(slot, skillId);
+  };
+
+  private slotAt(x: number, y: number): number | null {
+    const el = document.elementFromPoint(x, y)?.closest('.azer-slot');
+    if (!el) return null;
+    const i = this.slotEls.findIndex((s) => s.el === el);
+    return i >= 0 ? i : null;
+  }
+
+  private startDrag(skill: SkillData, e: MouseEvent): void {
+    this.dragSkillId = skill.id;
+    this.ghost = document.createElement('div');
+    this.ghost.id = 'azer-drag-ghost';
+    this.ghost.textContent = skill.icon;
+    document.body.appendChild(this.ghost);
+    this.ghost.style.left = `${e.clientX}px`;
+    this.ghost.style.top = `${e.clientY}px`;
+    document.addEventListener('mousemove', this.onDragMove);
+    document.addEventListener('mouseup', this.onDragUp);
+  }
+
+  private endDrag(): void {
+    this.dragSkillId = null;
+    this.ghost?.remove();
+    this.ghost = null;
+    this.slotEls.forEach((s) => s.el.classList.remove('droptarget'));
+    document.removeEventListener('mousemove', this.onDragMove);
+    document.removeEventListener('mouseup', this.onDragUp);
   }
 
   togglePanel(): void {
@@ -85,7 +139,7 @@ export class SkillUI {
     this.renderPanel();
   }
 
-  private buildHotbar(): void {
+  buildHotbar(): void {
     this.hotbarEl.innerHTML = '';
     this.slotEls.length = 0;
     this.host.hotbar().forEach((skill, i) => {
@@ -143,6 +197,12 @@ export class SkillUI {
           : describeSkill(skill, rank);
       row.innerHTML = `<b>${skill.icon} ${skill.name}</b> <span style="font-size:10px;color:#7a6a4a">[${skill.key}]</span>
         <div class="d">${desc}</div><div class="pips">${pips}</div>`;
+      if (!locked) {
+        row.dataset['skill'] = skill.id;
+        row.addEventListener('mousedown', (e) => {
+          if ((e.target as HTMLElement).tagName !== 'BUTTON') this.startDrag(skill, e);
+        });
+      }
       if (!locked && points > 0 && rank < skill.maxRank) {
         const btn = document.createElement('button');
         btn.textContent = '+';

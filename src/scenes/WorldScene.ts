@@ -19,11 +19,14 @@ import { defaultSave, type SaveData } from '../systems/save/schema.ts';
 import { SaveStore } from '../systems/save/store.ts';
 import {
   applyXp,
+  assignSlot,
   availableSkillPoints,
   castBlock,
+  defaultActives,
   MANA_REGEN,
   manaMaxFor,
   rankOf,
+  resolveLoadout,
   scaleValue,
   skillCooldown,
   xpToNext,
@@ -149,7 +152,12 @@ export class WorldScene extends Phaser.Scene {
     const kb = this.input.keyboard;
     if (!kb) throw new Error('keyboard plugin unavailable');
     this.spaceKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    this.hotbar = Array.from({ length: 6 }, (_, i) => this.gameData.skills[i] ?? null);
+    // All-null loadout = never customised → seed the default bar (and persist
+    // it so the save carries an explicit choice from then on).
+    if (this.saveData.loadout.actives.every((id) => id === null)) {
+      this.saveData.loadout.actives = defaultActives(this.gameData.skills);
+    }
+    this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.gameData.skills);
     this.skillCooldowns.clear();
     (['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'] as const).forEach((keyName, i) => {
       kb.on(`keydown-${keyName}`, () => {
@@ -178,6 +186,12 @@ export class WorldScene extends Phaser.Scene {
         };
       },
       rankUp: (skillId) => this.rankUpSkill(skillId),
+      setSlot: (slot, skillId) => {
+        this.saveData.loadout.actives = assignSlot(this.saveData.loadout.actives, slot, skillId);
+        this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.gameData.skills);
+        this.skillUI.buildHotbar();
+        this.saveNow();
+      },
     });
     this.events.once('shutdown', () => this.skillUI.destroy());
     kb.on('keydown-K', () => this.skillUI.togglePanel());

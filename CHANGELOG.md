@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Build your own hotbar: drag any unlocked skill from the K panel onto a
+  hotbar slot to rebind keys 1-6 — your layout is saved with your character.
 - Skill panel and hotbar! Press K to open your skills, spend skill points
   (+ buttons) to learn Execute and War Cry or rank up your other skills. The
   hotbar at the bottom shows keys 1-6 with live cooldowns; a blue outline

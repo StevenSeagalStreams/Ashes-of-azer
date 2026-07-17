@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { loadGameData } from '../data/gameData.ts';
 import {
   applyXp,
+  assignSlot,
   availableSkillPoints,
   castBlock,
+  defaultActives,
   manaMaxFor,
   rankOf,
+  resolveLoadout,
   scaleValue,
   skillCooldown,
   xpToNext,
@@ -74,6 +77,28 @@ describe('rankOf / availableSkillPoints', () => {
     expect(availableSkillPoints(1, skills, {})).toBe(0);
     expect(availableSkillPoints(4, skills, {})).toBe(3);
     expect(availableSkillPoints(4, skills, { shield_slam: 2, execute: 1 })).toBe(1); // spent 1+1
+  });
+});
+
+describe('loadout helpers', () => {
+  it('defaultActives fills 6 slots from skills.json order, padding with null', () => {
+    expect(defaultActives(skills)).toEqual(['shield_slam', 'whirlwind', 'leap', 'execute', 'war_cry', null]);
+  });
+
+  it('resolveLoadout maps ids to defs and unknown ids to empty', () => {
+    const resolved = resolveLoadout(['leap', 'ghost_skill', null, null, null, null], skills);
+    expect(resolved[0]?.id).toBe('leap');
+    expect(resolved[1]).toBeNull();
+    expect(resolved).toHaveLength(6);
+  });
+
+  it('assignSlot places a skill and swaps when already slotted elsewhere', () => {
+    const base = ['shield_slam', 'whirlwind', null, null, null, null];
+    expect(assignSlot(base, 2, 'execute')).toEqual(['shield_slam', 'whirlwind', 'execute', null, null, null]);
+    // Moving whirlwind onto slot 0 swaps shield_slam into slot 1.
+    expect(assignSlot(base, 0, 'whirlwind')).toEqual(['whirlwind', 'shield_slam', null, null, null, null]);
+    expect(assignSlot(base, 1, null)).toEqual(['shield_slam', null, null, null, null, null]);
+    expect(base).toEqual(['shield_slam', 'whirlwind', null, null, null, null]); // pure
   });
 });
 

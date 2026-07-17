@@ -86,6 +86,32 @@ export function describeSkill(skill: SkillData, rank: number): string {
   }
 }
 
+/** Default bar: the first 6 skills in skills.json order (prototype keys). */
+export const defaultActives = (skills: SkillsFile): (string | null)[] =>
+  Array.from({ length: 6 }, (_, i) => skills[i]?.id ?? null);
+
+/** Resolves slotted ids to defs; unknown ids (removed content) become empty. */
+export const resolveLoadout = (actives: (string | null)[], skills: SkillsFile): (SkillData | null)[] =>
+  Array.from({ length: 6 }, (_, i) => skills.find((s) => s.id === actives[i]) ?? null);
+
+/**
+ * Assigns a skill to a slot. If the skill already sits in another slot the
+ * two slots swap, so a skill can never occupy two keys at once.
+ */
+export function assignSlot(
+  actives: (string | null)[],
+  slot: number,
+  skillId: string | null,
+): (string | null)[] {
+  const next = [...actives];
+  if (skillId !== null) {
+    const existing = next.indexOf(skillId);
+    if (existing >= 0 && existing !== slot) next[existing] = next[slot] ?? null;
+  }
+  next[slot] = skillId;
+  return next;
+}
+
 export type CastBlock = 'unlearned' | 'locked' | 'cooldown' | 'mana';
 
 export function castBlock(
