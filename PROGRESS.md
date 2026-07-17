@@ -1,19 +1,24 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 1.1, first checkbox is split into sub-boxes (see ROADMAP). Engine
-and skill-panel-UI sub-boxes are DONE. Next sub-box: **"Drag skills from
-library into 6 active slots (keys 1-6), loadout persisted in the save."**
+Milestone 1.1: first checkbox (loadout UI, all 3 sub-boxes) is DONE.
+Next: **"Passive skill type in skills.json (always-on modifiers)."**
 
-Notes: hotbar is currently auto-filled (first 6 skills in skills.json
-order) in WorldScene.create; the loadout sub-task replaces that with a
-persisted choice → save schema needs a `loadout` field (actives: 6 ids or
-null) → **save v3 migration** (framework ready, see MIGRATIONS in
-src/systems/save/migrations.ts; v1→v2 is the pattern to copy). Drag & drop:
-HTML5 draggable on .azer-sk rows → drop targets on .azer-slot; also support
-click-to-assign as a fallback. After this: passive skill type in
-skills.json (schema union variant + example passives), 6 passive slots UI,
-respec (free reset button; "town trainer" home comes with m2.3).
+Notes for that session:
+- Add a `passive` variant to the SkillSchema discriminated union (no
+  key/cooldown/manaCost semantics — always-on stat modifiers). Suggested
+  shape: `{ mechanic:'passive', id, icon, name, unlockLevel, maxRank,
+  startingRank, modifiers: { stat: per-rank scaling } }` where stat keys
+  map to Player fields (maxHpPct, moveSpeedPct, critPct, aspdPct, cdrPct,
+  damagePct...). Applying = recompute player derived stats from slotted
+  passives (only SLOTTED passives count — that's the 6-passive-slot
+  design; slots come next box, so for this box: schema + example passives
+  in skills.json + application function, unit-tested; UI slots after).
+- 2-3 example warrior passives as content (full 10-12 roster is m1.2).
+- Save: passives loadout field → v4 migration when slots land (next box).
+- Then: 6 passive slots UI (extend SkillUI/hotbar pattern), respec (free
+  reset button in panel clears skillRanks beyond startingRank; trainer
+  home in m2.3).
 
 Notes for that session:
 - **CLAUDE.md technical constraint: UI overlay is HTML/CSS, not canvas.**
@@ -46,6 +51,11 @@ Notes for that session:
   comes with m2.3).
 
 ## Done
+- **Milestone 1.1 sub-box 3: drag-and-drop loadout (save v3).** Pure
+  helpers defaultActives/resolveLoadout/assignSlot (swap semantics) in
+  skills.ts; SkillUI mouse-drag with ghost + drop highlight; setSlot host
+  callback; save v3 loadout.actives + v2→v3 migration. Headless-verified
+  drag swap + reload persistence. 87 tests.
 - **Milestone 1.1 sub-box 2: skill panel UI + hotbar (first DOM overlay).**
   `src/ui/SkillUI.ts` (hotbar with live cooldown/mana/locked states via
   castBlock; K panel with pips, per-rank descriptions from describeSkill,
