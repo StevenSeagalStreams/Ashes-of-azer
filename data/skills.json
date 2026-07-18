@@ -3,7 +3,7 @@
     "id": "shield_slam",
     "mechanic": "shockwave",
     "key": "1",
-    "icon": "\ud83d\udee1",
+    "icon": "🛡",
     "name": "Shield Slam",
     "unlockLevel": 1,
     "maxRank": 5,
@@ -28,7 +28,7 @@
     "id": "whirlwind",
     "mechanic": "shockwave",
     "key": "2",
-    "icon": "\ud83c\udf00",
+    "icon": "🌀",
     "name": "Whirlwind",
     "unlockLevel": 1,
     "maxRank": 5,
@@ -49,7 +49,7 @@
     "id": "leap",
     "mechanic": "leap",
     "key": "3",
-    "icon": "\ud83d\udca8",
+    "icon": "💨",
     "name": "Leap",
     "unlockLevel": 1,
     "maxRank": 5,
@@ -72,7 +72,7 @@
     "id": "execute",
     "mechanic": "execute",
     "key": "4",
-    "icon": "\u2694",
+    "icon": "⚔",
     "name": "Execute",
     "unlockLevel": 3,
     "maxRank": 5,
@@ -94,7 +94,7 @@
     "id": "war_cry",
     "mechanic": "buff",
     "key": "5",
-    "icon": "\ud83d\udd25",
+    "icon": "🔥",
     "name": "War Cry",
     "unlockLevel": 5,
     "maxRank": 5,
@@ -107,5 +107,50 @@
     "duration": 6,
     "startingRank": 0,
     "fxColor": "#d8503f"
+  },
+  {
+    "id": "toughness",
+    "mechanic": "passive",
+    "icon": "💪",
+    "name": "Toughness",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "maxHpPct": {
+        "base": 0,
+        "perRank": 5
+      }
+    }
+  },
+  {
+    "id": "swiftness",
+    "mechanic": "passive",
+    "icon": "🏃",
+    "name": "Swiftness",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "moveSpeedPct": {
+        "base": 0,
+        "perRank": 3
+      }
+    }
+  },
+  {
+    "id": "keen_edge",
+    "mechanic": "passive",
+    "icon": "🎯",
+    "name": "Keen Edge",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "critPct": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
   }
 ]

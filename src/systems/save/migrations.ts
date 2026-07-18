@@ -27,6 +27,11 @@ export const MIGRATIONS: Record<number, Migration> = {
   },
   // v2 → v3 (m1.1): the active-skill loadout became a player choice.
   2: (raw) => ({ ...raw, loadout: { actives: [null, null, null, null, null, null] } }),
+  // v3 → v4 (m1.1): six passive slots joined the loadout.
+  3: (raw) => {
+    const loadout = (raw['loadout'] ?? {}) as Record<string, unknown>;
+    return { ...raw, loadout: { ...loadout, passives: [null, null, null, null, null, null] } };
+  },
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

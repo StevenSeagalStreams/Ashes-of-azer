@@ -1,6 +1,6 @@
 // Pure skill/XP math ported from the prototype. Unit tested.
 
-import type { SkillData, SkillsFile } from '../data/schemas/index.ts';
+import type { PassiveStat, SkillData, SkillsFile } from '../data/schemas/index.ts';
 
 export const MANA_REGEN = 4; // per second (prototype update(): mp += 4*dt)
 
@@ -73,6 +73,20 @@ export function describeSkill(skill: SkillData, rank: number): string {
   const r = Math.max(rank, 1);
   const pct = (s: { base: number; perRank: number }): number => Math.round(scaleValue(s, r) * 100);
   switch (skill.mechanic) {
+    case 'passive': {
+      const LABELS: Record<string, string> = {
+        maxHpPct: '% Max Life',
+        moveSpeedPct: '% Movement Speed',
+        critPct: '% Critical Chance',
+        aspdPct: '% Attack Speed',
+        cdrPct: '% Cooldown Reduction',
+        damagePct: '% Damage',
+      };
+      const parts = Object.entries(skill.modifiers).map(
+        ([stat, s]) => `+${Math.round(scaleValue(s, r))}${LABELS[stat] ?? stat}`,
+      );
+      return `Passive: ${parts.join(', ')}`;
+    }
     case 'shockwave': {
       const stun = skill.stunDuration ? `, stun ${scaleValue(skill.stunDuration, r).toFixed(1)}s` : '';
       return `Hit foes in ${Math.round(scaleValue(skill.radius, r))}px for ${pct(skill.damageMultiplier)}% dmg${stun}`;
@@ -86,9 +100,34 @@ export function describeSkill(skill: SkillData, rank: number): string {
   }
 }
 
-/** Default bar: the first 6 skills in skills.json order (prototype keys). */
-export const defaultActives = (skills: SkillsFile): (string | null)[] =>
-  Array.from({ length: 6 }, (_, i) => skills[i]?.id ?? null);
+/** Default bar: the first 6 ACTIVE skills in skills.json order. */
+export const defaultActives = (skills: SkillsFile): (string | null)[] => {
+  const actives = skills.filter((s) => s.mechanic !== 'passive');
+  return Array.from({ length: 6 }, (_, i) => actives[i]?.id ?? null);
+};
+
+/** Sums the stat bonuses of the SLOTTED, learned passives at their ranks. */
+export function passiveModifiers(
+  skills: SkillsFile,
+  skillRanks: Record<string, number>,
+  slotted: (string | null)[],
+): Partial<Record<PassiveStat, number>> {
+  const out: Partial<Record<PassiveStat, number>> = {};
+  for (const id of slotted) {
+    if (!id) continue;
+    const skill = skills.find((s) => s.id === id);
+    if (!skill || skill.mechanic !== 'passive') continue;
+    const rank = rankOf(skill, skillRanks);
+    if (rank <= 0) continue;
+    for (const [stat, scaling] of Object.entries(skill.modifiers) as [
+      PassiveStat,
+      { base: number; perRank: number },
+    ][]) {
+      out[stat] = (out[stat] ?? 0) + scaleValue(scaling, rank);
+    }
+  }
+  return out;
+}
 
 /** Resolves slotted ids to defs; unknown ids (removed content) become empty. */
 export const resolveLoadout = (actives: (string | null)[], skills: SkillsFile): (SkillData | null)[] =>
@@ -118,6 +157,7 @@ export function castBlock(
   skill: SkillData,
   opts: { level: number; rank: number; mp: number; cooldownRemaining: number },
 ): CastBlock | null {
+  if (skill.mechanic === 'passive') return 'unlearned'; // never castable from the bar
   if (opts.level < skill.unlockLevel) return 'locked';
   if (opts.rank <= 0) return 'unlearned';
   if (opts.cooldownRemaining > 0) return 'cooldown';

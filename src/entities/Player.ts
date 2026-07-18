@@ -32,6 +32,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   cdrPct = 0; // gear stat stub (m0.3 data, wired with items)
   atkCd = 0;
   dead = false;
+  /** From slotted passives (recomputed by the scene). */
+  passiveDamagePct = 0;
   /** War Cry: +damage% while the timer runs. */
   damageBuffPct = 0;
   private damageBuffT = 0;

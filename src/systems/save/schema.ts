@@ -8,7 +8,7 @@ import { ItemSlotSchema } from '../../data/schemas/item.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 3; // v3 (m1.1): loadout.actives
+export const CURRENT_SAVE_VERSION = 4; // v4 (m1.1): loadout.passives
 
 // An item *instance* the player owns (rolled affixes and all) — distinct
 // from the item content definitions in data/items.json.
@@ -38,7 +38,10 @@ export const SaveSchema = z.object({
   skillRanks: z.record(z.string(), z.number().int().min(0)),
   // Which skills sit in the 6 active slots (keys 1-6); null = empty slot.
   // All-null means "never customised" and the scene seeds the default bar.
-  loadout: z.object({ actives: z.array(z.string().nullable()).length(6) }),
+  loadout: z.object({
+    actives: z.array(z.string().nullable()).length(6),
+    passives: z.array(z.string().nullable()).length(6), // slotted always-on passives
+  }),
   world: z.object({
     currentZone: z.string(), // zone id from data/zones.json (since v2)
     questFlags: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])),
@@ -57,7 +60,10 @@ export function defaultSave(now: number = Date.now()): SaveData {
     gear: {},
     bag: [],
     skillRanks: {},
-    loadout: { actives: [null, null, null, null, null, null] },
+    loadout: {
+      actives: [null, null, null, null, null, null],
+      passives: [null, null, null, null, null, null],
+    },
     world: {
       currentZone: 'overworld',
       questFlags: {},

@@ -195,7 +195,8 @@ export class SkillUI {
         : rank === 0
           ? `Not learned — ${describeSkill(skill, 1)}`
           : describeSkill(skill, rank);
-      row.innerHTML = `<b>${skill.icon} ${skill.name}</b> <span style="font-size:10px;color:#7a6a4a">[${skill.key}]</span>
+      const keyTag = 'key' in skill ? ` <span style="font-size:10px;color:#7a6a4a">[${skill.key}]</span>` : '';
+      row.innerHTML = `<b>${skill.icon} ${skill.name}</b>${keyTag}
         <div class="d">${desc}</div><div class="pips">${pips}</div>`;
       if (!locked) {
         row.dataset['skill'] = skill.id;

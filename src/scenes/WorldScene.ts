@@ -20,6 +20,7 @@ import { SaveStore } from '../systems/save/store.ts';
 import {
   applyXp,
   assignSlot,
+  passiveModifiers,
   availableSkillPoints,
   castBlock,
   defaultActives,
@@ -187,6 +188,8 @@ export class WorldScene extends Phaser.Scene {
       },
       rankUp: (skillId) => this.rankUpSkill(skillId),
       setSlot: (slot, skillId) => {
+        const skill = skillId ? this.gameData.skills.find((s) => s.id === skillId) : null;
+        if (skill?.mechanic === 'passive') return; // passives go in passive slots, not the hotbar
         this.saveData.loadout.actives = assignSlot(this.saveData.loadout.actives, slot, skillId);
         this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.gameData.skills);
         this.skillUI.buildHotbar();
@@ -329,12 +332,30 @@ export class WorldScene extends Phaser.Scene {
     this.player.level = this.saveData.character.level;
     this.player.xp = this.saveData.character.xp;
     this.player.gold = this.saveData.character.gold;
-    // maxHp/maxMp derive from level (prototype: 90 + level*10, 50 + level*5);
+    this.recomputeStats();
     // hp/mp are transient combat state and always restore full on load.
-    this.player.maxHp = 90 + this.player.level * 10;
     this.player.hp = this.player.maxHp;
-    this.player.maxMp = manaMaxFor(this.player.level);
     this.player.mp = this.player.maxMp;
+  }
+
+  /** Derived stats = level base × slotted-passive modifiers. */
+  private recomputeStats(): void {
+    const mods = passiveModifiers(
+      this.gameData.skills,
+      this.saveData.skillRanks,
+      this.saveData.loadout.passives,
+    );
+    const p = this.player;
+    const hpFrac = p.maxHp > 0 ? p.hp / p.maxHp : 1;
+    p.maxHp = Math.round((90 + p.level * 10) * (1 + (mods.maxHpPct ?? 0) / 100));
+    p.hp = Math.min(p.maxHp, Math.max(1, Math.round(p.maxHp * hpFrac)));
+    p.maxMp = manaMaxFor(p.level);
+    p.mp = Math.min(p.mp, p.maxMp);
+    p.critPct = 5 + (mods.critPct ?? 0);
+    p.moveSpeedPct = mods.moveSpeedPct ?? 0;
+    p.aspdPct = mods.aspdPct ?? 0;
+    p.cdrPct = mods.cdrPct ?? 0;
+    p.passiveDamagePct = mods.damagePct ?? 0;
   }
 
   private snapshot(): SaveData {
@@ -366,7 +387,11 @@ export class WorldScene extends Phaser.Scene {
   // ---------- skills & xp ----------
 
   private effectiveDamage(): number {
-    return playerBaseDamage(this.player.level) * (1 + this.player.damageBuffPct / 100);
+    return (
+      playerBaseDamage(this.player.level) *
+      (1 + this.player.damageBuffPct / 100) *
+      (1 + this.player.passiveDamagePct / 100)
+    );
   }
 
   private aoeRing(x: number, y: number, radius: number, color: string): void {
@@ -385,6 +410,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private castSkill(skill: SkillData): void {
+    if (skill.mechanic === 'passive') return; // passives are never cast
     const rank = rankOf(skill, this.saveData.skillRanks);
     const block = castBlock(skill, {
       level: this.player.level,
@@ -462,6 +488,15 @@ export class WorldScene extends Phaser.Scene {
     const points = availableSkillPoints(this.player.level, this.gameData.skills, this.saveData.skillRanks);
     if (points <= 0 || rank >= skill.maxRank || this.player.level < skill.unlockLevel) return;
     this.saveData.skillRanks[skill.id] = rank + 1;
+    if (skill.mechanic === 'passive') {
+      // Newly learned passives self-slot into the first empty passive slot.
+      const slots = this.saveData.loadout.passives;
+      if (rank === 0 && !slots.includes(skill.id)) {
+        const empty = slots.indexOf(null);
+        if (empty >= 0) slots[empty] = skill.id;
+      }
+      this.recomputeStats();
+    }
     this.saveNow();
   }
 
@@ -475,9 +510,8 @@ export class WorldScene extends Phaser.Scene {
     if (res.levelsGained > 0) {
       this.player.level = res.level;
       // Prototype level-up: stats refresh, full heal, full mana.
-      this.player.maxHp = 90 + res.level * 10;
+      this.recomputeStats();
       this.player.hp = this.player.maxHp;
-      this.player.maxMp = manaMaxFor(res.level);
       this.player.mp = this.player.maxMp;
       this.numbers.spawn(this.player.x, this.player.y - 12, `LEVEL ${res.level}!`, '#9bd44a');
       this.aoeRing(this.player.x, this.player.y, 50, '#9bd44a');

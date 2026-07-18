@@ -21,7 +21,28 @@ const SkillCommon = z.object({
   fxColor: z.string().optional(), // AoE ring tint; omit for skills with other fx
 });
 
+// Stat keys passives may modify; map 1:1 onto Player-derived stats.
+export const PassiveStatSchema = z.enum([
+  'maxHpPct',
+  'moveSpeedPct',
+  'critPct',
+  'aspdPct',
+  'cdrPct',
+  'damagePct',
+]);
+export type PassiveStat = z.infer<typeof PassiveStatSchema>;
+
 export const SkillSchema = z.discriminatedUnion('mechanic', [
+  z.object({
+    mechanic: z.literal('passive'), // always-on modifiers while slotted
+    id: z.string(),
+    icon: z.string(),
+    name: z.string(),
+    unlockLevel: z.number().int().nonnegative(),
+    maxRank: z.number().int().positive(),
+    startingRank: z.number().int().nonnegative().default(0),
+    modifiers: z.partialRecord(PassiveStatSchema, RankScaling),
+  }),
   SkillCommon.extend({
     mechanic: z.literal('shockwave'), // Shield Slam, Whirlwind
     radius: RankScaling,

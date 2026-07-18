@@ -3,6 +3,8 @@ import { loadGameData } from '../data/gameData.ts';
 import {
   applyXp,
   assignSlot,
+  passiveModifiers,
+  describeSkill,
   availableSkillPoints,
   castBlock,
   defaultActives,
@@ -99,6 +101,29 @@ describe('loadout helpers', () => {
     expect(assignSlot(base, 0, 'whirlwind')).toEqual(['whirlwind', 'shield_slam', null, null, null, null]);
     expect(assignSlot(base, 1, null)).toEqual(['shield_slam', null, null, null, null, null]);
     expect(base).toEqual(['shield_slam', 'whirlwind', null, null, null, null]); // pure
+  });
+});
+
+describe('passives', () => {
+  it('sums modifiers of slotted, learned passives only', () => {
+    const ranks = { toughness: 2, keen_edge: 1 };
+    // keen_edge learned but NOT slotted; swiftness slotted but unlearned.
+    const mods = passiveModifiers(skills, ranks, ['toughness', 'swiftness', null, null, null, null]);
+    expect(mods.maxHpPct).toBe(10); // 5%/rank * 2
+    expect(mods.critPct).toBeUndefined();
+    expect(mods.moveSpeedPct).toBeUndefined();
+  });
+
+  it('describes a passive at rank', () => {
+    expect(describeSkill(byId('toughness'), 3)).toBe('Passive: +15% Max Life');
+  });
+
+  it('never allows casting a passive', () => {
+    expect(castBlock(byId('toughness'), { level: 99, rank: 5, mp: 999, cooldownRemaining: 0 })).toBe('unlearned');
+  });
+
+  it('defaultActives excludes passives', () => {
+    expect(defaultActives(skills)).not.toContain('toughness');
   });
 });
 
