@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Passive skills! Toughness (+max life), Swiftness (+move speed) and Keen
+  Edge (+crit) appear in the K panel from level 2-3 — learn them with skill
+  points and they apply automatically, always-on.
 - Build your own hotbar: drag any unlocked skill from the K panel onto a
   hotbar slot to rebind keys 1-6 — your layout is saved with your character.
 - Skill panel and hotbar! Press K to open your skills, spend skill points

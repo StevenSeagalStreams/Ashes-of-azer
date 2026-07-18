@@ -1,8 +1,12 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 1.1: first checkbox (loadout UI, all 3 sub-boxes) is DONE.
-Next: **"Passive skill type in skills.json (always-on modifiers)."**
+Milestone 1.1: loadout UI + passive type DONE. Next: **"6 passive slots
+with their own UI"** — extend SkillUI with a second slot row (no keys;
+passives only), drag passives between slots / out of slots; slotted state
+already lives in saveData.loadout.passives (v4) and auto-fills on learn.
+Then: **respec** (free reset button in the K panel: clear skillRanks beyond
+startingRanks, clear passive slots, recompute; "town trainer" home m2.3).
 
 Notes for that session:
 - Add a `passive` variant to the SkillSchema discriminated union (no
@@ -21,6 +25,11 @@ Notes for that session:
   home in m2.3).
 
 ## Done
+- **Milestone 1.1: passive skill type (save v4).** Schema 'passive' union
+  variant + 3 content passives; passiveModifiers (slotted+learned only) →
+  WorldScene.recomputeStats (level base × modifiers, hp fraction kept);
+  auto-slot on learn; blocked from active hotbar. Headless-verified 126 =
+  120×1.05 + reload persistence. 91 tests.
 - **Milestone 1.1 sub-box 3: drag-and-drop loadout (save v3).** Pure
   helpers defaultActives/resolveLoadout/assignSlot (swap semantics) in
   skills.ts; SkillUI mouse-drag with ghost + drop highlight; setSlot host

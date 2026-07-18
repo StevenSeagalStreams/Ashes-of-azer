@@ -59,7 +59,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
   - [x] Skill execution engine: cast the 5 warrior skills from skills.json (mana pool/regen, per-skill cooldowns, rank scaling, stun) + XP → levels → skill points (implied dependency, no other owning checkbox)
   - [x] Skill panel UI (HTML/CSS overlay): library, rank-up with skill points, hotbar with cooldown/mana state
   - [x] Drag skills from library into 6 active slots (keys 1–6), loadout persisted in the save
-- [ ] Passive skill type in `skills.json` (always-on modifiers)
+- [x] Passive skill type in `skills.json` (always-on modifiers)
 - [ ] 6 passive slots with their own UI
 - [ ] Respec: free skill-point reset at the town trainer (tune cost later)
 
