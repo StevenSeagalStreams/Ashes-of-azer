@@ -8,22 +8,6 @@ already lives in saveData.loadout.passives (v4) and auto-fills on learn.
 Then: **respec** (free reset button in the K panel: clear skillRanks beyond
 startingRanks, clear passive slots, recompute; "town trainer" home m2.3).
 
-Notes for that session:
-- Add a `passive` variant to the SkillSchema discriminated union (no
-  key/cooldown/manaCost semantics — always-on stat modifiers). Suggested
-  shape: `{ mechanic:'passive', id, icon, name, unlockLevel, maxRank,
-  startingRank, modifiers: { stat: per-rank scaling } }` where stat keys
-  map to Player fields (maxHpPct, moveSpeedPct, critPct, aspdPct, cdrPct,
-  damagePct...). Applying = recompute player derived stats from slotted
-  passives (only SLOTTED passives count — that's the 6-passive-slot
-  design; slots come next box, so for this box: schema + example passives
-  in skills.json + application function, unit-tested; UI slots after).
-- 2-3 example warrior passives as content (full 10-12 roster is m1.2).
-- Save: passives loadout field → v4 migration when slots land (next box).
-- Then: 6 passive slots UI (extend SkillUI/hotbar pattern), respec (free
-  reset button in panel clears skillRanks beyond startingRank; trainer
-  home in m2.3).
-
 ## Done
 - **Milestone 1.1: passive skill type (save v4).** Schema 'passive' union
   variant + 3 content passives; passiveModifiers (slotted+learned only) →
