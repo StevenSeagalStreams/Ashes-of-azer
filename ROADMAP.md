@@ -60,8 +60,8 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
   - [x] Skill panel UI (HTML/CSS overlay): library, rank-up with skill points, hotbar with cooldown/mana state
   - [x] Drag skills from library into 6 active slots (keys 1–6), loadout persisted in the save
 - [x] Passive skill type in `skills.json` (always-on modifiers)
-- [ ] 6 passive slots with their own UI
-- [ ] Respec: free skill-point reset at the town trainer (tune cost later)
+- [x] 6 passive slots with their own UI
+- [x] Respec: free skill-point reset at the town trainer (tune cost later) — free RESPEC button in the K panel; moves to the trainer in m2.3
 
 ### 1.2 Warrior — complete kit (~25 skills)
 - [ ] Fill the kit per the design doc structure: primary, generator, spender, utility, ultimate

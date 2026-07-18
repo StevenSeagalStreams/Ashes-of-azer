@@ -18,6 +18,9 @@ export interface SkillUIHost {
   slotState: (skill: SkillData) => HotbarSlotState;
   rankUp: (skillId: string) => void;
   setSlot: (slot: number, skillId: string | null) => void;
+  passives: () => (SkillData | null)[];
+  setPassiveSlot: (slot: number, skillId: string | null) => void;
+  respec: () => void;
 }
 
 const STYLE_ID = 'azer-skill-ui-style';
@@ -46,6 +49,12 @@ const CSS = `
   .azer-sk[data-skill]{cursor:grab;}
   .azer-slot{pointer-events:auto;}
   .azer-slot.droptarget{outline:2px solid #ffd84a;}
+  #azer-passives{position:absolute;bottom:10px;right:12px;display:flex;gap:4px;pointer-events:none;font-family:"Courier New",monospace;}
+  .azer-pslot{width:36px;height:36px;border:2px solid #8b3fd0;border-radius:6px;background:#f7efd8;text-align:center;pointer-events:auto;position:relative;}
+  .azer-pslot .ico{font-size:18px;line-height:32px;}
+  .azer-pslot.droptarget{outline:2px solid #ffd84a;}
+  #azer-passives .lbl{font-size:8px;color:#c8a8f0;text-shadow:1px 1px 0 #000;position:absolute;top:-11px;left:0;}
+  #azer-respec{float:right;margin-left:6px;font-size:9px;border:2px solid #8a6d3b;border-radius:4px;background:#e8b64c;cursor:pointer;font-family:inherit;font-weight:bold;}
   #azer-drag-ghost{position:fixed;pointer-events:none;z-index:50;font-size:22px;opacity:.85;
     text-shadow:1px 1px 0 #000;transform:translate(-50%,-50%);font-family:"Courier New",monospace;}
 `;
@@ -56,6 +65,8 @@ export class SkillUI {
   private readonly panelEl: HTMLElement;
   private readonly spBadgeEl: HTMLElement;
   private readonly slotEls: { el: HTMLElement; cd: HTMLElement }[] = [];
+  private readonly passivesEl!: HTMLElement;
+  private pslotEls: HTMLElement[] = [];
   private panelOpen = false;
 
   constructor(private readonly host: SkillUIHost) {
@@ -76,9 +87,12 @@ export class SkillUI {
     this.spBadgeEl.id = 'azer-sp';
     this.panelEl = document.createElement('div');
     this.panelEl.id = 'azer-panel';
-    this.root.append(this.hotbarEl, this.spBadgeEl, this.panelEl);
+    this.passivesEl = document.createElement('div');
+    this.passivesEl.id = 'azer-passives';
+    this.root.append(this.hotbarEl, this.spBadgeEl, this.passivesEl, this.panelEl);
     app.appendChild(this.root);
     this.buildHotbar();
+    this.buildPassiveBar();
     this.renderPanel();
   }
 
@@ -90,21 +104,43 @@ export class SkillUI {
   // ---- drag & drop: library row → hotbar slot (mouse-event based) ----
 
   private dragSkillId: string | null = null;
+  private dragIsPassive = false;
+  private dragFromPslot: number | null = null;
   private ghost: HTMLElement | null = null;
   private readonly onDragMove = (e: MouseEvent): void => {
     if (this.ghost) {
       this.ghost.style.left = `${e.clientX}px`;
       this.ghost.style.top = `${e.clientY}px`;
     }
-    const slot = this.slotAt(e.clientX, e.clientY);
-    this.slotEls.forEach((s, i) => s.el.classList.toggle('droptarget', slot === i));
+    if (this.dragIsPassive) {
+      const slot = this.pslotAt(e.clientX, e.clientY);
+      this.pslotEls.forEach((el, i) => el.classList.toggle('droptarget', slot === i));
+    } else {
+      const slot = this.slotAt(e.clientX, e.clientY);
+      this.slotEls.forEach((s, i) => s.el.classList.toggle('droptarget', slot === i));
+    }
   };
   private readonly onDragUp = (e: MouseEvent): void => {
-    const slot = this.slotAt(e.clientX, e.clientY);
     const skillId = this.dragSkillId;
+    const isPassive = this.dragIsPassive;
+    const fromPslot = this.dragFromPslot;
+    const slot = isPassive ? this.pslotAt(e.clientX, e.clientY) : this.slotAt(e.clientX, e.clientY);
     this.endDrag();
-    if (slot !== null && skillId) this.host.setSlot(slot, skillId);
+    if (!skillId) return;
+    if (isPassive) {
+      if (slot !== null) this.host.setPassiveSlot(slot, skillId);
+      else if (fromPslot !== null) this.host.setPassiveSlot(fromPslot, null); // dragged out = unslot
+    } else if (slot !== null) {
+      this.host.setSlot(slot, skillId);
+    }
   };
+
+  private pslotAt(x: number, y: number): number | null {
+    const el = document.elementFromPoint(x, y)?.closest('.azer-pslot');
+    if (!el) return null;
+    const i = this.pslotEls.indexOf(el as HTMLElement);
+    return i >= 0 ? i : null;
+  }
 
   private slotAt(x: number, y: number): number | null {
     const el = document.elementFromPoint(x, y)?.closest('.azer-slot');
@@ -113,8 +149,10 @@ export class SkillUI {
     return i >= 0 ? i : null;
   }
 
-  private startDrag(skill: SkillData, e: MouseEvent): void {
+  private startDrag(skill: SkillData, e: MouseEvent, fromPslot: number | null = null): void {
     this.dragSkillId = skill.id;
+    this.dragIsPassive = skill.mechanic === 'passive';
+    this.dragFromPslot = fromPslot;
     this.ghost = document.createElement('div');
     this.ghost.id = 'azer-drag-ghost';
     this.ghost.textContent = skill.icon;
@@ -127,6 +165,9 @@ export class SkillUI {
 
   private endDrag(): void {
     this.dragSkillId = null;
+    this.dragIsPassive = false;
+    this.dragFromPslot = null;
+    this.pslotEls.forEach((el) => el.classList.remove('droptarget'));
     this.ghost?.remove();
     this.ghost = null;
     this.slotEls.forEach((s) => s.el.classList.remove('droptarget'));
@@ -152,6 +193,20 @@ export class SkillUI {
       if (!cd) throw new Error('slot build failed');
       this.hotbarEl.appendChild(el);
       this.slotEls.push({ el, cd });
+    });
+  }
+
+  buildPassiveBar(): void {
+    this.passivesEl.innerHTML = '<span class="lbl">PASSIVES</span>';
+    this.pslotEls = [];
+    this.host.passives().forEach((skill, i) => {
+      const el = document.createElement('div');
+      el.className = 'azer-pslot';
+      el.innerHTML = skill ? `<span class="ico">${skill.icon}</span>` : '';
+      el.title = skill ? skill.name : `Passive slot ${i + 1}`;
+      if (skill) el.addEventListener('mousedown', (e) => this.startDrag(skill, e, i));
+      this.passivesEl.appendChild(el);
+      this.pslotEls.push(el);
     });
   }
 
@@ -182,6 +237,19 @@ export class SkillUI {
     const ranks = this.host.skillRanks();
     const points = availableSkillPoints(level, this.host.skills, ranks);
     this.panelEl.innerHTML = `<h3>SKILLS <small>${points} point${points === 1 ? '' : 's'} to spend</small></h3>`;
+    const header = this.panelEl.querySelector('h3');
+    if (header) {
+      const respec = document.createElement('button');
+      respec.id = 'azer-respec';
+      respec.textContent = 'RESPEC';
+      respec.title = 'Refund all spent skill points (free — the trainer will charge later)';
+      respec.onclick = () => {
+        this.host.respec();
+        this.buildPassiveBar();
+        this.renderPanel();
+      };
+      header.appendChild(respec);
+    }
     for (const skill of this.host.skills) {
       const rank = rankOf(skill, ranks);
       const locked = level < skill.unlockLevel;

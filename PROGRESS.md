@@ -1,14 +1,32 @@
 # Progress — Ashes of Azer
 
 ## Current task
-Milestone 1.1: loadout UI + passive type DONE. Next: **"6 passive slots
-with their own UI"** — extend SkillUI with a second slot row (no keys;
-passives only), drag passives between slots / out of slots; slotted state
-already lives in saveData.loadout.passives (v4) and auto-fills on learn.
-Then: **respec** (free reset button in the K panel: clear skillRanks beyond
-startingRanks, clear passive slots, recompute; "town trainer" home m2.3).
+**MILESTONE 1.1 IS COMPLETE** (all 4 boxes). Next: **Milestone 1.2 —
+Warrior complete kit (~25 skills)**, first box: "Fill the kit per the
+design doc structure: primary, generator, spender, utility, ultimate."
+
+Notes for that session:
+- "The design doc" beyond README/ROADMAP doesn't exist in the repo —
+  the kit structure (primary/generator/spender/utility/ultimate) and the
+  resource model ("rage/mana generation and spending per the doc", 1.2's
+  4th box) are underspecified. CLAUDE.md says ASK the user about design
+  questions the docs don't answer: propose a concrete 12-15 active /
+  10-12 passive warrior kit + a rage-or-mana resource design and get a
+  yes/no before mass-producing content. New actives that fit existing
+  mechanics (shockwave/leap/execute/buff) are pure JSON; genuinely new
+  mechanics (charge, projectile-block, bleed DoT...) need engine variants
+  first — schema union makes that additive.
+- Passive stat keys currently supported: maxHpPct, moveSpeedPct, critPct,
+  aspdPct, cdrPct, damagePct. Conditional passives ("+15% dmg to stunned",
+  "Whirlwind pulls enemies") from 1.2's examples need new hook points —
+  design them with the kit proposal.
 
 ## Done
+- **Milestone 1.1 COMPLETE: passive slots UI + respec.** Purple pslot row
+  (bottom-right): auto-slot on learn, drag between slots, drag-off to
+  unslot, panel-to-slot drag; RESPEC button clears skillRanks + passive
+  slots and refunds points. Headless-verified the full 126/120 hp cycle
+  + point refund. 91 tests.
 - **Milestone 1.1: passive skill type (save v4).** Schema 'passive' union
   variant + 3 content passives; passiveModifiers (slotted+learned only) →
   WorldScene.recomputeStats (level base × modifiers, hp fraction kept);

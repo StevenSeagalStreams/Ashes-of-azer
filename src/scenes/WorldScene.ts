@@ -187,6 +187,22 @@ export class WorldScene extends Phaser.Scene {
         };
       },
       rankUp: (skillId) => this.rankUpSkill(skillId),
+      passives: () => resolveLoadout(this.saveData.loadout.passives, this.gameData.skills),
+      setPassiveSlot: (slot, skillId) => {
+        const skill = skillId ? this.gameData.skills.find((s) => s.id === skillId) : null;
+        if (skillId !== null && skill?.mechanic !== 'passive') return; // only passives here
+        this.saveData.loadout.passives = assignSlot(this.saveData.loadout.passives, slot, skillId);
+        this.recomputeStats();
+        this.skillUI.buildPassiveBar();
+        this.saveNow();
+      },
+      respec: () => {
+        // Free skill-point reset; its "town trainer" home arrives in m2.3.
+        this.saveData.skillRanks = {};
+        this.saveData.loadout.passives = [null, null, null, null, null, null];
+        this.recomputeStats();
+        this.saveNow();
+      },
       setSlot: (slot, skillId) => {
         const skill = skillId ? this.gameData.skills.find((s) => s.id === skillId) : null;
         if (skill?.mechanic === 'passive') return; // passives go in passive slots, not the hotbar
@@ -496,6 +512,7 @@ export class WorldScene extends Phaser.Scene {
         if (empty >= 0) slots[empty] = skill.id;
       }
       this.recomputeStats();
+      this.skillUI.buildPassiveBar();
     }
     this.saveNow();
   }

@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Passive slots (bottom-right, purple) — learned passives slot themselves in;
+  drag them between slots or drag one off the bar to disable it. A free
+  RESPEC button in the K panel refunds every spent skill point.
 - Passive skills! Toughness (+max life), Swiftness (+move speed) and Keen
   Edge (+crit) appear in the K panel from level 2-3 — learn them with skill
   points and they apply automatically, always-on.
