@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene.ts';
+import { ClassSelectScene } from './scenes/ClassSelectScene.ts';
 import { WorldScene } from './scenes/WorldScene.ts';
 import { UIScene } from './scenes/UIScene.ts';
 
@@ -16,5 +17,5 @@ new Phaser.Game({
   physics: {
     default: 'arcade',
   },
-  scene: [BootScene, WorldScene, UIScene],
+  scene: [BootScene, ClassSelectScene, WorldScene, UIScene],
 });

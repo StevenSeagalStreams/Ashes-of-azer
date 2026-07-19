@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import { DataValidationError } from '../data/loader.ts';
 import { loadGameData } from '../data/gameData.ts';
+import { SaveStore } from '../systems/save/store.ts';
+
+const ACTIVE_SLOT = 1;
 
 // The zones with authored maps. The one place map files are enumerated —
 // a new zone adds its id here plus assets/maps/<id>.json + data/zones.json.
@@ -25,8 +28,24 @@ export class BootScene extends Phaser.Scene {
       this.failLoudly(err);
       return;
     }
-    this.scene.start('World');
-    this.scene.launch('UI');
+    // New game → pick a class first. An existing (or even corrupt) slot skips
+    // straight to the World, which recovers a damaged save on its own.
+    if (this.hasExistingSave()) {
+      this.scene.start('World');
+      this.scene.launch('UI');
+    } else {
+      this.scene.start('ClassSelect');
+    }
+  }
+
+  /** True if slot 1 holds any save (a corrupt one counts — World recovers it). */
+  private hasExistingSave(): boolean {
+    const store = new SaveStore(window.localStorage);
+    try {
+      return store.load(ACTIVE_SLOT) !== null;
+    } catch {
+      return true;
+    }
   }
 
   /**
