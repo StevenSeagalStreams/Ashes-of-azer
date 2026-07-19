@@ -1,9 +1,13 @@
 # Changelog
 
 ## Unreleased
-- Pick your class when you start a new game — a title screen now offers the
-  Warrior and the Mage (Hunter is coming soon). Your existing character is
-  untouched and jumps straight back into the world.
+- A title menu now greets you on every launch: **Continue** picks up your
+  saved character (it shows their class and level), and **New Game** opens the
+  class picker. This means you can start a Mage even if you already have a
+  Warrior save — New Game asks you to confirm before replacing it, and a Back
+  button returns you to the menu.
+- Pick your class when you start a new game — the picker offers the Warrior and
+  the Mage (Hunter is coming soon).
 - The Mage arrives with a full spellbook: 14 actives and 10 passives. Sling
   Arcane Bolt (a cheap primary), Fireball (burns), Ice Shard (chills), Chain
   Lightning, and Pyroblast; drop Flame Wall, Blizzard, and a telegraphed

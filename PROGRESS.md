@@ -24,6 +24,19 @@ Notes for that session:
   Hunter save will automatically see only Hunter skills.
 
 ## Done
+- **Title / main menu (m5.2 pulled forward, at the user's request).**
+  `src/scenes/TitleScene.ts` (DOM overlay): BootScene now always opens the
+  Title. **Continue** loads the slot-1 save (shows its class + level and starts
+  the World); **New Game** opens the class picker. Reason it was needed *now*:
+  the m1.3 class-select only appeared on an empty slot 1, so a player with an
+  existing Warrior save could never reach the Mage. ClassSelectScene gained a
+  **← Back** button (→ Title) and an **overwrite guard** — when a save already
+  exists, the first click on a class asks to confirm ("click again"), the
+  second commits (single save slot, so New Game replaces it). Headless-verified
+  12/12: fresh boot shows only New Game; New Game→Back→Title; picking Mage on an
+  empty slot starts immediately; an existing save shows Continue with the right
+  class/level and Continue preserves it; the two-click overwrite guard works.
+  Multi-slot save management is still deferred to the proper m5.2 UI pass.
 - **Milestone 1.3 COMPLETE: Mage class.** New engine systems, both pooled per
   the CLAUDE.md perf rule:
   - **Projectile system** (`src/entities/Projectile.ts` 128-slot pool +
@@ -339,9 +352,15 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
-- **Mage class (m1.3)**: start a **new game** (or clear the slot: run
-  `localStorage.removeItem('azer:save:1')` in the console and refresh) → the
-  title screen should offer Warrior / Mage / Hunter(coming soon). Pick Mage:
+- **Title menu (m5.2 preview)**: on load you should see ASHES OF AZER with
+  **Continue** (your Warrior, with level shown) and **New Game**. Continue
+  should drop you straight into the world as your existing character. New Game
+  → class picker; the ← Back button should return you to the menu; picking a
+  class over your existing save should ask you to click again to confirm before
+  it replaces the save. Does the menu read well at the game's scale?
+- **Mage class (m1.3)**: from the Title menu choose **New Game** → the picker
+  offers Warrior / Mage / Hunter(coming soon). Pick Mage (confirm the
+  overwrite if prompted):
   - Left-click aims; Arcane Bolt (1) should stream cheap bolts toward the
     cursor. Fireball (2) should leave a lingering orange burn tick on foes;
     Ice Shard (3) should visibly slow them (frost). Chain Lightning should

@@ -3,10 +3,11 @@ import type { ClassId } from '../data/schemas/index.ts';
 import { defaultSave } from '../systems/save/schema.ts';
 import { SaveStore } from '../systems/save/store.ts';
 
-// New-game class picker. Shown by BootScene when save slot 1 is empty. UI is
-// an HTML/CSS overlay (CLAUDE.md: UI overlay is DOM, not canvas) styled after
-// the prototype's parchment panels, to match SkillUI. Writes the chosen class
-// into a fresh slot-1 save, then hands off to the World.
+// New-game class picker, reached from the Title menu's "New Game". UI is an
+// HTML/CSS overlay (CLAUDE.md: UI overlay is DOM, not canvas) styled after the
+// prototype's parchment panels, to match SkillUI. Writes the chosen class into
+// a fresh slot-1 save, then hands off to the World. Back returns to the Title;
+// if a save already exists, choosing a class asks before overwriting it.
 
 const ACTIVE_SLOT = 1;
 const STYLE_ID = 'azer-classsel-style';
@@ -28,6 +29,11 @@ const CSS = `
   .azer-class.soon:hover{transform:none;border-color:#8a6d3b;}
   .azer-class .tag{display:inline-block;margin-top:8px;font-size:9px;font-weight:bold;color:#8a6d3b;
     border:2px solid #8a6d3b;border-radius:4px;padding:1px 6px;}
+  #azer-classsel .back{font-family:inherit;font-size:11px;font-weight:bold;color:#f7efd8;background:none;
+    border:2px solid #8a6d3b;border-radius:6px;padding:5px 14px;cursor:pointer;margin-top:6px;letter-spacing:1px;}
+  #azer-classsel .back:hover{border-color:#e8b64c;}
+  #azer-classsel .confirm{font-size:11px;color:#ffd84a;background:rgba(0,0,0,.55);padding:4px 12px;
+    border-radius:8px;min-height:16px;text-align:center;}
 `;
 
 interface ClassOption {
@@ -64,9 +70,15 @@ const OPTIONS: ClassOption[] = [
 
 export class ClassSelectScene extends Phaser.Scene {
   private overlay?: HTMLElement;
+  // Which class is awaiting a confirming second click (overwrite guard).
+  private pendingClass: ClassId | null = null;
 
   constructor() {
     super('ClassSelect');
+  }
+
+  init(): void {
+    this.pendingClass = null; // reset when re-entered from the Title menu
   }
 
   create(): void {
@@ -83,6 +95,8 @@ export class ClassSelectScene extends Phaser.Scene {
       <h1>ASHES OF AZER</h1>
       <div class="sub">Choose your class</div>
       <div class="cards"></div>
+      <div class="confirm"></div>
+      <button class="back">← BACK</button>
     `;
     const cards = overlay.querySelector('.cards') as HTMLElement;
     for (const opt of OPTIONS) {
@@ -94,9 +108,13 @@ export class ClassSelectScene extends Phaser.Scene {
         <p>${opt.blurb}</p>
         ${opt.playable ? '' : '<span class="tag">COMING SOON</span>'}
       `;
-      if (opt.playable) card.addEventListener('click', () => this.choose(opt.id));
+      if (opt.playable) card.addEventListener('click', () => this.pick(opt.id, opt.name));
       cards.appendChild(card);
     }
+    (overlay.querySelector('.back') as HTMLElement).addEventListener('click', () => {
+      this.teardown();
+      this.scene.start('Title');
+    });
     document.body.appendChild(overlay);
     this.overlay = overlay;
 
@@ -105,7 +123,32 @@ export class ClassSelectScene extends Phaser.Scene {
     this.events.once('destroy', () => this.teardown());
   }
 
-  private choose(classId: ClassId): void {
+  /**
+   * First click on a class when a save exists asks for confirmation (a new
+   * game overwrites the single save slot); a second click on the same class
+   * commits. With no existing save, the first click commits immediately.
+   */
+  private pick(classId: ClassId, name: string): void {
+    const confirmEl = this.overlay?.querySelector('.confirm') as HTMLElement | undefined;
+    if (this.hasExistingSave() && this.pendingClass !== classId) {
+      this.pendingClass = classId;
+      if (confirmEl) confirmEl.textContent = `Start a new ${name}? This replaces your current save — click ${name} again to confirm.`;
+      return;
+    }
+    this.commit(classId);
+  }
+
+  /** True if slot 1 holds any save; a corrupt save counts (it'd be overwritten). */
+  private hasExistingSave(): boolean {
+    const store = new SaveStore(window.localStorage);
+    try {
+      return store.load(ACTIVE_SLOT) !== null;
+    } catch {
+      return true;
+    }
+  }
+
+  private commit(classId: ClassId): void {
     const store = new SaveStore(window.localStorage);
     const save = defaultSave();
     save.character.class = classId;

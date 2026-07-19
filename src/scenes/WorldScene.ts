@@ -51,8 +51,8 @@ declare global {
   }
 }
 
-// Slot 1 is the implicit active slot until a title/load-game menu exists
-// (menus arrive with class selection in m1.3 / UI work in m5.2).
+// Slot 1 is the active slot. The Title menu (Continue / New Game) selects it;
+// multi-slot save management is deferred to the m5.2 UI pass.
 const ACTIVE_SLOT = 1;
 const AUTOSAVE_MS = 60_000; // roadmap: every 60s; transitions also save (doTransition)
 
