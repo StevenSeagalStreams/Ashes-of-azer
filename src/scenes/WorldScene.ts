@@ -71,6 +71,14 @@ export class WorldScene extends Phaser.Scene {
   private slash!: Phaser.GameObjects.Image;
   private fog!: FogOfWar;
   private spaceKey!: Phaser.Input.Keyboard.Key;
+  // True while the left mouse button is held over the game canvas. Phaser's
+  // pointerdown only fires for canvas clicks, so clicks on the DOM skill UI
+  // never start an attack; a window-level pointerup catches releases that
+  // land outside the canvas so the flag can't stick.
+  private attackHeld = false;
+  private readonly clearAttackHeld = (): void => {
+    this.attackHeld = false;
+  };
   private gameData!: GameData;
   private zoneId = 'overworld';
   private zoneDef!: ZoneData;
@@ -212,7 +220,18 @@ export class WorldScene extends Phaser.Scene {
         this.saveNow();
       },
     });
-    this.events.once('shutdown', () => this.skillUI.destroy());
+    // Left-click to basic-attack. pointerdown only fires for canvas clicks
+    // (DOM skill-UI clicks target their own elements), so the UI is safe.
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.leftButtonDown()) this.attackHeld = true;
+    });
+    this.input.on('pointerup', this.clearAttackHeld);
+    window.addEventListener('pointerup', this.clearAttackHeld);
+    this.attackHeld = false;
+    this.events.once('shutdown', () => {
+      window.removeEventListener('pointerup', this.clearAttackHeld);
+      this.skillUI.destroy();
+    });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-R', () => {
       // Prototype: rising again always returns you to the overworld spawn.
@@ -260,7 +279,7 @@ export class WorldScene extends Phaser.Scene {
     if (!this.player.dead) {
       this.player.mp = Math.min(this.player.mp + MANA_REGEN * dt, this.player.maxMp);
       this.player.atkCd = Math.max(0, this.player.atkCd - dt);
-      if (this.spaceKey.isDown) this.playerAttack();
+      if (this.spaceKey.isDown || this.attackHeld) this.playerAttack();
 
       const trigger = triggerAt(this.objects.triggers, this.player.x, this.player.y);
       if (trigger?.kind === 'transition') {

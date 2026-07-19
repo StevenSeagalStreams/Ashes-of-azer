@@ -1,8 +1,10 @@
 # Changelog
 
 ## Unreleased
-- Basic attacks now swing toward your mouse cursor, so you can move one way and
-  strike another. Skills still fire in your movement direction.
+- Basic attacks now swing toward your mouse cursor — hold left-click (or SPACE)
+  to attack, so you can move one way and strike another. Clicks on the skill
+  panel and hotbar don't trigger an attack. Skills still fire in your movement
+  direction.
 - The Warrior's full kit — 14 active skills and 10 passives. New actives:
   Heroic Strike & Cleave (free primaries that restore mana), Charge (dash +
   stun), Ground Rend (bleed), Hammerfall, Iron Guard (damage reduction),
