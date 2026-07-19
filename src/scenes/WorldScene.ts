@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import type { GameData } from '../data/loader.ts';
 import type { EnemyData, ZoneData } from '../data/schemas/index.ts';
 import { Enemy } from '../entities/Enemy.ts';
+import { ProjectilePool } from '../entities/Projectile.ts';
+import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { Player } from '../entities/Player.ts';
 import {
   ATTACK_RADIUS,
@@ -96,6 +98,8 @@ export class WorldScene extends Phaser.Scene {
   private hotbar: (SkillData | null)[] = [];
   private readonly skillCooldowns = new Map<string, number>();
   private skillUI!: SkillUI;
+  private projectiles!: ProjectilePool;
+  private ground!: GroundEffectPool;
 
   constructor() {
     super('World');
@@ -147,6 +151,12 @@ export class WorldScene extends Phaser.Scene {
 
     this.numbers = new DamageNumbers(this);
     this.slash = this.add.image(0, 0, 'slash').setVisible(false).setDepth(8);
+    const combatHooks = {
+      enemies: () => (this.enemies.getChildren() as Enemy[]).filter((e) => e.active),
+      damage: (e: Enemy, amount: number) => this.dealDamage(e, amount),
+    };
+    this.projectiles = new ProjectilePool(this, combatHooks);
+    this.ground = new GroundEffectPool(this, combatHooks);
 
     this.enemies = this.physics.add.group({ runChildUpdate: false });
     this.physics.add.collider(this.enemies, layer);
@@ -231,6 +241,8 @@ export class WorldScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       window.removeEventListener('pointerup', this.clearAttackHeld);
       this.skillUI.destroy();
+      this.projectiles.destroy();
+      this.ground.destroy();
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-R', () => {
@@ -298,6 +310,8 @@ export class WorldScene extends Phaser.Scene {
     this.tickRegionRespawns(dt);
     this.publishHud();
     this.skillUI.refresh();
+    this.projectiles.update(dt);
+    this.ground.update(dt);
 
     const cam = this.cameras.main;
     this.fog.update(this.player.x - cam.scrollX, this.player.y - cam.scrollY);
@@ -602,6 +616,55 @@ export class WorldScene extends Phaser.Scene {
         if (dmg) p.applyDamageBuff(dmg, skill.duration);
         if (skill.damageReductionPct) p.applyDamageReduction(scaleValue(skill.damageReductionPct, rank), skill.duration);
         this.aoeRing(p.x, p.y, 30, skill.fxColor ?? '#d8503f');
+        break;
+      }
+      case 'projectile': {
+        const aim = this.aimDir(); // Mage projectiles fire toward the cursor
+        this.projectiles.fire({
+          x: p.x,
+          y: p.y,
+          angle: Math.atan2(aim.y, aim.x),
+          speed: skill.speed,
+          radius: skill.radius,
+          lifetime: skill.lifetime,
+          damage: this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank),
+          pierce: skill.pierce ? Math.round(scaleValue(skill.pierce, rank)) : 0,
+          chain: skill.chain ? Math.round(scaleValue(skill.chain, rank)) : 0,
+          chainRange: skill.chainRange ?? 80,
+          split: skill.split ?? 0,
+          element: skill.element,
+          burn:
+            skill.burnDps && skill.burnDuration
+              ? { dps: scaleValue(skill.burnDps, rank), duration: skill.burnDuration }
+              : undefined,
+          chill:
+            skill.chillPct && skill.chillDuration
+              ? { pct: scaleValue(skill.chillPct, rank), duration: skill.chillDuration }
+              : undefined,
+          color: 0,
+        });
+        break;
+      }
+      case 'groundEffect': {
+        // Placed at the cursor (falls back to the player when on top of it).
+        const aim = this.aimDir();
+        const dist = 60; // cast a fixed distance toward the cursor
+        const tx = p.x + aim.x * dist;
+        const ty = p.y + aim.y * dist;
+        this.ground.spawn({
+          x: tx,
+          y: ty,
+          radius: scaleValue(skill.radius, rank),
+          duration: skill.duration,
+          tickDps: this.effectiveDamage() * (scaleValue(skill.tickDps, rank) / 10),
+          element: skill.element,
+          chillPct: skill.chillPct ? scaleValue(skill.chillPct, rank) : undefined,
+          burnDps: skill.burnDps ? scaleValue(skill.burnDps, rank) : undefined,
+          delay: skill.delay,
+          burst: skill.burstMultiplier ? this.effectiveDamage() * scaleValue(skill.burstMultiplier, rank) : undefined,
+          color:
+            skill.element === 'fire' ? 0xe07830 : skill.element === 'frost' ? 0x7fa8ee : (0x9aa0b0 as number),
+        });
         break;
       }
     }

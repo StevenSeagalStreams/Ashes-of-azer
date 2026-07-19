@@ -8,11 +8,22 @@ import { z } from 'zod';
 
 const RankScaling = z.object({ base: z.number(), perRank: z.number() });
 
+// Elemental flavour (Milestone 1.3). "Light" model: frost chills (slows),
+// fire burns (DoT). No resistances yet — the condition/effect lives in code.
+export const ElementSchema = z.enum(['none', 'fire', 'frost']);
+export type Element = z.infer<typeof ElementSchema>;
+
+// Which class a skill belongs to. Warrior is the default so pre-1.3 content
+// (and saves) need no change.
+export const ClassSchema = z.enum(['warrior', 'mage', 'hunter']);
+export type ClassId = z.infer<typeof ClassSchema>;
+
 const SkillCommon = z.object({
   id: z.string(),
   key: z.string(), // hotbar key, e.g. "1"
   icon: z.string(), // prototype used an emoji; kept as a display hint
   name: z.string(),
+  class: ClassSchema.default('warrior'), // which class can use this skill
   unlockLevel: z.number().int().nonnegative(),
   maxRank: z.number().int().positive(),
   startingRank: z.number().int().nonnegative().default(0), // ranks known at character creation
@@ -47,6 +58,7 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     id: z.string(),
     icon: z.string(),
     name: z.string(),
+    class: ClassSchema.default('warrior'),
     unlockLevel: z.number().int().nonnegative(),
     maxRank: z.number().int().positive(),
     startingRank: z.number().int().nonnegative().default(0),
@@ -100,6 +112,33 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     damageBonusPct: RankScaling,
     damageReductionPct: RankScaling.optional(), // Iron Guard
     duration: z.number().positive(),
+  }),
+  SkillCommon.extend({
+    mechanic: z.literal('projectile'), // Fireball, Ice Shard, Arcane Bolt, Chain Lightning
+    speed: z.number().positive(), // px/s
+    radius: z.number().positive(), // hit radius
+    lifetime: z.number().positive(), // seconds before it fizzles
+    damageMultiplier: RankScaling,
+    pierce: RankScaling.optional(), // enemies it passes through before stopping
+    chain: RankScaling.optional(), // jumps to a new target after pierce is spent
+    chainRange: z.number().positive().optional(), // max jump distance
+    split: z.number().int().nonnegative().optional(), // extra projectiles fanned on first hit
+    element: ElementSchema.default('none'),
+    burnDps: RankScaling.optional(), // fire: DoT applied on hit
+    burnDuration: z.number().positive().optional(),
+    chillPct: RankScaling.optional(), // frost: movement slow applied on hit
+    chillDuration: z.number().positive().optional(),
+  }),
+  SkillCommon.extend({
+    mechanic: z.literal('groundEffect'), // Flame Wall, Blizzard, Meteor
+    radius: RankScaling,
+    duration: z.number().positive(),
+    tickDps: RankScaling, // damage per second to enemies standing in it
+    element: ElementSchema.default('none'),
+    delay: z.number().nonnegative().optional(), // Meteor: telegraph before it lands
+    burstMultiplier: RankScaling.optional(), // Meteor: initial impact hit
+    chillPct: RankScaling.optional(),
+    burnDps: RankScaling.optional(),
   }),
 ]);
 export type SkillData = z.infer<typeof SkillSchema>;

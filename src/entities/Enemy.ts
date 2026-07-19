@@ -5,17 +5,23 @@ import { DamageNumbers } from '../systems/DamageNumbers.ts';
 import { addSpriteTexture, spriteRowsFor } from '../systems/pixelart.ts';
 import type { Player } from './Player.ts';
 
+let nextEnemyId = 1;
+
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   readonly def: EnemyData;
+  /** Stable per-instance id (projectile pierce/chain tracking). */
+  readonly eid = nextEnemyId++;
   hp: number;
   readonly maxHp: number;
   private atkCd = 0;
   private stunT = 0;
   private slamT = 3; // prototype: first boss slam 3s after spawn
   isStunned = false;
-  private bleedDps = 0;
-  private bleedT = 0;
-  private bleedTick = 0;
+  // Two independent DoT channels so bleed (physical) and burn (fire) can stack.
+  private bleed = { dps: 0, t: 0, tick: 0 };
+  private burn = { dps: 0, t: 0, tick: 0 };
+  private chillPct = 0;
+  private chillT = 0;
   private vulnerablePct = 0;
   private vulnerableT = 0;
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
@@ -44,21 +50,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.vulnerableT -= dt;
       if (this.vulnerableT <= 0) this.vulnerablePct = 0;
     }
-    // Bleed damage-over-time (ticks ~2/s), applies even while stunned.
-    if (this.bleedT > 0) {
-      this.bleedT -= dt;
-      this.bleedTick -= dt;
-      if (this.bleedTick <= 0) {
-        this.bleedTick = 0.5;
-        const tick = Math.round(this.bleedDps * 0.5);
-        this.hp -= tick;
-        numbers.spawn(this.x, this.y, tick, '#8bd06a');
-        if (this.hp <= 0) {
-          this.die();
-          return;
-        }
-      }
+    if (this.chillT > 0) {
+      this.chillT -= dt;
+      if (this.chillT <= 0) this.chillPct = 0;
     }
+    // DoT channels tick ~2/s and apply even while stunned.
+    if (this.tickDoT(this.bleed, dt, '#8bd06a', numbers)) return;
+    if (this.tickDoT(this.burn, dt, '#e07830', numbers)) return;
     // Prototype: stunned enemies neither move nor attack (nor slam).
     this.isStunned = this.stunT > 0;
     if (this.stunT > 0) {
@@ -69,9 +67,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     const d = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
     if (d < this.def.aggro && d > 2) {
-      const vx = (player.x - this.x) / d;
-      const vy = (player.y - this.y) / d;
-      this.setVelocity(vx * this.def.spd, vy * this.def.spd);
+      const chill = 1 - this.chillPct / 100; // frost slow
+      const vx = ((player.x - this.x) / d) * this.def.spd * chill;
+      const vy = ((player.y - this.y) / d) * this.def.spd * chill;
+      this.setVelocity(vx, vy);
     } else {
       this.setVelocity(0, 0);
     }
@@ -103,6 +102,24 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.hp <= 0) this.die();
   }
 
+  /** Advances one DoT channel; returns true if it killed the enemy. */
+  private tickDoT(dot: { dps: number; t: number; tick: number }, dt: number, color: string, numbers: DamageNumbers): boolean {
+    if (dot.t <= 0) return false;
+    dot.t -= dt;
+    dot.tick -= dt;
+    if (dot.tick <= 0) {
+      dot.tick = 0.5;
+      const amount = Math.round(dot.dps * 0.5);
+      this.hp -= amount;
+      numbers.spawn(this.x, this.y, amount, color);
+      if (this.hp <= 0) {
+        this.die();
+        return true;
+      }
+    }
+    return false;
+  }
+
   private positionHpBar(): void {
     const barWidth = this.def.boss ? 30 : 12;
     const barY = this.y - this.height / 2 - 6;
@@ -118,8 +135,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   applyBleed(dps: number, duration: number): void {
     // Refresh with the stronger DoT rather than stacking.
-    this.bleedDps = Math.max(this.bleedDps, dps);
-    this.bleedT = Math.max(this.bleedT, duration);
+    this.bleed.dps = Math.max(this.bleed.dps, dps);
+    this.bleed.t = Math.max(this.bleed.t, duration);
+  }
+
+  applyBurn(dps: number, duration: number): void {
+    this.burn.dps = Math.max(this.burn.dps, dps);
+    this.burn.t = Math.max(this.burn.t, duration);
+  }
+
+  applyChill(pct: number, duration: number): void {
+    this.chillPct = Math.max(this.chillPct, pct);
+    this.chillT = Math.max(this.chillT, duration);
   }
 
   applyVulnerable(pct: number, duration: number): void {

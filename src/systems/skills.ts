@@ -108,6 +108,20 @@ export function describeSkill(skill: SkillData, rank: number): string {
       return `Foes in ${Math.round(scaleValue(skill.radius, r))}px take +${Math.round(scaleValue(skill.vulnerablePct, r))}% damage for ${skill.duration}s`;
     case 'heal':
       return `Restore ${Math.round(scaleValue(skill.healPct, r))}% of max life`;
+    case 'projectile': {
+      const bits = [`Fire a bolt for ${pct(skill.damageMultiplier)}% dmg`];
+      if (skill.pierce) bits.push(`pierces ${Math.round(scaleValue(skill.pierce, r))}`);
+      if (skill.chain) bits.push(`chains ${Math.round(scaleValue(skill.chain, r))}`);
+      if (skill.split) bits.push(`splits into ${skill.split}`);
+      if (skill.element === 'fire') bits.push('burns');
+      if (skill.element === 'frost') bits.push('chills');
+      return bits.join(', ');
+    }
+    case 'groundEffect': {
+      const el = skill.element === 'fire' ? 'burning' : skill.element === 'frost' ? 'frozen' : '';
+      const burst = skill.burstMultiplier ? `${pct(skill.burstMultiplier)}% on impact, then ` : '';
+      return `${burst}${el} ground: ${Math.round(scaleValue(skill.tickDps, r))} dmg/s for ${skill.duration}s`;
+    }
     case 'leap':
       return `Leap ${Math.round(scaleValue(skill.distance, r))}px; landing hits for ${pct(skill.damageMultiplier)}% dmg`;
     case 'execute':
