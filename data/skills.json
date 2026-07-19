@@ -478,5 +478,528 @@
         "perRank": 3
       }
     }
+  },
+  {
+    "id": "arcane_bolt",
+    "mechanic": "projectile",
+    "class": "mage",
+    "key": "1",
+    "icon": "✦",
+    "name": "Arcane Bolt",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 0.8,
+    "manaCost": 4,
+    "startingRank": 1,
+    "speed": 320,
+    "radius": 8,
+    "lifetime": 1.4,
+    "damageMultiplier": {
+      "base": 0.9,
+      "perRank": 0.15
+    },
+    "pierce": {
+      "base": 0,
+      "perRank": 0.4
+    },
+    "element": "none",
+    "fxColor": "#b98cff"
+  },
+  {
+    "id": "fireball",
+    "mechanic": "projectile",
+    "class": "mage",
+    "key": "2",
+    "icon": "🔥",
+    "name": "Fireball",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 3,
+    "manaCost": 16,
+    "startingRank": 1,
+    "speed": 260,
+    "radius": 12,
+    "lifetime": 1.8,
+    "damageMultiplier": {
+      "base": 1.4,
+      "perRank": 0.35
+    },
+    "element": "fire",
+    "burnDps": {
+      "base": 6,
+      "perRank": 2
+    },
+    "burnDuration": 3,
+    "fxColor": "#e07830"
+  },
+  {
+    "id": "ice_shard",
+    "mechanic": "projectile",
+    "class": "mage",
+    "key": "3",
+    "icon": "❄",
+    "name": "Ice Shard",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 2,
+    "manaCost": 12,
+    "startingRank": 1,
+    "speed": 300,
+    "radius": 10,
+    "lifetime": 1.6,
+    "damageMultiplier": {
+      "base": 1.1,
+      "perRank": 0.25
+    },
+    "element": "frost",
+    "chillPct": {
+      "base": 30,
+      "perRank": 5
+    },
+    "chillDuration": 2,
+    "fxColor": "#7fa8ee"
+  },
+  {
+    "id": "arcane_pulse",
+    "mechanic": "generator",
+    "class": "mage",
+    "key": "4",
+    "icon": "💫",
+    "name": "Arcane Pulse",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "cooldown": 2.5,
+    "manaCost": 0,
+    "startingRank": 0,
+    "radius": {
+      "base": 46,
+      "perRank": 4
+    },
+    "damageMultiplier": {
+      "base": 0.7,
+      "perRank": 0.15
+    },
+    "manaGain": {
+      "base": 7,
+      "perRank": 1.5
+    },
+    "fxColor": "#c9a8ff"
+  },
+  {
+    "id": "frost_nova",
+    "mechanic": "shockwave",
+    "class": "mage",
+    "key": "5",
+    "icon": "🌨",
+    "name": "Frost Nova",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "cooldown": 9,
+    "manaCost": 26,
+    "startingRank": 0,
+    "radius": {
+      "base": 52,
+      "perRank": 5
+    },
+    "damageMultiplier": {
+      "base": 0.9,
+      "perRank": 0.25
+    },
+    "stunDuration": {
+      "base": 1.2,
+      "perRank": 0.3
+    },
+    "fxColor": "#a8d8ff"
+  },
+  {
+    "id": "blink",
+    "mechanic": "leap",
+    "class": "mage",
+    "key": "6",
+    "icon": "✨",
+    "name": "Blink",
+    "unlockLevel": 3,
+    "maxRank": 3,
+    "cooldown": 5,
+    "manaCost": 14,
+    "startingRank": 0,
+    "distance": {
+      "base": 120,
+      "perRank": 20
+    },
+    "damageMultiplier": {
+      "base": 0.4,
+      "perRank": 0.1
+    },
+    "landingRadius": 30,
+    "stunDuration": 0,
+    "fxColor": "#c9a8ff"
+  },
+  {
+    "id": "hex",
+    "mechanic": "debuff",
+    "class": "mage",
+    "icon": "👁",
+    "name": "Hex",
+    "key": "1",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "cooldown": 10,
+    "manaCost": 22,
+    "startingRank": 0,
+    "radius": {
+      "base": 60,
+      "perRank": 5
+    },
+    "vulnerablePct": {
+      "base": 15,
+      "perRank": 4
+    },
+    "duration": 6,
+    "fxColor": "#c07ef2"
+  },
+  {
+    "id": "flame_wall",
+    "mechanic": "groundEffect",
+    "class": "mage",
+    "icon": "🔆",
+    "name": "Flame Wall",
+    "key": "2",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "cooldown": 8,
+    "manaCost": 24,
+    "startingRank": 0,
+    "radius": {
+      "base": 46,
+      "perRank": 4
+    },
+    "duration": 4,
+    "tickDps": {
+      "base": 8,
+      "perRank": 2
+    },
+    "element": "fire",
+    "burnDps": {
+      "base": 4,
+      "perRank": 1
+    },
+    "fxColor": "#e07830"
+  },
+  {
+    "id": "chain_lightning",
+    "mechanic": "projectile",
+    "class": "mage",
+    "icon": "⚡",
+    "name": "Chain Lightning",
+    "key": "3",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "cooldown": 6,
+    "manaCost": 28,
+    "startingRank": 0,
+    "speed": 420,
+    "radius": 10,
+    "lifetime": 1.2,
+    "damageMultiplier": {
+      "base": 1.2,
+      "perRank": 0.3
+    },
+    "chain": {
+      "base": 2,
+      "perRank": 0.5
+    },
+    "chainRange": 90,
+    "element": "none",
+    "fxColor": "#8fe0ff"
+  },
+  {
+    "id": "mana_shield",
+    "mechanic": "buff",
+    "class": "mage",
+    "icon": "🛡",
+    "name": "Mana Shield",
+    "key": "4",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "cooldown": 16,
+    "manaCost": 20,
+    "startingRank": 0,
+    "damageBonusPct": {
+      "base": 0,
+      "perRank": 0
+    },
+    "damageReductionPct": {
+      "base": 20,
+      "perRank": 6
+    },
+    "duration": 6,
+    "fxColor": "#7fa8ee"
+  },
+  {
+    "id": "rejuvenate",
+    "mechanic": "heal",
+    "class": "mage",
+    "icon": "💧",
+    "name": "Rejuvenate",
+    "key": "5",
+    "unlockLevel": 7,
+    "maxRank": 5,
+    "cooldown": 14,
+    "manaCost": 30,
+    "startingRank": 0,
+    "healPct": {
+      "base": 20,
+      "perRank": 6
+    },
+    "fxColor": "#8bd06a"
+  },
+  {
+    "id": "blizzard",
+    "mechanic": "groundEffect",
+    "class": "mage",
+    "icon": "🌪",
+    "name": "Blizzard",
+    "key": "6",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "cooldown": 12,
+    "manaCost": 34,
+    "startingRank": 0,
+    "radius": {
+      "base": 58,
+      "perRank": 5
+    },
+    "duration": 5,
+    "tickDps": {
+      "base": 6,
+      "perRank": 1.5
+    },
+    "element": "frost",
+    "chillPct": {
+      "base": 35,
+      "perRank": 5
+    },
+    "fxColor": "#a8d8ff"
+  },
+  {
+    "id": "meteor",
+    "mechanic": "groundEffect",
+    "class": "mage",
+    "icon": "☄",
+    "name": "Meteor",
+    "key": "1",
+    "unlockLevel": 8,
+    "maxRank": 5,
+    "cooldown": 14,
+    "manaCost": 40,
+    "startingRank": 0,
+    "radius": {
+      "base": 54,
+      "perRank": 4
+    },
+    "duration": 3,
+    "tickDps": {
+      "base": 5,
+      "perRank": 1.5
+    },
+    "element": "fire",
+    "delay": 0.9,
+    "burstMultiplier": {
+      "base": 2.4,
+      "perRank": 0.6
+    },
+    "burnDps": {
+      "base": 6,
+      "perRank": 2
+    },
+    "fxColor": "#e07830"
+  },
+  {
+    "id": "pyroblast",
+    "mechanic": "projectile",
+    "class": "mage",
+    "icon": "🔴",
+    "name": "Pyroblast",
+    "key": "2",
+    "unlockLevel": 10,
+    "maxRank": 5,
+    "cooldown": 10,
+    "manaCost": 45,
+    "startingRank": 0,
+    "speed": 220,
+    "radius": 16,
+    "lifetime": 2.2,
+    "damageMultiplier": {
+      "base": 3.2,
+      "perRank": 0.8
+    },
+    "element": "fire",
+    "burnDps": {
+      "base": 12,
+      "perRank": 3
+    },
+    "burnDuration": 4,
+    "fxColor": "#ff5030"
+  },
+  {
+    "id": "arcane_mastery",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "🔮",
+    "name": "Arcane Mastery",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "damagePct": {
+        "base": 0,
+        "perRank": 4
+      }
+    }
+  },
+  {
+    "id": "temporal_flux",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "⏳",
+    "name": "Temporal Flux",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "cdrPct": {
+        "base": 0,
+        "perRank": 3
+      }
+    }
+  },
+  {
+    "id": "keen_mind",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "🎯",
+    "name": "Keen Mind",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "critPct": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "blink_step",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "🏃",
+    "name": "Blink Step",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "moveSpeedPct": {
+        "base": 0,
+        "perRank": 3
+      }
+    }
+  },
+  {
+    "id": "mystic_ward",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "💠",
+    "name": "Mystic Ward",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "maxHpPct": {
+        "base": 0,
+        "perRank": 4
+      }
+    }
+  },
+  {
+    "id": "spell_siphon",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "🩸",
+    "name": "Spell Siphon",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "lifestealPct": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "deep_freeze",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "🧊",
+    "name": "Deep Freeze",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "damageVsStunnedPct": {
+        "base": 0,
+        "perRank": 6
+      }
+    }
+  },
+  {
+    "id": "mana_font",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "🌟",
+    "name": "Mana Font",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "manaOnKill": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "glass_cannon",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "💥",
+    "name": "Glass Cannon",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "berserkDamagePct": {
+        "base": 0,
+        "perRank": 8
+      }
+    }
+  },
+  {
+    "id": "spell_haste",
+    "mechanic": "passive",
+    "class": "mage",
+    "icon": "⚡",
+    "name": "Spell Haste",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "aspdPct": {
+        "base": 0,
+        "perRank": 4
+      }
+    }
   }
 ]

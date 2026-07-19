@@ -13,10 +13,13 @@ import {
   resolveLoadout,
   scaleValue,
   skillCooldown,
+  skillsForClass,
   xpToNext,
 } from './skills.ts';
 
 const skills = loadGameData().skills;
+const warriorSkills = skillsForClass(skills, 'warrior');
+const mageSkills = skillsForClass(skills, 'mage');
 const byId = (id: string) => {
   const s = skills.find((s) => s.id === id);
   if (!s) throw new Error(`missing skill ${id}`);
@@ -135,8 +138,8 @@ describe('passives', () => {
 
 describe('warrior kit content', () => {
   it('has 14 actives and 10 passives', () => {
-    expect(skills.filter((s) => s.mechanic !== 'passive')).toHaveLength(14);
-    expect(skills.filter((s) => s.mechanic === 'passive')).toHaveLength(10);
+    expect(warriorSkills.filter((s) => s.mechanic !== 'passive')).toHaveLength(14);
+    expect(warriorSkills.filter((s) => s.mechanic === 'passive')).toHaveLength(10);
   });
 
   it('describes each new mechanic without throwing', () => {
@@ -154,6 +157,30 @@ describe('warrior kit content', () => {
     const mods = passiveModifiers(skills, { blood_pact: 3, spiked_armor: 2 }, ['blood_pact', 'spiked_armor', null, null, null, null]);
     expect(mods.lifestealPct).toBe(6); // 2%/rank * 3
     expect(mods.thornsPct).toBe(16); // 8%/rank * 2
+  });
+});
+
+describe('mage kit content', () => {
+  it('has 14 actives and 10 passives, all tagged mage', () => {
+    expect(mageSkills.filter((s) => s.mechanic !== 'passive')).toHaveLength(14);
+    expect(mageSkills.filter((s) => s.mechanic === 'passive')).toHaveLength(10);
+    expect(mageSkills.every((s) => s.class === 'mage')).toBe(true);
+  });
+
+  it('spans projectile and groundEffect mechanics, and describes them', () => {
+    expect(mageSkills.some((s) => s.mechanic === 'projectile')).toBe(true);
+    expect(mageSkills.some((s) => s.mechanic === 'groundEffect')).toBe(true);
+    expect(describeSkill(byId('fireball'), 1)).toMatch(/burn/i);
+    expect(describeSkill(byId('ice_shard'), 1)).toMatch(/chill/i);
+    expect(describeSkill(byId('chain_lightning'), 1)).toMatch(/chain/i);
+    expect(describeSkill(byId('meteor'), 1)).toMatch(/burning|impact/i);
+  });
+
+  it('seeds a mage default bar from its own kit, not the warrior kit', () => {
+    const bar = defaultActives(mageSkills);
+    expect(bar[0]).toBe('arcane_bolt');
+    expect(bar).not.toContain('shield_slam');
+    expect(bar.every((id) => id === null || mageSkills.some((s) => s.id === id))).toBe(true);
   });
 });
 
