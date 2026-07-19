@@ -632,14 +632,27 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- combat ----------
 
+  /**
+   * Aim direction for basic attacks: from the player toward the mouse
+   * pointer's world position. Falls back to the movement facing when the
+   * pointer sits on top of the player (or there's no meaningful cursor).
+   */
+  private aimDir(): Phaser.Math.Vector2 {
+    const pointer = this.input.activePointer;
+    const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    const v = new Phaser.Math.Vector2(world.x - this.player.x, world.y - this.player.y);
+    return v.lengthSq() < 1 ? this.player.facing.clone() : v.normalize();
+  }
+
   private playerAttack(): void {
     if (this.player.atkCd > 0) return;
     this.player.atkCd = attackCooldown(this.player.aspdPct);
-    const ax = this.player.x + this.player.facing.x * ATTACK_REACH;
-    const ay = this.player.y + this.player.facing.y * ATTACK_REACH;
+    const aim = this.aimDir();
+    const ax = this.player.x + aim.x * ATTACK_REACH;
+    const ay = this.player.y + aim.y * ATTACK_REACH;
     this.slash
       .setPosition(ax, ay)
-      .setRotation(Math.atan2(this.player.facing.y, this.player.facing.x))
+      .setRotation(Math.atan2(aim.y, aim.x))
       .setVisible(true)
       .setAlpha(1);
     this.tweens.add({ targets: this.slash, alpha: 0, duration: 150 });
