@@ -20,7 +20,7 @@ describe('SaveSchema / defaultSave', () => {
 
   it('accepts a save carrying real progress', () => {
     const save = defaultSave();
-    save.character = { level: 7, xp: 320, gold: 41 };
+    save.character = { class: 'warrior', level: 7, xp: 320, gold: 41 };
     save.gear = {
       Ring: {
         slot: 'Ring',
@@ -101,8 +101,10 @@ describe('migrateAndValidate (real chain)', () => {
     expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
     expect(out.world.currentZone).toBe('overworld');
     expect(out.world.discoveredZones).toContain('overworld');
+    // Pre-1.3 saves have no class; the upgrade makes them Warriors.
+    expect(out.character.class).toBe('warrior');
     // Nothing else was lost in the upgrade.
-    expect(out.character).toEqual(v1.character);
+    expect(out.character).toEqual({ ...v1.character, class: 'warrior' });
     expect(out.skillRanks).toEqual(v1.skillRanks);
     expect(out.world.killedBosses).toEqual(['boss']);
     expect(out.world.corruption).toBe(25);
@@ -117,7 +119,7 @@ describe('migrateAndValidate (real chain)', () => {
 describe('export/import codec', () => {
   it('round-trips a save through base64 exactly', () => {
     const save = defaultSave();
-    save.character = { level: 9, xp: 1234, gold: 567 };
+    save.character = { class: 'mage', level: 9, xp: 1234, gold: 567 };
     save.world.questFlags = { met_elder: true, kills: 42, note: 'Zürich ⚔️' }; // unicode-safe check
     expect(importSave(exportSave(save))).toEqual(save);
   });

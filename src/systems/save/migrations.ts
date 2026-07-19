@@ -32,6 +32,11 @@ export const MIGRATIONS: Record<number, Migration> = {
     const loadout = (raw['loadout'] ?? {}) as Record<string, unknown>;
     return { ...raw, loadout: { ...loadout, passives: [null, null, null, null, null, null] } };
   },
+  // v4 → v5 (m1.3): characters gained a class; pre-1.3 saves are Warriors.
+  4: (raw) => {
+    const character = (raw['character'] ?? {}) as Record<string, unknown>;
+    return { ...raw, character: { ...character, class: 'warrior' } };
+  },
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

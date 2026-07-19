@@ -1,6 +1,6 @@
 // Pure skill/XP math ported from the prototype. Unit tested.
 
-import type { PassiveStat, SkillData, SkillsFile } from '../data/schemas/index.ts';
+import type { ClassId, PassiveStat, SkillData, SkillsFile } from '../data/schemas/index.ts';
 
 export const MANA_REGEN = 4; // per second (prototype update(): mp += 4*dt)
 
@@ -136,6 +136,10 @@ export function describeSkill(skill: SkillData, rank: number): string {
     }
   }
 }
+
+/** All skills usable by a class. */
+export const skillsForClass = (skills: SkillsFile, classId: ClassId): SkillsFile =>
+  skills.filter((s) => s.class === classId);
 
 /** Default bar: the first 6 ACTIVE skills in skills.json order. */
 export const defaultActives = (skills: SkillsFile): (string | null)[] => {

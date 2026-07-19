@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ItemSlotSchema } from '../../data/schemas/item.ts';
+import { ClassSchema } from '../../data/schemas/skill.ts';
 
 // Save format v1. The shape covers everything Milestone 0.4 lists —
 // character, gear, bag, skill ranks, gold, world state — even though some
@@ -8,7 +9,7 @@ import { ItemSlotSchema } from '../../data/schemas/item.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 4; // v4 (m1.1): loadout.passives
+export const CURRENT_SAVE_VERSION = 5; // v5 (m1.3): character.class
 
 // An item *instance* the player owns (rolled affixes and all) — distinct
 // from the item content definitions in data/items.json.
@@ -26,6 +27,7 @@ export const SaveSchema = z.object({
   saveVersion: z.literal(CURRENT_SAVE_VERSION),
   updatedAt: z.number(), // epoch ms
   character: z.object({
+    class: ClassSchema.default('warrior'), // chosen at new game (since v5)
     level: z.number().int().min(1),
     xp: z.number().nonnegative(),
     gold: z.number().nonnegative(),
@@ -56,7 +58,7 @@ export function defaultSave(now: number = Date.now()): SaveData {
   return {
     saveVersion: CURRENT_SAVE_VERSION,
     updatedAt: now,
-    character: { level: 1, xp: 0, gold: 0 },
+    character: { class: 'warrior', level: 1, xp: 0, gold: 0 },
     gear: {},
     bag: [],
     skillRanks: {},

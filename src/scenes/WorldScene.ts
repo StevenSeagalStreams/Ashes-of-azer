@@ -32,6 +32,7 @@ import {
   resolveLoadout,
   scaleValue,
   skillCooldown,
+  skillsForClass,
   xpToNext,
 } from '../systems/skills.ts';
 import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects } from '../systems/triggers.ts';
@@ -82,6 +83,9 @@ export class WorldScene extends Phaser.Scene {
     this.attackHeld = false;
   };
   private gameData!: GameData;
+  // Only the current character's class kit — the hotbar, learnable skills, and
+  // the skill panel all draw from this so a Mage never sees Warrior skills.
+  private classSkills: SkillData[] = [];
   private zoneId = 'overworld';
   private zoneDef!: ZoneData;
   private enemyDefs!: EnemyData[];
@@ -117,6 +121,7 @@ export class WorldScene extends Phaser.Scene {
     // Save first: it decides the zone, and player level scales enemy spawns.
     this.saveStore = new SaveStore(window.localStorage);
     this.saveData = this.loadSaveSafe();
+    this.classSkills = skillsForClass(this.gameData.skills, this.saveData.character.class);
     this.zoneId = this.entry.zone ?? this.saveData.world.currentZone;
     const zoneDef = this.gameData.zones.find((z) => z.id === this.zoneId);
     if (!zoneDef) throw new Error(`zone "${this.zoneId}" not found in zones.json`);
@@ -174,9 +179,9 @@ export class WorldScene extends Phaser.Scene {
     // All-null loadout = never customised → seed the default bar (and persist
     // it so the save carries an explicit choice from then on).
     if (this.saveData.loadout.actives.every((id) => id === null)) {
-      this.saveData.loadout.actives = defaultActives(this.gameData.skills);
+      this.saveData.loadout.actives = defaultActives(this.classSkills);
     }
-    this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.gameData.skills);
+    this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.classSkills);
     this.skillCooldowns.clear();
     (['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'] as const).forEach((keyName, i) => {
       kb.on(`keydown-${keyName}`, () => {
@@ -188,7 +193,7 @@ export class WorldScene extends Phaser.Scene {
     this.events.on('enemy-died', (def: EnemyData) => this.onEnemyDied(def));
 
     this.skillUI = new SkillUI({
-      skills: this.gameData.skills,
+      skills: this.classSkills,
       hotbar: () => this.hotbar,
       level: () => this.player.level,
       skillRanks: () => this.saveData.skillRanks,
@@ -205,9 +210,9 @@ export class WorldScene extends Phaser.Scene {
         };
       },
       rankUp: (skillId) => this.rankUpSkill(skillId),
-      passives: () => resolveLoadout(this.saveData.loadout.passives, this.gameData.skills),
+      passives: () => resolveLoadout(this.saveData.loadout.passives, this.classSkills),
       setPassiveSlot: (slot, skillId) => {
-        const skill = skillId ? this.gameData.skills.find((s) => s.id === skillId) : null;
+        const skill = skillId ? this.classSkills.find((s) => s.id === skillId) : null;
         if (skillId !== null && skill?.mechanic !== 'passive') return; // only passives here
         this.saveData.loadout.passives = assignSlot(this.saveData.loadout.passives, slot, skillId);
         this.recomputeStats();
@@ -222,10 +227,10 @@ export class WorldScene extends Phaser.Scene {
         this.saveNow();
       },
       setSlot: (slot, skillId) => {
-        const skill = skillId ? this.gameData.skills.find((s) => s.id === skillId) : null;
+        const skill = skillId ? this.classSkills.find((s) => s.id === skillId) : null;
         if (skill?.mechanic === 'passive') return; // passives go in passive slots, not the hotbar
         this.saveData.loadout.actives = assignSlot(this.saveData.loadout.actives, slot, skillId);
-        this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.gameData.skills);
+        this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.classSkills);
         this.skillUI.buildHotbar();
         this.saveNow();
       },
@@ -390,7 +395,7 @@ export class WorldScene extends Phaser.Scene {
   /** Derived stats = level base × slotted-passive modifiers. */
   private recomputeStats(): void {
     const mods = passiveModifiers(
-      this.gameData.skills,
+      this.classSkills,
       this.saveData.skillRanks,
       this.saveData.loadout.passives,
     );
@@ -417,7 +422,12 @@ export class WorldScene extends Phaser.Scene {
     return {
       ...this.saveData,
       updatedAt: Date.now(),
-      character: { level: this.player.level, xp: this.player.xp, gold: this.player.gold },
+      character: {
+        class: this.saveData.character.class,
+        level: this.player.level,
+        xp: this.player.xp,
+        gold: this.player.gold,
+      },
       world: { ...this.saveData.world, currentZone: this.saveData.world.currentZone },
     };
   }
@@ -671,10 +681,10 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private rankUpSkill(skillId: string): void {
-    const skill = this.gameData.skills.find((s) => s.id === skillId);
+    const skill = this.classSkills.find((s) => s.id === skillId);
     if (!skill) return;
     const rank = rankOf(skill, this.saveData.skillRanks);
-    const points = availableSkillPoints(this.player.level, this.gameData.skills, this.saveData.skillRanks);
+    const points = availableSkillPoints(this.player.level, this.classSkills, this.saveData.skillRanks);
     if (points <= 0 || rank >= skill.maxRank || this.player.level < skill.unlockLevel) return;
     this.saveData.skillRanks[skill.id] = rank + 1;
     if (skill.mechanic === 'passive') {
