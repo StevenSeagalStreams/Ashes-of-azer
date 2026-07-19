@@ -81,6 +81,12 @@ export function describeSkill(skill: SkillData, rank: number): string {
         aspdPct: '% Attack Speed',
         cdrPct: '% Cooldown Reduction',
         damagePct: '% Damage',
+        lifestealPct: '% Life Steal',
+        thornsPct: '% Thorns',
+        blockPct: '% Block Chance',
+        manaOnKill: ' Mana on Kill',
+        damageVsStunnedPct: '% Damage vs Stunned',
+        berserkDamagePct: '% Damage while below 30% life',
       };
       const parts = Object.entries(skill.modifiers).map(
         ([stat, s]) => `+${Math.round(scaleValue(s, r))}${LABELS[stat] ?? stat}`,
@@ -89,14 +95,31 @@ export function describeSkill(skill: SkillData, rank: number): string {
     }
     case 'shockwave': {
       const stun = skill.stunDuration ? `, stun ${scaleValue(skill.stunDuration, r).toFixed(1)}s` : '';
-      return `Hit foes in ${Math.round(scaleValue(skill.radius, r))}px for ${pct(skill.damageMultiplier)}% dmg${stun}`;
+      const bleed = skill.bleed
+        ? `, bleed ${Math.round(scaleValue(skill.bleed.dps, r))}/s for ${skill.bleed.duration}s`
+        : '';
+      return `Hit foes in ${Math.round(scaleValue(skill.radius, r))}px for ${pct(skill.damageMultiplier)}% dmg${stun}${bleed}`;
     }
+    case 'generator':
+      return `Strike foes in ${Math.round(scaleValue(skill.radius, r))}px for ${pct(skill.damageMultiplier)}% dmg; restore ${Math.round(scaleValue(skill.manaGain, r))} mana per hit`;
+    case 'charge':
+      return `Charge ${Math.round(scaleValue(skill.distance, r))}px, hitting all in the way for ${pct(skill.damageMultiplier)}% dmg + ${scaleValue(skill.stunDuration, r).toFixed(1)}s stun`;
+    case 'debuff':
+      return `Foes in ${Math.round(scaleValue(skill.radius, r))}px take +${Math.round(scaleValue(skill.vulnerablePct, r))}% damage for ${skill.duration}s`;
+    case 'heal':
+      return `Restore ${Math.round(scaleValue(skill.healPct, r))}% of max life`;
     case 'leap':
       return `Leap ${Math.round(scaleValue(skill.distance, r))}px; landing hits for ${pct(skill.damageMultiplier)}% dmg`;
     case 'execute':
       return `Strike nearest foe: ${pct(skill.damageMultiplierLow)}% dmg below ${Math.round(scaleValue(skill.lifeThresholdPct, r))}% life, else ${Math.round(skill.damageMultiplierHigh * 100)}%`;
-    case 'buff':
-      return `+${Math.round(scaleValue(skill.damageBonusPct, r))}% damage for ${skill.duration}s`;
+    case 'buff': {
+      const dmg = scaleValue(skill.damageBonusPct, r);
+      const dr = skill.damageReductionPct ? scaleValue(skill.damageReductionPct, r) : 0;
+      const parts = [];
+      if (dmg) parts.push(`+${Math.round(dmg)}% damage`);
+      if (dr) parts.push(`${Math.round(dr)}% damage reduction`);
+      return `${parts.join(', ')} for ${skill.duration}s`;
+    }
   }
 }
 

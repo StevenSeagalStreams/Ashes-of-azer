@@ -32,11 +32,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   cdrPct = 0; // gear stat stub (m0.3 data, wired with items)
   atkCd = 0;
   dead = false;
-  /** From slotted passives (recomputed by the scene). */
+  // From slotted passives (recomputed by the scene each stat change).
   passiveDamagePct = 0;
+  lifestealPct = 0;
+  thornsPct = 0;
+  blockPct = 0;
+  manaOnKill = 0;
+  damageVsStunnedPct = 0;
+  berserkDamagePct = 0;
   /** War Cry: +damage% while the timer runs. */
   damageBuffPct = 0;
   private damageBuffT = 0;
+  /** Iron Guard: % incoming damage reduced while the timer runs. */
+  damageReductionPct = 0;
+  private damageReductionT = 0;
+
+  private rng: () => number = Math.random;
 
   private readonly keys: MoveKeys;
 
@@ -66,15 +77,35 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(v.x, v.y);
   }
 
-  takeDamage(amount: number, numbers: DamageNumbers): void {
-    if (this.dead) return;
-    this.hp = Math.max(0, this.hp - amount);
-    numbers.spawn(this.x, this.y, amount, '#f08060');
+  /**
+   * Applies an incoming hit through block → damage-reduction. Returns the
+   * thorns damage to reflect back at the attacker (0 if none), so the caller
+   * (the attacking enemy) can take it.
+   */
+  takeDamage(amount: number, numbers: DamageNumbers): number {
+    if (this.dead) return 0;
+    if (this.blockPct > 0 && this.rng() * 100 < this.blockPct) {
+      numbers.spawn(this.x, this.y, 'BLOCK', '#7fa8ee');
+      return 0;
+    }
+    const taken = Math.round(amount * (1 - this.damageReductionPct / 100));
+    this.hp = Math.max(0, this.hp - taken);
+    numbers.spawn(this.x, this.y, taken, '#f08060');
     this.setAlpha(0.55);
     this.scene.time.delayedCall(150, () => {
       if (!this.dead) this.setAlpha(1);
     });
     if (this.hp <= 0) this.dead = true;
+    return this.thornsPct > 0 ? Math.round(amount * (this.thornsPct / 100)) : 0;
+  }
+
+  /** Test/seam hook so block rolls are deterministic in headless runs. */
+  setRng(rng: () => number): void {
+    this.rng = rng;
+  }
+
+  heal(amount: number): void {
+    this.hp = Math.min(this.maxHp, this.hp + amount);
   }
 
   respawn(x: number, y: number): void {
@@ -90,11 +121,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.damageBuffT = duration;
   }
 
+  applyDamageReduction(pct: number, duration: number): void {
+    this.damageReductionPct = pct;
+    this.damageReductionT = duration;
+  }
+
   /** Ticks timed effects; called from the scene's update. */
   tickEffects(dt: number): void {
     if (this.damageBuffT > 0) {
       this.damageBuffT -= dt;
       if (this.damageBuffT <= 0) this.damageBuffPct = 0;
+    }
+    if (this.damageReductionT > 0) {
+      this.damageReductionT -= dt;
+      if (this.damageReductionT <= 0) this.damageReductionPct = 0;
     }
   }
 }

@@ -83,8 +83,14 @@ describe('rankOf / availableSkillPoints', () => {
 });
 
 describe('loadout helpers', () => {
-  it('defaultActives fills 6 slots from skills.json order, padding with null', () => {
-    expect(defaultActives(skills)).toEqual(['shield_slam', 'whirlwind', 'leap', 'execute', 'war_cry', null]);
+  it('defaultActives fills 6 slots with the first six ACTIVE skills (no passives)', () => {
+    const bar = defaultActives(skills);
+    expect(bar).toHaveLength(6);
+    expect(bar.every((id) => id !== null)).toBe(true);
+    for (const id of bar) {
+      expect(byId(id as string).mechanic).not.toBe('passive');
+    }
+    expect(bar.slice(0, 5)).toEqual(['shield_slam', 'whirlwind', 'leap', 'execute', 'war_cry']);
   });
 
   it('resolveLoadout maps ids to defs and unknown ids to empty', () => {
@@ -124,6 +130,30 @@ describe('passives', () => {
 
   it('defaultActives excludes passives', () => {
     expect(defaultActives(skills)).not.toContain('toughness');
+  });
+});
+
+describe('warrior kit content', () => {
+  it('has 14 actives and 10 passives', () => {
+    expect(skills.filter((s) => s.mechanic !== 'passive')).toHaveLength(14);
+    expect(skills.filter((s) => s.mechanic === 'passive')).toHaveLength(10);
+  });
+
+  it('describes each new mechanic without throwing', () => {
+    for (const id of ['heroic_strike', 'charge', 'ground_rend', 'taunt', 'second_wind', 'iron_guard']) {
+      expect(describeSkill(byId(id), 1)).toBeTruthy();
+    }
+  });
+
+  it('Ground Rend describes its bleed; Iron Guard its damage reduction', () => {
+    expect(describeSkill(byId('ground_rend'), 1)).toMatch(/bleed/i);
+    expect(describeSkill(byId('iron_guard'), 1)).toMatch(/damage reduction/i);
+  });
+
+  it('sums conditional passive stats like any other modifier', () => {
+    const mods = passiveModifiers(skills, { blood_pact: 3, spiked_armor: 2 }, ['blood_pact', 'spiked_armor', null, null, null, null]);
+    expect(mods.lifestealPct).toBe(6); // 2%/rank * 3
+    expect(mods.thornsPct).toBe(16); // 8%/rank * 2
   });
 });
 

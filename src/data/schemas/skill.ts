@@ -22,6 +22,9 @@ const SkillCommon = z.object({
 });
 
 // Stat keys passives may modify; map 1:1 onto Player-derived stats.
+// The first block is flat always-on stats; the second block is applied
+// conditionally by engine hooks (on hit / on kill / on damage taken) —
+// the value is still a plain per-rank scaling, the *condition* lives in code.
 export const PassiveStatSchema = z.enum([
   'maxHpPct',
   'moveSpeedPct',
@@ -29,6 +32,12 @@ export const PassiveStatSchema = z.enum([
   'aspdPct',
   'cdrPct',
   'damagePct',
+  'lifestealPct', // heal this % of damage dealt
+  'thornsPct', // reflect this % of damage taken
+  'blockPct', // chance to fully block an incoming hit
+  'manaOnKill', // flat mana restored per kill
+  'damageVsStunnedPct', // +% damage vs stunned enemies
+  'berserkDamagePct', // +% damage while below 30% life
 ]);
 export type PassiveStat = z.infer<typeof PassiveStatSchema>;
 
@@ -44,10 +53,33 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     modifiers: z.partialRecord(PassiveStatSchema, RankScaling),
   }),
   SkillCommon.extend({
-    mechanic: z.literal('shockwave'), // Shield Slam, Whirlwind
+    mechanic: z.literal('shockwave'), // Shield Slam, Whirlwind, Hammerfall, Earthshatter
     radius: RankScaling,
     damageMultiplier: RankScaling,
     stunDuration: RankScaling.optional(),
+    bleed: z.object({ dps: RankScaling, duration: z.number().positive() }).optional(), // Ground Rend
+  }),
+  SkillCommon.extend({
+    mechanic: z.literal('generator'), // Heroic Strike, Cleave — cheap primary that RESTORES mana
+    radius: RankScaling,
+    damageMultiplier: RankScaling,
+    manaGain: RankScaling, // mana restored per enemy hit
+  }),
+  SkillCommon.extend({
+    mechanic: z.literal('charge'), // dash along facing, hit + stun everything in the corridor
+    distance: RankScaling,
+    damageMultiplier: RankScaling,
+    stunDuration: RankScaling,
+  }),
+  SkillCommon.extend({
+    mechanic: z.literal('debuff'), // Taunt — apply a vulnerability (take +% damage)
+    radius: RankScaling,
+    vulnerablePct: RankScaling,
+    duration: z.number().positive(),
+  }),
+  SkillCommon.extend({
+    mechanic: z.literal('heal'), // Second Wind — heal % of max life
+    healPct: RankScaling,
   }),
   SkillCommon.extend({
     mechanic: z.literal('leap'), // Leap
@@ -64,8 +96,9 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     lifeThresholdPct: RankScaling,
   }),
   SkillCommon.extend({
-    mechanic: z.literal('buff'), // War Cry
+    mechanic: z.literal('buff'), // War Cry (offensive), Iron Guard (defensive)
     damageBonusPct: RankScaling,
+    damageReductionPct: RankScaling.optional(), // Iron Guard
     duration: z.number().positive(),
   }),
 ]);

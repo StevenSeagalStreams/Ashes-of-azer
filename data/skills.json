@@ -152,5 +152,331 @@
         "perRank": 2
       }
     }
+  },
+  {
+    "id": "heroic_strike",
+    "mechanic": "generator",
+    "key": "1",
+    "icon": "🗡",
+    "name": "Heroic Strike",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 1.5,
+    "manaCost": 0,
+    "startingRank": 0,
+    "fxColor": "#e5e0d0",
+    "radius": {
+      "base": 22,
+      "perRank": 2
+    },
+    "damageMultiplier": {
+      "base": 0.9,
+      "perRank": 0.15
+    },
+    "manaGain": {
+      "base": 6,
+      "perRank": 1
+    }
+  },
+  {
+    "id": "cleave",
+    "mechanic": "generator",
+    "key": "2",
+    "icon": "🪓",
+    "name": "Cleave",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "cooldown": 3,
+    "manaCost": 0,
+    "startingRank": 0,
+    "fxColor": "#f2c9a0",
+    "radius": {
+      "base": 40,
+      "perRank": 4
+    },
+    "damageMultiplier": {
+      "base": 1.1,
+      "perRank": 0.2
+    },
+    "manaGain": {
+      "base": 4,
+      "perRank": 1
+    }
+  },
+  {
+    "id": "charge",
+    "mechanic": "charge",
+    "key": "3",
+    "icon": "🐗",
+    "name": "Charge",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "cooldown": 8,
+    "manaCost": 16,
+    "startingRank": 0,
+    "fxColor": "#e8b64c",
+    "distance": {
+      "base": 110,
+      "perRank": 18
+    },
+    "damageMultiplier": {
+      "base": 1.2,
+      "perRank": 0.25
+    },
+    "stunDuration": {
+      "base": 0.8,
+      "perRank": 0.2
+    }
+  },
+  {
+    "id": "ground_rend",
+    "mechanic": "shockwave",
+    "key": "4",
+    "icon": "🩸",
+    "name": "Ground Rend",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "cooldown": 9,
+    "manaCost": 22,
+    "startingRank": 0,
+    "fxColor": "#d8503f",
+    "radius": {
+      "base": 46,
+      "perRank": 4
+    },
+    "damageMultiplier": {
+      "base": 0.8,
+      "perRank": 0.2
+    },
+    "bleed": {
+      "dps": {
+        "base": 6,
+        "perRank": 3
+      },
+      "duration": 4
+    }
+  },
+  {
+    "id": "hammerfall",
+    "mechanic": "shockwave",
+    "key": "5",
+    "icon": "🔨",
+    "name": "Hammerfall",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "cooldown": 10,
+    "manaCost": 30,
+    "startingRank": 0,
+    "fxColor": "#8a6d3b",
+    "radius": {
+      "base": 60,
+      "perRank": 6
+    },
+    "damageMultiplier": {
+      "base": 2.0,
+      "perRank": 0.5
+    },
+    "stunDuration": {
+      "base": 1.0,
+      "perRank": 0.25
+    }
+  },
+  {
+    "id": "iron_guard",
+    "mechanic": "buff",
+    "key": "6",
+    "icon": "🛡",
+    "name": "Iron Guard",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "cooldown": 16,
+    "manaCost": 24,
+    "startingRank": 0,
+    "fxColor": "#7fa8ee",
+    "damageBonusPct": {
+      "base": 0,
+      "perRank": 0
+    },
+    "damageReductionPct": {
+      "base": 25,
+      "perRank": 5
+    },
+    "duration": 6
+  },
+  {
+    "id": "taunt",
+    "mechanic": "debuff",
+    "key": "7",
+    "icon": "📣",
+    "name": "Taunt",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "cooldown": 12,
+    "manaCost": 18,
+    "startingRank": 0,
+    "fxColor": "#c07ef2",
+    "radius": {
+      "base": 70,
+      "perRank": 6
+    },
+    "vulnerablePct": {
+      "base": 15,
+      "perRank": 5
+    },
+    "duration": 5
+  },
+  {
+    "id": "second_wind",
+    "mechanic": "heal",
+    "key": "8",
+    "icon": "💚",
+    "name": "Second Wind",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "cooldown": 20,
+    "manaCost": 26,
+    "startingRank": 0,
+    "fxColor": "#8bd06a",
+    "healPct": {
+      "base": 15,
+      "perRank": 6
+    }
+  },
+  {
+    "id": "earthshatter",
+    "mechanic": "shockwave",
+    "key": "9",
+    "icon": "🌋",
+    "name": "Earthshatter",
+    "unlockLevel": 10,
+    "maxRank": 5,
+    "cooldown": 24,
+    "manaCost": 45,
+    "startingRank": 0,
+    "fxColor": "#e07830",
+    "radius": {
+      "base": 90,
+      "perRank": 8
+    },
+    "damageMultiplier": {
+      "base": 3.0,
+      "perRank": 0.7
+    },
+    "stunDuration": {
+      "base": 1.5,
+      "perRank": 0.3
+    },
+    "bleed": {
+      "dps": {
+        "base": 8,
+        "perRank": 4
+      },
+      "duration": 5
+    }
+  },
+  {
+    "id": "brutality",
+    "mechanic": "passive",
+    "icon": "😤",
+    "name": "Brutality",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "damageVsStunnedPct": {
+        "base": 0,
+        "perRank": 4
+      }
+    }
+  },
+  {
+    "id": "shield_wall",
+    "mechanic": "passive",
+    "icon": "🧱",
+    "name": "Shield Wall",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "blockPct": {
+        "base": 0,
+        "perRank": 3
+      }
+    }
+  },
+  {
+    "id": "blood_pact",
+    "mechanic": "passive",
+    "icon": "🧛",
+    "name": "Blood Pact",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "lifestealPct": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "battle_focus",
+    "mechanic": "passive",
+    "icon": "🧠",
+    "name": "Battle Focus",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "manaOnKill": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "spiked_armor",
+    "mechanic": "passive",
+    "icon": "🦔",
+    "name": "Spiked Armor",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "thornsPct": {
+        "base": 0,
+        "perRank": 8
+      }
+    }
+  },
+  {
+    "id": "last_stand",
+    "mechanic": "passive",
+    "icon": "💀",
+    "name": "Last Stand",
+    "unlockLevel": 7,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "berserkDamagePct": {
+        "base": 0,
+        "perRank": 8
+      }
+    }
+  },
+  {
+    "id": "quick_recovery",
+    "mechanic": "passive",
+    "icon": "⏱",
+    "name": "Quick Recovery",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "cdrPct": {
+        "base": 0,
+        "perRank": 3
+      }
+    }
   }
 ]

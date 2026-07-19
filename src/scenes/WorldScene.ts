@@ -372,6 +372,12 @@ export class WorldScene extends Phaser.Scene {
     p.aspdPct = mods.aspdPct ?? 0;
     p.cdrPct = mods.cdrPct ?? 0;
     p.passiveDamagePct = mods.damagePct ?? 0;
+    p.lifestealPct = mods.lifestealPct ?? 0;
+    p.thornsPct = mods.thornsPct ?? 0;
+    p.blockPct = mods.blockPct ?? 0;
+    p.manaOnKill = mods.manaOnKill ?? 0;
+    p.damageVsStunnedPct = mods.damageVsStunnedPct ?? 0;
+    p.berserkDamagePct = mods.berserkDamagePct ?? 0;
   }
 
   private snapshot(): SaveData {
@@ -403,10 +409,13 @@ export class WorldScene extends Phaser.Scene {
   // ---------- skills & xp ----------
 
   private effectiveDamage(): number {
+    const p = this.player;
+    const berserk = p.berserkDamagePct > 0 && p.hp < p.maxHp * 0.3 ? p.berserkDamagePct : 0;
     return (
-      playerBaseDamage(this.player.level) *
-      (1 + this.player.damageBuffPct / 100) *
-      (1 + this.player.passiveDamagePct / 100)
+      playerBaseDamage(p.level) *
+      (1 + p.damageBuffPct / 100) *
+      (1 + p.passiveDamagePct / 100) *
+      (1 + berserk / 100)
     );
   }
 
@@ -417,11 +426,28 @@ export class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: ring, alpha: 0, duration: 350, onComplete: () => ring.destroy() });
   }
 
-  private hitEnemiesWithin(x: number, y: number, radius: number, damage: number, stun?: number): void {
+  /** Single path for player→enemy damage: stun bonus, crit, vulnerability, lifesteal. */
+  private dealDamage(e: Enemy, baseDamage: number): void {
+    let dmg = baseDamage;
+    if (e.isStunned && this.player.damageVsStunnedPct > 0) {
+      dmg *= 1 + this.player.damageVsStunnedPct / 100;
+    }
+    const dealt = e.takeHit(rollHit(dmg, this.player.critPct), this.numbers);
+    if (this.player.lifestealPct > 0) this.player.heal(dealt * (this.player.lifestealPct / 100));
+  }
+
+  private hitEnemiesWithin(
+    x: number,
+    y: number,
+    radius: number,
+    damage: number,
+    opts: { stun?: number; bleed?: { dps: number; duration: number } } = {},
+  ): void {
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (!e.active || Phaser.Math.Distance.Between(e.x, e.y, x, y) >= radius + 6) continue;
-      if (stun) e.applyStun(stun);
-      e.takeHit(rollHit(damage, this.player.critPct), this.numbers);
+      if (opts.stun) e.applyStun(opts.stun);
+      if (opts.bleed) e.applyBleed(opts.bleed.dps, opts.bleed.duration);
+      this.dealDamage(e, damage);
     }
   }
 
@@ -443,8 +469,54 @@ export class WorldScene extends Phaser.Scene {
       case 'shockwave': {
         const radius = scaleValue(skill.radius, rank);
         const stun = skill.stunDuration ? scaleValue(skill.stunDuration, rank) : undefined;
+        const bleed = skill.bleed
+          ? { dps: scaleValue(skill.bleed.dps, rank), duration: skill.bleed.duration }
+          : undefined;
         this.aoeRing(p.x, p.y, radius, skill.fxColor ?? '#ffffff');
-        this.hitEnemiesWithin(p.x, p.y, radius, this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank), stun);
+        this.hitEnemiesWithin(p.x, p.y, radius, this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank), {
+          stun,
+          bleed,
+        });
+        break;
+      }
+      case 'generator': {
+        const radius = scaleValue(skill.radius, rank);
+        this.aoeRing(p.x, p.y, radius, skill.fxColor ?? '#e5e0d0');
+        const gain = scaleValue(skill.manaGain, rank);
+        let hits = 0;
+        for (const e of this.enemies.getChildren() as Enemy[]) {
+          if (!e.active || Phaser.Math.Distance.Between(e.x, e.y, p.x, p.y) >= radius + 6) continue;
+          this.dealDamage(e, this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank));
+          hits++;
+        }
+        // Generators refund mana per enemy struck (net-positive on a crowd).
+        p.mp = Math.min(p.maxMp, p.mp + gain * hits);
+        break;
+      }
+      case 'charge': {
+        const dist = scaleValue(skill.distance, rank);
+        const stun = scaleValue(skill.stunDuration, rank);
+        const dmg = this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank);
+        // Damage everything in the corridor before dashing to the end.
+        for (const e of this.enemies.getChildren() as Enemy[]) {
+          if (!e.active) continue;
+          const rel = new Phaser.Math.Vector2(e.x - p.x, e.y - p.y);
+          const along = rel.x * p.facing.x + rel.y * p.facing.y;
+          const perp = Math.abs(rel.x * p.facing.y - rel.y * p.facing.x);
+          if (along >= 0 && along <= dist && perp <= 20) {
+            e.applyStun(stun);
+            this.dealDamage(e, dmg);
+          }
+        }
+        for (let d = dist; d > 0; d -= 6) {
+          const nx = p.x + p.facing.x * d;
+          const ny = p.y + p.facing.y * d;
+          if (walkableMask(this.solidMask, nx, ny, 5)) {
+            p.body?.reset(nx, ny);
+            break;
+          }
+        }
+        this.aoeRing(p.x, p.y, 30, skill.fxColor ?? '#e8b64c');
         break;
       }
       case 'leap': {
@@ -463,7 +535,7 @@ export class WorldScene extends Phaser.Scene {
           p.y,
           skill.landingRadius,
           this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank),
-          skill.stunDuration,
+          { stun: skill.stunDuration },
         );
         break;
       }
@@ -486,11 +558,30 @@ export class WorldScene extends Phaser.Scene {
         }
         const low = (best.hp / best.maxHp) * 100 < scaleValue(skill.lifeThresholdPct, rank);
         const mult = low ? scaleValue(skill.damageMultiplierLow, rank) : skill.damageMultiplierHigh;
-        best.takeHit(rollHit(this.effectiveDamage() * mult, p.critPct), this.numbers);
+        this.dealDamage(best, this.effectiveDamage() * mult);
+        break;
+      }
+      case 'debuff': {
+        const radius = scaleValue(skill.radius, rank);
+        const pct = scaleValue(skill.vulnerablePct, rank);
+        this.aoeRing(p.x, p.y, radius, skill.fxColor ?? '#c07ef2');
+        for (const e of this.enemies.getChildren() as Enemy[]) {
+          if (e.active && Phaser.Math.Distance.Between(e.x, e.y, p.x, p.y) < radius + 6) {
+            e.applyVulnerable(pct, skill.duration);
+          }
+        }
+        break;
+      }
+      case 'heal': {
+        p.heal(p.maxHp * (scaleValue(skill.healPct, rank) / 100));
+        this.aoeRing(p.x, p.y, 30, skill.fxColor ?? '#8bd06a');
+        this.numbers.spawn(p.x, p.y - 12, 'HEAL', '#8bd06a');
         break;
       }
       case 'buff': {
-        p.applyDamageBuff(scaleValue(skill.damageBonusPct, rank), skill.duration);
+        const dmg = scaleValue(skill.damageBonusPct, rank);
+        if (dmg) p.applyDamageBuff(dmg, skill.duration);
+        if (skill.damageReductionPct) p.applyDamageReduction(scaleValue(skill.damageReductionPct, rank), skill.duration);
         this.aoeRing(p.x, p.y, 30, skill.fxColor ?? '#d8503f');
         break;
       }
@@ -518,6 +609,9 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onEnemyDied(def: EnemyData): void {
+    if (this.player.manaOnKill > 0) {
+      this.player.mp = Math.min(this.player.maxMp, this.player.mp + this.player.manaOnKill);
+    }
     if (def.boss && !this.saveData.world.killedBosses.includes(def.id)) {
       this.saveData.world.killedBosses.push(def.id);
       this.saveNow();
@@ -551,7 +645,7 @@ export class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: this.slash, alpha: 0, duration: 150 });
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (e.active && Phaser.Math.Distance.Between(e.x, e.y, ax, ay) < ATTACK_RADIUS) {
-        e.takeHit(rollHit(this.effectiveDamage(), this.player.critPct), this.numbers);
+        this.dealDamage(e, this.effectiveDamage());
       }
     }
   }

@@ -12,6 +12,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private atkCd = 0;
   private stunT = 0;
   private slamT = 3; // prototype: first boss slam 3s after spawn
+  isStunned = false;
+  private bleedDps = 0;
+  private bleedT = 0;
+  private bleedTick = 0;
+  private vulnerablePct = 0;
+  private vulnerableT = 0;
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
@@ -34,7 +40,27 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   updateEnemy(dt: number, player: Player, numbers: DamageNumbers): void {
     this.atkCd = Math.max(0, this.atkCd - dt);
+    if (this.vulnerableT > 0) {
+      this.vulnerableT -= dt;
+      if (this.vulnerableT <= 0) this.vulnerablePct = 0;
+    }
+    // Bleed damage-over-time (ticks ~2/s), applies even while stunned.
+    if (this.bleedT > 0) {
+      this.bleedT -= dt;
+      this.bleedTick -= dt;
+      if (this.bleedTick <= 0) {
+        this.bleedTick = 0.5;
+        const tick = Math.round(this.bleedDps * 0.5);
+        this.hp -= tick;
+        numbers.spawn(this.x, this.y, tick, '#8bd06a');
+        if (this.hp <= 0) {
+          this.die();
+          return;
+        }
+      }
+    }
     // Prototype: stunned enemies neither move nor attack (nor slam).
+    this.isStunned = this.stunT > 0;
     if (this.stunT > 0) {
       this.stunT -= dt;
       this.setVelocity(0, 0);
@@ -51,7 +77,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     if (d < CONTACT_RANGE && this.atkCd <= 0) {
       this.atkCd = ENEMY_ATTACK_COOLDOWN;
-      player.takeDamage(this.def.dmg, numbers);
+      this.receiveThorns(player.takeDamage(this.def.dmg, numbers), numbers);
     }
     // Data-driven AoE ground slam (prototype: Rotfang every 4.5s).
     const slam = this.def.slam;
@@ -64,10 +90,17 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           .setDepth(7)
           .setScale((slam.radius * 2) / 64);
         this.scene.tweens.add({ targets: ring, alpha: 0, duration: 400, onComplete: () => ring.destroy() });
-        if (d < slam.radius) player.takeDamage(slam.damage, numbers);
+        if (d < slam.radius) this.receiveThorns(player.takeDamage(slam.damage, numbers), numbers);
       }
     }
     this.positionHpBar();
+  }
+
+  private receiveThorns(thorns: number, numbers: DamageNumbers): void {
+    if (thorns <= 0 || !this.active) return;
+    this.hp -= thorns;
+    numbers.spawn(this.x, this.y, thorns, '#4f9c3f');
+    if (this.hp <= 0) this.die();
   }
 
   private positionHpBar(): void {
@@ -80,14 +113,29 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   applyStun(duration: number): void {
     this.stunT = Math.max(this.stunT, duration);
+    this.isStunned = true;
   }
 
-  takeHit(hit: HitResult, numbers: DamageNumbers): void {
-    this.hp -= hit.amount;
-    numbers.spawn(this.x, this.y, hit.amount, hit.crit ? '#ffd84a' : '#ffffff');
+  applyBleed(dps: number, duration: number): void {
+    // Refresh with the stronger DoT rather than stacking.
+    this.bleedDps = Math.max(this.bleedDps, dps);
+    this.bleedT = Math.max(this.bleedT, duration);
+  }
+
+  applyVulnerable(pct: number, duration: number): void {
+    this.vulnerablePct = Math.max(this.vulnerablePct, pct);
+    this.vulnerableT = Math.max(this.vulnerableT, duration);
+  }
+
+  /** Applies a hit through vulnerability; returns the damage actually dealt. */
+  takeHit(hit: HitResult, numbers: DamageNumbers): number {
+    const amount = Math.round(hit.amount * (1 + this.vulnerablePct / 100));
+    this.hp -= amount;
+    numbers.spawn(this.x, this.y, amount, hit.crit ? '#ffd84a' : '#ffffff');
     this.setTintFill(0xffffff);
     this.scene.time.delayedCall(120, () => this.clearTint());
     if (this.hp <= 0) this.die();
+    return amount;
   }
 
   private die(): void {
