@@ -180,6 +180,7 @@ export class WorldScene extends Phaser.Scene {
     // it so the save carries an explicit choice from then on).
     if (this.saveData.loadout.actives.every((id) => id === null)) {
       this.saveData.loadout.actives = defaultActives(this.classSkills);
+      this.saveNow();
     }
     this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.classSkills);
     this.skillCooldowns.clear();

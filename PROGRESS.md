@@ -1,30 +1,62 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 1.2 COMPLETE** (Warrior kit). Next: **Milestone 1.3 — Mage
-class**, first box: "Kit from the doc: Frost Nova, Fireball, Blink, Meteor +
-fill to ~25 skills."
+**MILESTONE 1.3 COMPLETE** (Mage class — all 4 boxes ticked). Next:
+**Milestone 1.4 — Hunter class**, first box: "Kit: Multi Shot, Trap, Pet,
+Rapid Fire + fill to ~25 skills."
 
 Notes for that session:
-- 1.3 is another kit + TWO new engine systems the roadmap calls out
-  explicitly: a **projectile system** (speed, piercing, chaining, splitting
-  — data-driven) and a **ground-effect system** (burning ground, frost
-  patches, reused by enemies later). And a **class selection screen** at new
-  game — which forces the first "which class am I" decision: today skills.json
-  is one flat list (all Warrior). Design needed: tag skills with a `class`
-  field, filter the library/hotbar by the character's class, store class in
-  the save (v5 migration). Propose this to the user like the Warrior kit —
-  it's a design question the docs underspecify (how many Mage skills, exact
-  effects, whether Frost/Fire are damage types with resistances...).
-- Projectile + ground-effect are genuinely new mechanics (not variants) —
-  build them as their own systems (pooled per CLAUDE.md perf rule:
-  "Pool projectiles/particles/damage numbers from the start") with the
-  skill schema gaining `projectile` and `groundEffect` mechanic variants.
-- Frost/burning already exist as *affix* concepts in affixes.json (frost
-  chills, poison) and enemy states (stun, bleed, vulnerable) — reuse the
-  enemy-state pattern (add chill/burn) rather than inventing parallel ones.
+- 1.4 needs TWO new entity systems the roadmap calls out: **pet AI** (follow,
+  attack player's target, HP/respawn) and a **trap system** (placed entities
+  with a trigger radius + arming time). Neither exists yet. Multi Shot is a
+  fan of `projectile` casts (the projectile engine + `fanAngles()` already
+  support this — a multi-projectile mechanic or a `split`-at-origin variant).
+  Rapid Fire is a channel/buff. Like the Mage, this is a kit + design the
+  docs underspecify — but the user has twice been happy for me to proceed on
+  recommended defaults, and the class scaffolding is now all in place (see
+  below), so a Hunter is mostly: new mechanics for pet/trap + content tagged
+  `class: "hunter"`.
+- The class plumbing is DONE and reusable: `ClassSchema` already lists
+  `hunter`; `skillsForClass()` filters by class; the save stores
+  `character.class`; the class-select screen has a Hunter card (currently
+  "coming soon" — flip `playable: true` in `ClassSelectScene.OPTIONS` once the
+  kit exists). WorldScene is fully class-scoped via `this.classSkills`, so a
+  Hunter save will automatically see only Hunter skills.
 
 ## Done
+- **Milestone 1.3 COMPLETE: Mage class.** New engine systems, both pooled per
+  the CLAUDE.md perf rule:
+  - **Projectile system** (`src/entities/Projectile.ts` 128-slot pool +
+    `src/systems/projectiles.ts` pure `fanAngles`/`nearestTarget`): speed,
+    hit radius, lifetime, pierce (pass-through count), chain (jump to nearest
+    unhit target within range), split (fan of extra bolts on first hit at 0.6x
+    dmg), elements. Fires toward the mouse cursor via `aimDir()`.
+  - **Ground-effect system** (`src/entities/GroundEffect.ts`, small managed
+    list): telegraph delay + impact burst (Meteor), ticks dps/2 every 0.5s to
+    enemies inside, applies chill/burn. Placed 60px toward the cursor.
+  - **Elements (light model, no resistances):** fire → burn DoT (orange, its
+    own channel independent of bleed), frost → chill (movement slow). Added to
+    `Enemy` as `burn`/`chill` state with `applyBurn`/`applyChill`; stable `eid`
+    for projectile hit-tracking.
+  - **Class system:** skills tagged `class` (`ClassSchema`, default warrior so
+    pre-1.3 content/saves need no change); save v5 adds `character.class` (+
+    v4→v5 migration → warrior). WorldScene threads `this.classSkills =
+    skillsForClass(...)` through the hotbar, skill panel, learning, passives,
+    and default bar — a Mage never sees Warrior skills and vice-versa. The
+    seeded default bar now persists immediately (was only saved on autosave).
+  - **Class-select screen** (`src/scenes/ClassSelectScene.ts`, DOM overlay per
+    CLAUDE.md): BootScene routes new games (empty slot 1) here; Warrior/Mage
+    cards playable, Hunter "coming soon". Existing/corrupt saves skip straight
+    to the World.
+  - **Mage kit** in skills.json: 14 actives (Arcane Bolt/Fireball/Ice Shard/
+    Chain Lightning/Pyroblast projectiles; Flame Wall/Blizzard/Meteor ground;
+    Arcane Pulse generator; Frost Nova; Blink; Mana Shield; Hex; Rejuvenate) +
+    10 passives, all `class: "mage"`. Unlocks L1–L10.
+  - Headless-verified (14/14 smoke checks): class-select shows all 3 cards +
+    Hunter disabled; picking Mage writes a mage save with an Arcane-Bolt-led
+    bar and no Warrior skills; Arcane Bolt damages a foe; Fireball burns; Ice
+    Shard chills; an existing Warrior save skips select and keeps its kit.
+    105 unit tests (added mage-kit content + v4→v5 migration coverage).
 - **Milestone 1.2 COMPLETE: Warrior kit (14 actives / 10 passives).** Mana +
   generators resource model (user-approved). New engine mechanics with
   tests: generator (mana-refund primary), charge (corridor dash+stun),
@@ -251,6 +283,25 @@ Notes for that session:
   ported for free since the `boss` flag was already in the schema, even
   though no boss is spawned anywhere yet (dungeon lands in 0.5).
 
+- **1.3**: the Mage design was mine to set — the `AskUserQuestion` tool was
+  unavailable (container/permission failures) across two attempts, and the
+  user had repeatedly said "continue", so I proceeded on recommended defaults
+  rather than stall: same **Mana + generators** resource model as the Warrior
+  (Arcane Pulse is the mana-refunding generator), the "light" element model
+  (fire burns, frost chills, **no resistances**), and a 14-active/10-passive
+  kit mirroring the Warrior's size. Elements are flavour+one status each, not
+  a full damage-type/resist system — that can layer on later without reworking
+  this. Revisit with the user if the Mage's feel needs a different resource or
+  if resistances become a design goal.
+- **1.3**: Frost Nova and Blink reuse existing mechanics (`shockwave` with a
+  stun = "freeze", `leap` = teleport) rather than new ones — the freeze reads
+  as a stun and no new engine code was needed. If a true root/freeze distinct
+  from stun is wanted later, add a `chill`-heavy or dedicated status.
+- **1.3**: `hasExistingSave()` in BootScene treats a *corrupt* slot-1 save as
+  "existing" (skips class-select) — the World's `loadSaveSafe()` already
+  recovers a damaged save as a fresh Warrior, so re-routing to class-select
+  would double-handle it. Only a genuinely empty slot 1 shows the picker.
+
 ## Backlog
 - Enable branch protection on `main` (human, GitHub Settings → Branches) —
   still outstanding, no tool available to me to do this.
@@ -288,6 +339,19 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
+- **Mage class (m1.3)**: start a **new game** (or clear the slot: run
+  `localStorage.removeItem('azer:save:1')` in the console and refresh) → the
+  title screen should offer Warrior / Mage / Hunter(coming soon). Pick Mage:
+  - Left-click aims; Arcane Bolt (1) should stream cheap bolts toward the
+    cursor. Fireball (2) should leave a lingering orange burn tick on foes;
+    Ice Shard (3) should visibly slow them (frost). Chain Lightning should
+    hop between nearby enemies.
+  - Flame Wall / Blizzard (ground patches) and Meteor (telegraph then slam)
+    should drop where you aim. Does the projectile feel + fire/frost read
+    clearly at the game's scale? (This is the machine-verified-but-eyeball-me
+    part: travel speed, hit radius, and how "juicy" the elements look.)
+  - Confirm your **existing Warrior** character still loads straight into the
+    world with its own kit (the picker should NOT appear for an existing save).
 - **Skills (m1.1 engine)**: in combat try 1 (Shield Slam — gold ring, stun),
   2 (Whirlwind — bigger orange ring), 3 (Leap — dash + green ring). Watch
   the blue mana bar drain/refill and cooldowns gate spamming. Kill slimes

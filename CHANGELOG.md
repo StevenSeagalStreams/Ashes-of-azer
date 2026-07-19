@@ -1,6 +1,19 @@
 # Changelog
 
 ## Unreleased
+- Pick your class when you start a new game — a title screen now offers the
+  Warrior and the Mage (Hunter is coming soon). Your existing character is
+  untouched and jumps straight back into the world.
+- The Mage arrives with a full spellbook: 14 actives and 10 passives. Sling
+  Arcane Bolt (a cheap primary), Fireball (burns), Ice Shard (chills), Chain
+  Lightning, and Pyroblast; drop Flame Wall, Blizzard, and a telegraphed
+  Meteor; blink away, freeze the room with Frost Nova, and top up with Arcane
+  Pulse, Mana Shield, Hex, and Rejuvenate. The skill panel and hotbar now show
+  only your own class's kit.
+- Spells fly and linger: projectiles travel toward your cursor and can pierce,
+  chain to nearby foes, and split on their first hit; ground effects burn or
+  freeze anything standing in them. Fire leaves a damage-over-time burn and
+  frost slows enemies down.
 - Basic attacks now swing toward your mouse cursor — hold left-click (or SPACE)
   to attack, so you can move one way and strike another. Clicks on the skill
   panel and hotbar don't trigger an attack. Skills still fire in your movement

@@ -70,10 +70,10 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Resource model: rage/mana generation and spending per the doc — user chose mana + mana-restoring generators
 
 ### 1.3 Mage class
-- [ ] Kit from the doc: Frost Nova, Fireball, Blink, Meteor + fill to ~25 skills
-- [ ] Projectile system (speed, piercing, chaining, splitting — data-driven properties)
-- [ ] Ground-effect system (burning ground, frost patches) — reused by enemies later
-- [ ] Class selection screen at new game
+- [x] Kit from the doc: Frost Nova, Fireball, Blink, Meteor + fill to ~25 skills
+- [x] Projectile system (speed, piercing, chaining, splitting — data-driven properties)
+- [x] Ground-effect system (burning ground, frost patches) — reused by enemies later
+- [x] Class selection screen at new game
 
 ### 1.4 Hunter class
 - [ ] Kit: Multi Shot, Trap, Pet, Rapid Fire + fill to ~25 skills
