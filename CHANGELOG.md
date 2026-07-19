@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- The Warrior's full kit — 14 active skills and 10 passives. New actives:
+  Heroic Strike & Cleave (free primaries that restore mana), Charge (dash +
+  stun), Ground Rend (bleed), Hammerfall, Iron Guard (damage reduction),
+  Taunt (enemies take more damage), Second Wind (self-heal), and the
+  Earthshatter ultimate. New passives: crit-vs-stunned, block, life steal,
+  mana-on-kill, thorns, low-health berserk, cooldown reduction. Only 6
+  actives + 6 passives equip at once, so builds diverge.
 - Passive slots (bottom-right, purple) — learned passives slot themselves in;
   drag them between slots or drag one off the bar to disable it. A free
   RESPEC button in the K panel refunds every spent skill point.

@@ -1,27 +1,39 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 1.1 IS COMPLETE** (all 4 boxes). Next: **Milestone 1.2 —
-Warrior complete kit (~25 skills)**, first box: "Fill the kit per the
-design doc structure: primary, generator, spender, utility, ultimate."
+**MILESTONE 1.2 COMPLETE** (Warrior kit). Next: **Milestone 1.3 — Mage
+class**, first box: "Kit from the doc: Frost Nova, Fireball, Blink, Meteor +
+fill to ~25 skills."
 
 Notes for that session:
-- "The design doc" beyond README/ROADMAP doesn't exist in the repo —
-  the kit structure (primary/generator/spender/utility/ultimate) and the
-  resource model ("rage/mana generation and spending per the doc", 1.2's
-  4th box) are underspecified. CLAUDE.md says ASK the user about design
-  questions the docs don't answer: propose a concrete 12-15 active /
-  10-12 passive warrior kit + a rage-or-mana resource design and get a
-  yes/no before mass-producing content. New actives that fit existing
-  mechanics (shockwave/leap/execute/buff) are pure JSON; genuinely new
-  mechanics (charge, projectile-block, bleed DoT...) need engine variants
-  first — schema union makes that additive.
-- Passive stat keys currently supported: maxHpPct, moveSpeedPct, critPct,
-  aspdPct, cdrPct, damagePct. Conditional passives ("+15% dmg to stunned",
-  "Whirlwind pulls enemies") from 1.2's examples need new hook points —
-  design them with the kit proposal.
+- 1.3 is another kit + TWO new engine systems the roadmap calls out
+  explicitly: a **projectile system** (speed, piercing, chaining, splitting
+  — data-driven) and a **ground-effect system** (burning ground, frost
+  patches, reused by enemies later). And a **class selection screen** at new
+  game — which forces the first "which class am I" decision: today skills.json
+  is one flat list (all Warrior). Design needed: tag skills with a `class`
+  field, filter the library/hotbar by the character's class, store class in
+  the save (v5 migration). Propose this to the user like the Warrior kit —
+  it's a design question the docs underspecify (how many Mage skills, exact
+  effects, whether Frost/Fire are damage types with resistances...).
+- Projectile + ground-effect are genuinely new mechanics (not variants) —
+  build them as their own systems (pooled per CLAUDE.md perf rule:
+  "Pool projectiles/particles/damage numbers from the start") with the
+  skill schema gaining `projectile` and `groundEffect` mechanic variants.
+- Frost/burning already exist as *affix* concepts in affixes.json (frost
+  chills, poison) and enemy states (stun, bleed, vulnerable) — reuse the
+  enemy-state pattern (add chill/burn) rather than inventing parallel ones.
 
 ## Done
+- **Milestone 1.2 COMPLETE: Warrior kit (14 actives / 10 passives).** Mana +
+  generators resource model (user-approved). New engine mechanics with
+  tests: generator (mana-refund primary), charge (corridor dash+stun),
+  shockwave bleed DoT, debuff/vulnerability, heal, buff damage-reduction.
+  Conditional passives via engine hooks (lifesteal/thorns/block/manaOnKill/
+  dmg-vs-stunned/berserk/cdr) all summing through passiveModifiers; combat
+  centralised on one dealDamage() path. Content in skills.json unlocking
+  L1-L10. Headless-verified all 5 representative new mechanics. 95 tests.
+  Whirlwind-pulls deferred to m1.5.
 - **Milestone 1.1 COMPLETE: passive slots UI + respec.** Purple pslot row
   (bottom-right): auto-slot on learn, drag between slots, drag-off to
   unslot, panel-to-slot drag; RESPEC button clears skillRanks + passive

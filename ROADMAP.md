@@ -64,10 +64,10 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Respec: free skill-point reset at the town trainer (tune cost later) — free RESPEC button in the K panel; moves to the trainer in m2.3
 
 ### 1.2 Warrior — complete kit (~25 skills)
-- [ ] Fill the kit per the design doc structure: primary, generator, spender, utility, ultimate
-- [ ] 12–15 actives (Shield Slam, Whirlwind, Leap, Execute, War Cry + ~8 new)
-- [ ] 10–12 passives (e.g. "+15% dmg to stunned", "Whirlwind pulls enemies", "block chance")
-- [ ] Resource model: rage/mana generation and spending per the doc
+- [x] Fill the kit per the design doc structure: primary, generator, spender, utility, ultimate
+- [x] 12–15 actives (Shield Slam, Whirlwind, Leap, Execute, War Cry + ~8 new)
+- [x] 10–12 passives (e.g. "+15% dmg to stunned", "Whirlwind pulls enemies", "block chance") — 10 passives; "Whirlwind pulls" deferred to m1.5 (item-modifies-skill)
+- [x] Resource model: rage/mana generation and spending per the doc — user chose mana + mana-restoring generators
 
 ### 1.3 Mage class
 - [ ] Kit from the doc: Frost Nova, Fireball, Blink, Meteor + fill to ~25 skills
