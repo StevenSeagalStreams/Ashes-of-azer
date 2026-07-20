@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **Loot drops!** Enemies now drop items — a rarity-colored gem you walk over to
+  scoop into your bag (bosses always drop). Press **I** for your inventory: an
+  equipment panel and bag grid. Click a bag item to equip it (whatever was there
+  swaps back), click an equipped item to take it off, and hover anything for a
+  tooltip showing its rarity and rolled affixes. **Gear actually changes your
+  stats now** — damage, life, crit, attack/move speed, cooldowns, life steal and
+  more — and equipping a legendary immediately rewires the skill it modifies.
 - **NPCs & conversations.** Elder Maru now stands in the Starter Plains. Walk up
   and press **E** to talk — a portrait dialogue with a text crawl and choices
   that change based on your quests. Talking to him completes "A Word with the

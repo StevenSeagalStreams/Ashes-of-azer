@@ -1,31 +1,55 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.2 COMPLETE** (NPC & dialogue — all 3 boxes ticked). Next:
-**Milestone 2.3 — First real town (Starter Plains)** (read ROADMAP): town map,
-Vendor (buy/sell + gold economy), Blacksmith (repair/durability + crafting),
-Trainer (respec + class quests), Stash (48-slot storage), 5–8 quest NPCs.
-Two boxes remain open from earlier and are still BLOCKED/deferred: the 1.6
-class sprite sheets (art decision) and the 2.1 objective markers (needs a
-minimap).
+**MILESTONE 1.7 COMPLETE** (loot & inventory — the loot loop; added scope,
+all 4 boxes ticked). The core pillar (kill → loot → equip → build change) is
+now playable end-to-end. Next: **Milestone 2.3 — First real town (Starter
+Plains)** (read ROADMAP): town map, Vendor, Blacksmith, Trainer, Stash, 5–8
+quest NPCs — now UNBLOCKED because loot/inventory exists. Still open from
+earlier: 1.6 class sprite sheets (art decision) and 2.1 objective markers
+(needs a minimap).
 
 Notes for that session:
-- 2.3 leans on systems not built yet: the **Vendor/Blacksmith/Stash need the
-  loot+inventory system** (items don't drop or get equipped yet — gear lives in
-  the save schema but nothing fills or reads it in gameplay). Consider whether
-  loot/inventory (a Milestone-1.x-ish gap) should come first, or build the town
-  services against hand-seeded inventory. The **Trainer's respec** already
-  exists (the K-panel RESPEC button) and could move into a town NPC. **NPCs are
-  now easy to add** (npcs.json + a dialogue tree), so the "5–8 quest NPCs" box
-  is mostly content once their quests exist.
-- Town map: needs a Tiled map (`assets/maps/`) + a zone entry in zones.json +
-  the id in BootScene's MAP_ZONES. NPCs place via npcs.json (zone + x/y).
-- ⚠️ **Build-cache gotcha (cost me time in 2.2):** `npm run build` can serve a
-  STALE bundle from Vite's cache — a rebuilt bundle kept the same hash and old
-  logic. If a smoke test contradicts a passing unit test, `rm -rf dist
-  node_modules/.vite` and rebuild before trusting the preview.
+- 2.3 is now buildable: the **Vendor** buys/sells against `saveData.bag` +
+  `character.gold` (rollItem can stock its shelves; selling = bag→gold); the
+  **Stash** is a second item array in the save (needs a v7 field + migration);
+  the **Blacksmith** needs a durability field on ItemInstance (another save
+  bump) + a crafting recipe schema. The **Trainer's respec** already exists
+  (K-panel RESPEC) — move it behind a town NPC. NPCs are trivial to add now
+  (npcs.json + dialogue tree), so "5–8 quest NPCs" is mostly content.
+- Town map: a Tiled map in `assets/maps/` + a zones.json entry + the id in
+  BootScene's MAP_ZONES. Reuse the dungeon/overworld authoring flow.
+- The inventory/vendor/stash UIs will want a shared item-cell + tooltip
+  component — `InventoryUI` has the tooltip logic (`tipHtml`) to extract.
+- ⚠️ **Build-cache gotcha:** `npm run build` can serve a STALE bundle from
+  Vite's cache (same hash, old logic). If a smoke test contradicts a passing
+  unit test, `rm -rf dist node_modules/.vite` and rebuild before trusting the
+  preview. (Bit me in 2.2; `rm -rf node_modules/.vite` before the preview in
+  1.7 avoided it.)
 
 ## Done
+- **Milestone 1.7 COMPLETE: loot & inventory (the loot loop)** — added scope
+  (no roadmap box existed; the town + the core pillar needed it). Headless-
+  verified 10/10, 151 unit tests.
+  - **Pure loot engine** (`src/systems/loot.ts`, 16 tests, injected RNG):
+    `rollItem(items, affixes, rng)` rolls rarity (weighted by dropChance) →
+    base for the slot → `affixCount` distinct affixes (flag affixes = 1, else
+    min..max); a legendary rarity for a slot with a legendary yields it (forced
+    affixes + power, best base). `gearStats(gear)` sums equipped bases (Weapon
+    base = flat damage, other slots = life×3) + affixes into derived stats.
+  - **Drops**: enemies roll a drop on death (`NORMAL_DROP_CHANCE` 0.4, bosses
+    guaranteed) → a rarity-colored bobbing gem on the ground; the player walks
+    within `PICKUP_RANGE` to bank it into `saveData.bag` (toast in the rarity
+    colour).
+  - **Gear → stats**: `recomputeStats` folds `gearStats` into maxHp/crit/aspd/
+    move/cdr/lifesteal/manaOnKill/vision; `effectiveDamage` adds the weapon's
+    flat damage. Equipping a legendary re-runs `computeEffectiveSkills` +
+    `collectItemHooks` + rebuilds the hotbar, so item-modifies-skill now
+    triggers from real drops (not just save-edits).
+  - **InventoryUI** (`src/ui/InventoryUI.ts`, DOM, toggled **I**): equipment
+    slots + bag grid; click to equip (swaps the old item back to the bag) or
+    unequip; hover = a rarity-colored tooltip rendering each affix via its
+    `labelTemplate`. `__AZER.counts()` now also reports `drops`/`bag`.
 - **Milestone 2.2 COMPLETE: NPC & dialogue system** (headless-verified 10/10,
   143 unit tests):
   - **Schemas**: `NpcSchema` (data-placed: zone + x/y, sprite, dialogue tree,
@@ -516,6 +540,13 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
+- **Loot loop (m1.7)**: kill things and watch for **gems** to pop out (bosses
+  always drop) — walk over one to bank it (a rarity-colored name toast floats
+  up). Press **I**: equip a bag item (does your damage/HP number in the HUD
+  change?), hover for the affix tooltip, unequip to send it back. Find a
+  legendary (they're rare — Rotfang always drops, or farm) and equip it: its
+  skill should visibly transform (e.g., Emberfall's Fireball starts splitting).
+  Does the drop→equip→feel-stronger loop land? Drop rate too high/low?
 - **NPCs & dialogue (m2.2)**: start a new game — **Elder Maru** stands a bit
   east of spawn with a **?** over him. Walk up (a "▲ Talk (E)" prompt appears),
   press **E**: a portrait dialogue with a text crawl. Talking completes "A Word
