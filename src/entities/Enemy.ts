@@ -33,6 +33,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private bobPhase = 0; // procedural walk squash (m1.6)
   private windupT = 0; // contact-attack telegraph timer
   private slamPendingT = 0; // slam telegraph → impact timer
+  private knockT = 0; // brief window where knockback velocity overrides the AI
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
@@ -71,6 +72,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.stunT > 0) {
       this.stunT -= dt;
       this.setVelocity(0, 0);
+      this.positionHpBar();
+      return;
+    }
+    // Knockback: let the impulse carry (decaying) and ignore the AI briefly.
+    if (this.knockT > 0) {
+      this.knockT -= dt;
+      const body = this.body as Phaser.Physics.Arcade.Body;
+      body.velocity.scale(0.85);
       this.positionHpBar();
       return;
     }
@@ -165,6 +174,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   applyStun(duration: number): void {
     this.stunT = Math.max(this.stunT, duration);
     this.isStunned = true;
+  }
+
+  /** Shoves this enemy directly away from (srcX, srcY) for a brief moment. */
+  knockback(srcX: number, srcY: number, force: number): void {
+    const dx = this.x - srcX;
+    const dy = this.y - srcY;
+    const d = Math.hypot(dx, dy) || 1;
+    this.setVelocity((dx / d) * force, (dy / d) * force);
+    this.knockT = 0.1;
   }
 
   applyBleed(dps: number, duration: number): void {

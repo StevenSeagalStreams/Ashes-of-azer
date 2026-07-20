@@ -103,6 +103,8 @@ export class WorldScene extends Phaser.Scene {
   private hooksOnHit: ItemHook[] = [];
   private hooksOnKill: ItemHook[] = [];
   private inHook = false;
+  // Brief global freeze on impactful hits (m1.6 hit-stop).
+  private hitStopT = 0;
   private zoneId = 'overworld';
   private zoneDef!: ZoneData;
   private enemyDefs!: EnemyData[];
@@ -318,6 +320,12 @@ export class WorldScene extends Phaser.Scene {
   override update(_time: number, delta: number): void {
     if (this.transitioning) return;
     const dt = delta / 1000;
+    // Hit-stop: freeze the sim for a few frames on an impactful hit. Tweens
+    // (damage numbers, slash) keep playing, so the pop reads during the freeze.
+    if (this.hitStopT > 0) {
+      this.hitStopT -= dt;
+      return;
+    }
     this.player.update();
 
     this.player.tickEffects(dt);
@@ -562,7 +570,14 @@ export class WorldScene extends Phaser.Scene {
     if (e.isStunned && this.player.damageVsStunnedPct > 0) {
       dmg *= 1 + this.player.damageVsStunnedPct / 100;
     }
-    const dealt = e.takeHit(rollHit(dmg, this.player.critPct), this.numbers);
+    const hit = rollHit(dmg, this.player.critPct);
+    const dealt = e.takeHit(hit, this.numbers);
+    if (e.active) e.knockback(this.player.x, this.player.y, 70); // shove survivors
+    // Crits are the "heavy hit": a couple frames of hit-stop + a small shake.
+    if (hit.crit) {
+      this.hitStopT = Math.max(this.hitStopT, 0.05);
+      this.cameras.main.shake(90, 0.006);
+    }
     if (this.player.lifestealPct > 0) this.player.heal(dealt * (this.player.lifestealPct / 100));
     if (this.hooksOnHit.length) this.runHooks(this.hooksOnHit, e.x, e.y, e);
   }
