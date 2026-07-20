@@ -51,6 +51,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private aspdBuffT = 0;
 
   private rng: () => number = Math.random;
+  // Procedural motion juice (m1.6): a walk squash-bob and a short attack lunge.
+  private bobPhase = 0;
+  private lungeFrames = 0;
 
   private readonly keys: MoveKeys;
 
@@ -78,6 +81,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const speed = BASE_SPEED * (1 + this.moveSpeedPct / 100);
     const v = new Phaser.Math.Vector2(dx, dy).normalize().scale(speed);
     this.setVelocity(v.x, v.y);
+    this.animateMotion(dx !== 0 || dy !== 0);
+  }
+
+  /** Attack thrust — a brief forward pop, called by the scene on a swing. */
+  lunge(): void {
+    this.lungeFrames = 6;
+  }
+
+  /** Walk squash-bob + attack lunge. Visual-only (scale doesn't move the body). */
+  private animateMotion(moving: boolean): void {
+    if (this.lungeFrames > 0) {
+      this.lungeFrames--;
+      this.setScale(1.15, 0.9);
+      return;
+    }
+    this.bobPhase = moving ? this.bobPhase + 0.28 : 0;
+    const s = moving ? Math.sin(this.bobPhase) : 0;
+    this.setScale(1 - s * 0.05, 1 + s * 0.08);
   }
 
   /**

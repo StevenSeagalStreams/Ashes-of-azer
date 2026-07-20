@@ -879,6 +879,7 @@ export class WorldScene extends Phaser.Scene {
   private playerAttack(): void {
     if (this.player.atkCd > 0) return;
     this.player.atkCd = attackCooldown(this.player.aspdPct + this.player.aspdBuffPct);
+    this.player.lunge();
     const aim = this.aimDir();
     const ax = this.player.x + aim.x * ATTACK_REACH;
     const ay = this.player.y + aim.y * ATTACK_REACH;

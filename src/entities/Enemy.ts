@@ -24,6 +24,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private chillT = 0;
   private vulnerablePct = 0;
   private vulnerableT = 0;
+  private bobPhase = 0; // procedural walk squash (m1.6)
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
@@ -71,8 +72,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       const vx = ((player.x - this.x) / d) * this.def.spd * chill;
       const vy = ((player.y - this.y) / d) * this.def.spd * chill;
       this.setVelocity(vx, vy);
+      this.bobPhase += dt * 14; // walk squash while chasing
+      const s = Math.sin(this.bobPhase);
+      this.setScale(1 - s * 0.05, 1 + s * 0.06);
     } else {
       this.setVelocity(0, 0);
+      this.setScale(1, 1);
     }
     if (d < CONTACT_RANGE && this.atkCd <= 0) {
       this.atkCd = ENEMY_ATTACK_COOLDOWN;
