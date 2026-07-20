@@ -4,11 +4,15 @@ import { z } from 'zod';
 // port (the prototype has no quests) — this defines the shape ahead of that
 // milestone so content authors can start writing quests in data whenever the
 // quest system lands. data/quests.json is an empty array until then.
+export const QuestObjectiveTypeSchema = z.enum(['kill', 'collect', 'talkTo', 'reach']);
+export type QuestObjectiveType = z.infer<typeof QuestObjectiveTypeSchema>;
+
 export const QuestObjectiveSchema = z.object({
-  type: z.enum(['kill', 'collect', 'talkTo', 'reach']),
+  type: QuestObjectiveTypeSchema,
   target: z.string(), // enemy id / item id / npc id / zone id, per type
   count: z.number().int().positive().default(1),
 });
+export type QuestObjective = z.infer<typeof QuestObjectiveSchema>;
 
 export const QuestSchema = z.object({
   id: z.string(),

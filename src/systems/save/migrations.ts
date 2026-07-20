@@ -37,6 +37,8 @@ export const MIGRATIONS: Record<number, Migration> = {
     const character = (raw['character'] ?? {}) as Record<string, unknown>;
     return { ...raw, character: { ...character, class: 'warrior' } };
   },
+  // v5 → v6 (m2.1): quest progress joins the save; older saves start with none.
+  5: (raw) => ({ ...raw, quests: { active: [], completed: [], progress: {}, tracked: null } }),
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

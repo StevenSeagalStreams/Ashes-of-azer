@@ -9,7 +9,19 @@ import { ClassSchema } from '../../data/schemas/skill.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 5; // v5 (m1.3): character.class
+export const CURRENT_SAVE_VERSION = 6; // v6 (m2.1): quest state
+
+// Per-character quest progress (m2.1). `progress[questId]` is a parallel array
+// of per-objective counts; `tracked` is the pinned quest for the HUD tracker.
+export const QuestStateSchema = z.object({
+  active: z.array(z.string()),
+  completed: z.array(z.string()),
+  progress: z.record(z.string(), z.array(z.number().int().nonnegative())),
+  tracked: z.string().nullable(),
+});
+export type QuestState = z.infer<typeof QuestStateSchema>;
+
+export const emptyQuestState = (): QuestState => ({ active: [], completed: [], progress: {}, tracked: null });
 
 // An item *instance* the player owns (rolled affixes and all) — distinct
 // from the item content definitions in data/items.json.
@@ -44,6 +56,7 @@ export const SaveSchema = z.object({
     actives: z.array(z.string().nullable()).length(6),
     passives: z.array(z.string().nullable()).length(6), // slotted always-on passives
   }),
+  quests: QuestStateSchema, // per-character quest progress (since v6)
   world: z.object({
     currentZone: z.string(), // zone id from data/zones.json (since v2)
     questFlags: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])),
@@ -66,6 +79,7 @@ export function defaultSave(now: number = Date.now()): SaveData {
       actives: [null, null, null, null, null, null],
       passives: [null, null, null, null, null, null],
     },
+    quests: emptyQuestState(),
     world: {
       currentZone: 'overworld',
       questFlags: {},
