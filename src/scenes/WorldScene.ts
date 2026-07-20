@@ -4,6 +4,7 @@ import type { EnemyData, ZoneData } from '../data/schemas/index.ts';
 import { Enemy } from '../entities/Enemy.ts';
 import { ProjectilePool } from '../entities/Projectile.ts';
 import { GroundEffectPool } from '../entities/GroundEffect.ts';
+import { fanAngles } from '../systems/projectiles.ts';
 import { Player } from '../entities/Player.ts';
 import {
   ATTACK_RADIUS,
@@ -630,11 +631,12 @@ export class WorldScene extends Phaser.Scene {
         break;
       }
       case 'projectile': {
-        const aim = this.aimDir(); // Mage projectiles fire toward the cursor
-        this.projectiles.fire({
-          x: p.x,
-          y: p.y,
-          angle: Math.atan2(aim.y, aim.x),
+        const aim = this.aimDir(); // projectiles fire toward the cursor
+        const baseAngle = Math.atan2(aim.y, aim.x);
+        // Multi Shot fans `count` bolts at the origin; a plain bolt is count 1.
+        const count = skill.count ? Math.max(1, Math.round(scaleValue(skill.count, rank))) : 1;
+        const angles = fanAngles(baseAngle, count, skill.spreadArc ?? 0.5);
+        const shot = {
           speed: skill.speed,
           radius: skill.radius,
           lifetime: skill.lifetime,
@@ -653,7 +655,8 @@ export class WorldScene extends Phaser.Scene {
               ? { pct: scaleValue(skill.chillPct, rank), duration: skill.chillDuration }
               : undefined,
           color: 0,
-        });
+        };
+        for (const angle of angles) this.projectiles.fire({ x: p.x, y: p.y, angle, ...shot });
         break;
       }
       case 'groundEffect': {

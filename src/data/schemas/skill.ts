@@ -114,11 +114,13 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     duration: z.number().positive(),
   }),
   SkillCommon.extend({
-    mechanic: z.literal('projectile'), // Fireball, Ice Shard, Arcane Bolt, Chain Lightning
+    mechanic: z.literal('projectile'), // Fireball, Ice Shard, Arcane Bolt, Chain Lightning, Multi Shot
     speed: z.number().positive(), // px/s
     radius: z.number().positive(), // hit radius
     lifetime: z.number().positive(), // seconds before it fizzles
     damageMultiplier: RankScaling,
+    count: RankScaling.optional(), // Multi Shot: bolts fired at once, fanned at the origin
+    spreadArc: z.number().positive().optional(), // total fan arc (radians) for count>1
     pierce: RankScaling.optional(), // enemies it passes through before stopping
     chain: RankScaling.optional(), // jumps to a new target after pierce is spent
     chainRange: z.number().positive().optional(), // max jump distance

@@ -76,9 +76,12 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Class selection screen at new game
 
 ### 1.4 Hunter class
-- [ ] Kit: Multi Shot, Trap, Pet, Rapid Fire + fill to ~25 skills
-- [ ] Pet AI: follow, attack player's target, pet HP/respawn
+- [ ] Multi Shot: projectile fan (count + spread) reusing the projectile engine
 - [ ] Trap system: placed entities with trigger radius and arming time
+- [ ] Pet AI: follow, attack player's target, pet HP/respawn
+- [ ] Rapid Fire: temporary attack-speed self-buff
+- [ ] Kit: Multi Shot, Trap, Pet, Rapid Fire + fill to ~25 skills
+- [ ] Enable Hunter in the class-select menu
 
 ### 1.5 Item-modifies-skill system (the heart of the design)
 - [ ] Affix hook types in `affixes.json`: `onCast`, `onHit`, `onKill`, `projectileMod`, `skillMod`

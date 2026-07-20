@@ -109,7 +109,12 @@ export function describeSkill(skill: SkillData, rank: number): string {
     case 'heal':
       return `Restore ${Math.round(scaleValue(skill.healPct, r))}% of max life`;
     case 'projectile': {
-      const bits = [`Fire a bolt for ${pct(skill.damageMultiplier)}% dmg`];
+      const count = skill.count ? Math.round(scaleValue(skill.count, r)) : 1;
+      const bits = [
+        count > 1
+          ? `Fire ${count} bolts for ${pct(skill.damageMultiplier)}% dmg each`
+          : `Fire a bolt for ${pct(skill.damageMultiplier)}% dmg`,
+      ];
       if (skill.pierce) bits.push(`pierces ${Math.round(scaleValue(skill.pierce, r))}`);
       if (skill.chain) bits.push(`chains ${Math.round(scaleValue(skill.chain, r))}`);
       if (skill.split) bits.push(`splits into ${skill.split}`);
