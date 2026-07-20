@@ -51,7 +51,8 @@ import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects } from '.
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 import { SkillUI } from '../ui/SkillUI.ts';
 import { QuestUI } from '../ui/QuestUI.ts';
-import type { SkillData } from '../data/schemas/index.ts';
+import { InventoryUI } from '../ui/InventoryUI.ts';
+import type { ItemSlot, SkillData } from '../data/schemas/index.ts';
 
 declare global {
   interface Window {
@@ -154,6 +155,7 @@ export class WorldScene extends Phaser.Scene {
   private skillUI!: SkillUI;
   private questUI!: QuestUI;
   private npcs: Npc[] = [];
+  private inventoryUI!: InventoryUI;
   private dialogueUI!: DialogueUI;
   private dialogueTree: DialogueTreeData | null = null;
   private dialogueNpc: Npc | null = null;
@@ -323,6 +325,13 @@ export class WorldScene extends Phaser.Scene {
         this.dialogueNpc = null;
       },
     });
+    this.inventoryUI = new InventoryUI({
+      affixes: this.gameData.affixes,
+      gear: () => this.saveData.gear,
+      bag: () => this.saveData.bag,
+      equip: (i) => this.equipFromBag(i),
+      unequip: (slot) => this.unequipToBag(slot),
+    });
     // Left-click to basic-attack. pointerdown only fires for canvas clicks
     // (DOM skill-UI clicks target their own elements), so the UI is safe.
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -336,6 +345,7 @@ export class WorldScene extends Phaser.Scene {
       this.skillUI.destroy();
       this.questUI.destroy();
       this.dialogueUI.destroy();
+      this.inventoryUI.destroy();
       this.projectiles.destroy();
       this.ground.destroy();
       this.traps.destroy();
@@ -348,6 +358,7 @@ export class WorldScene extends Phaser.Scene {
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-J', () => this.questUI.togglePanel());
+    kb.on('keydown-I', () => this.inventoryUI.toggle());
     kb.on('keydown-E', () => this.tryTalk());
     kb.on('keydown-R', () => {
       // Prototype: rising again always returns you to the overworld spawn.
@@ -1002,7 +1013,38 @@ export class WorldScene extends Phaser.Scene {
       d.gfx.destroy();
       this.drops.splice(i, 1);
       this.saveNow();
+      this.inventoryUI.refresh();
     }
+  }
+
+  /** Equip bag[i]; whatever occupied the slot returns to the bag. */
+  private equipFromBag(bagIndex: number): void {
+    const item = this.saveData.bag[bagIndex];
+    if (!item) return;
+    const prev = this.saveData.gear[item.slot] ?? null;
+    this.saveData.gear[item.slot] = item;
+    this.saveData.bag.splice(bagIndex, 1);
+    if (prev) this.saveData.bag.push(prev);
+    this.onGearChanged();
+  }
+
+  private unequipToBag(slot: ItemSlot): void {
+    const item = this.saveData.gear[slot];
+    if (!item) return;
+    this.saveData.gear[slot] = null;
+    this.saveData.bag.push(item);
+    this.onGearChanged();
+  }
+
+  /** Gear changed: rebuild derived stats, item-mods/hooks, hotbar, and the UIs. */
+  private onGearChanged(): void {
+    this.effectiveSkills = this.computeEffectiveSkills();
+    this.collectItemHooks();
+    this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.effectiveSkills);
+    this.recomputeStats();
+    this.saveNow();
+    this.skillUI.buildHotbar();
+    this.inventoryUI.refresh();
   }
 
   // ---------- dialogue ----------
