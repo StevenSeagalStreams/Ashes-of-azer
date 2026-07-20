@@ -52,6 +52,44 @@ function genOverworld(rnd) {
     for (let x = 44; x < 54; x++) if (m[y][x] === TILE.TREE) m[y][x] = TILE.GRASS;
   m[15][48] = TILE.DOOR;
   m[15][49] = TILE.DOOR;
+  // Town gate (m2.3): a doorway west of the path leading to Ashfall Village.
+  for (let y = 24; y < 28; y++) for (let x = 8; x < 13; x++) if (m[y][x] === TILE.TREE) m[y][x] = TILE.GRASS;
+  m[26][10] = TILE.DOOR;
+  m[26][11] = TILE.DOOR;
+  return m;
+}
+
+// Ashfall Village (m2.3): a safe town — grass + a cross of paths, building
+// facades (solid stone blocks with a door), a healing well, and a gate home.
+function genTown(rnd) {
+  const m = [];
+  for (let y = 0; y < MAPH; y++) {
+    const row = [];
+    for (let x = 0; x < MAPW; x++) {
+      let t = TILE.GRASS;
+      if (x === 0 || y === 0 || x === MAPW - 1 || y === MAPH - 1) t = TILE.TREE;
+      else if (rnd() < 0.03) t = TILE.FLOWERS;
+      row.push(t);
+    }
+    m.push(row);
+  }
+  for (let x = 6; x < 54; x++) {
+    m[20][x] = TILE.PATH;
+    m[21][x] = TILE.PATH;
+  }
+  for (let y = 6; y < 38; y++) {
+    m[y][29] = TILE.PATH;
+    m[y][30] = TILE.PATH;
+  }
+  // Six building facades around the plaza; door tile on each front.
+  for (const [bx, by] of [[9, 8], [22, 8], [42, 8], [9, 27], [22, 27], [42, 27]]) {
+    for (let y = by; y < by + 4; y++) for (let x = bx; x < bx + 7; x++) m[y][x] = TILE.DWALL;
+    m[by + 3][bx + 3] = TILE.DOOR;
+  }
+  m[12][6] = TILE.WATER; // a little well cluster (healing) by the NW building
+  m[12][7] = TILE.WATER;
+  m[37][29] = TILE.DOOR; // gate back to the plains
+  m[37][30] = TILE.DOOR;
   return m;
 }
 
@@ -186,6 +224,48 @@ const overworld = tiledMap({
       height: 40,
       properties: [prop('rate', 'float', 20)],
     },
+    {
+      name: 'town-gate',
+      type: 'transition',
+      x: 10 * TS,
+      y: 26 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'town'),
+        prop('targetX', 'float', 29 * TS + 8),
+        prop('targetY', 'float', 34 * TS),
+      ],
+    },
+  ],
+});
+
+const town = tiledMap({
+  grid: genTown(mulberry32(4242)),
+  spawnObjects: [{ name: 'player', type: 'player_spawn', point: true, x: 29 * TS + 8, y: 34 * TS }],
+  triggerObjects: [
+    {
+      name: 'plains-gate',
+      type: 'transition',
+      x: 29 * TS,
+      y: 37 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'overworld'),
+        prop('targetX', 'float', 10 * TS + 8),
+        prop('targetY', 'float', 28 * TS),
+      ],
+    },
+    {
+      name: 'town-well',
+      type: 'heal',
+      x: 6 * TS - 16 + 8,
+      y: 12 * TS - 16 + 8,
+      width: 40,
+      height: 40,
+      properties: [prop('rate', 'float', 20)],
+    },
   ],
 });
 
@@ -245,5 +325,7 @@ const dungeon = tiledMap({
 const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'maps');
 writeFileSync(join(out, 'overworld.json'), JSON.stringify(overworld));
 writeFileSync(join(out, 'dungeon.json'), JSON.stringify(dungeon));
+writeFileSync(join(out, 'town.json'), JSON.stringify(town));
 console.log('wrote', join(out, 'overworld.json'));
 console.log('wrote', join(out, 'dungeon.json'));
+console.log('wrote', join(out, 'town.json'));

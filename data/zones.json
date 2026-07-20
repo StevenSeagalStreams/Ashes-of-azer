@@ -1,4 +1,27 @@
 [
-  { "id": "overworld", "name": "Starter Plains", "dark": false, "enemyTypes": ["slime", "bat"] },
-  { "id": "dungeon", "name": "Hollow Barrow", "dark": true, "enemyTypes": ["skel", "bat", "boss"] }
+  {
+    "id": "overworld",
+    "name": "Starter Plains",
+    "dark": false,
+    "enemyTypes": [
+      "slime",
+      "bat"
+    ]
+  },
+  {
+    "id": "dungeon",
+    "name": "Hollow Barrow",
+    "dark": true,
+    "enemyTypes": [
+      "skel",
+      "bat",
+      "boss"
+    ]
+  },
+  {
+    "id": "town",
+    "name": "Ashfall Village",
+    "dark": false,
+    "enemyTypes": []
+  }
 ]
