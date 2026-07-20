@@ -7,6 +7,7 @@ import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { TrapPool } from '../entities/Trap.ts';
 import { Pet } from '../entities/Pet.ts';
 import { fanAngles } from '../systems/projectiles.ts';
+import { applySkillModsAll, equippedSkillMods } from '../systems/skillMods.ts';
 import { Player } from '../entities/Player.ts';
 import {
   ATTACK_RADIUS,
@@ -91,6 +92,10 @@ export class WorldScene extends Phaser.Scene {
   // Only the current character's class kit — the hotbar, learnable skills, and
   // the skill panel all draw from this so a Mage never sees Warrior skills.
   private classSkills: SkillData[] = [];
+  // classSkills with equipped-item skillMods folded in (m1.5). Casts and
+  // tooltips read these so items change how skills behave; learning/ranking
+  // still keys off classSkills (mods never change a skill's identity or rank).
+  private effectiveSkills: SkillData[] = [];
   private zoneId = 'overworld';
   private zoneDef!: ZoneData;
   private enemyDefs!: EnemyData[];
@@ -131,6 +136,7 @@ export class WorldScene extends Phaser.Scene {
     this.saveStore = new SaveStore(window.localStorage);
     this.saveData = this.loadSaveSafe();
     this.classSkills = skillsForClass(this.gameData.skills, this.saveData.character.class);
+    this.effectiveSkills = this.computeEffectiveSkills();
     this.zoneId = this.entry.zone ?? this.saveData.world.currentZone;
     const zoneDef = this.gameData.zones.find((z) => z.id === this.zoneId);
     if (!zoneDef) throw new Error(`zone "${this.zoneId}" not found in zones.json`);
@@ -193,7 +199,7 @@ export class WorldScene extends Phaser.Scene {
       this.saveData.loadout.actives = defaultActives(this.classSkills);
       this.saveNow();
     }
-    this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.classSkills);
+    this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.effectiveSkills);
     this.skillCooldowns.clear();
     (['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'] as const).forEach((keyName, i) => {
       kb.on(`keydown-${keyName}`, () => {
@@ -205,7 +211,7 @@ export class WorldScene extends Phaser.Scene {
     this.events.on('enemy-died', (def: EnemyData) => this.onEnemyDied(def));
 
     this.skillUI = new SkillUI({
-      skills: this.classSkills,
+      skills: this.effectiveSkills, // tooltips reflect equipped skillMods
       hotbar: () => this.hotbar,
       level: () => this.player.level,
       skillRanks: () => this.saveData.skillRanks,
@@ -242,7 +248,7 @@ export class WorldScene extends Phaser.Scene {
         const skill = skillId ? this.classSkills.find((s) => s.id === skillId) : null;
         if (skill?.mechanic === 'passive') return; // passives go in passive slots, not the hotbar
         this.saveData.loadout.actives = assignSlot(this.saveData.loadout.actives, slot, skillId);
-        this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.classSkills);
+        this.hotbar = resolveLoadout(this.saveData.loadout.actives, this.effectiveSkills);
         this.skillUI.buildHotbar();
         this.saveNow();
       },
@@ -402,6 +408,12 @@ export class WorldScene extends Phaser.Scene {
       console.warn('Ignoring corrupt save in slot', ACTIVE_SLOT, err);
       return defaultSave();
     }
+  }
+
+  /** classSkills with the equipped gear's skillMods folded in (m1.5). */
+  private computeEffectiveSkills(): SkillData[] {
+    const mods = equippedSkillMods(this.saveData.gear, this.gameData.items.legendaries);
+    return applySkillModsAll(this.classSkills, mods);
   }
 
   private applySaveToPlayer(): void {
