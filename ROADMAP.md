@@ -102,6 +102,12 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 
 **Milestone complete when:** all 3 classes are playable with full kits, builds differ meaningfully, and at least one "my fireball behaves completely differently now" legendary works.
 
+### 1.7 Loot & inventory (the loot loop) — added scope; the town (2.3) and the core pillar depend on it
+- [ ] Loot roll engine (pure): rarity → base → affixes from items.json/affixes.json, plus legendary drops
+- [ ] Enemies drop items on death; ground pickups the player walks over to collect into the bag
+- [ ] Gear affects stats: equipped affixes feed derived stats (dmg/hp/crit/aspd/ms/cdr/lifesteal/mana-on-kill/vision)
+- [ ] Inventory UI (I): bag grid + equipment slots, equip/unequip, rarity-colored item tooltips
+
 ---
 
 ## Milestone 2 — World, Quests & Towns (5–8 weeks)
