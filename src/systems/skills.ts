@@ -132,6 +132,8 @@ export function describeSkill(skill: SkillData, rank: number): string {
       const el = skill.element === 'fire' ? ', burns' : skill.element === 'frost' ? ', chills' : '';
       return `Set a trap (${Math.round(scaleValue(skill.radius, r))}px) that detonates for ${pct(skill.damageMultiplier)}% dmg${stun}${el}`;
     }
+    case 'summon':
+      return `Summon a companion (${Math.round(scaleValue(skill.petHp, r))} life) that bites for ${pct(skill.petDamageMultiplier)}% of your damage`;
     case 'leap':
       return `Leap ${Math.round(scaleValue(skill.distance, r))}px; landing hits for ${pct(skill.damageMultiplier)}% dmg`;
     case 'execute':
@@ -139,9 +141,11 @@ export function describeSkill(skill: SkillData, rank: number): string {
     case 'buff': {
       const dmg = scaleValue(skill.damageBonusPct, r);
       const dr = skill.damageReductionPct ? scaleValue(skill.damageReductionPct, r) : 0;
+      const as = skill.attackSpeedPct ? scaleValue(skill.attackSpeedPct, r) : 0;
       const parts = [];
       if (dmg) parts.push(`+${Math.round(dmg)}% damage`);
       if (dr) parts.push(`${Math.round(dr)}% damage reduction`);
+      if (as) parts.push(`+${Math.round(as)}% attack speed`);
       return `${parts.join(', ')} for ${skill.duration}s`;
     }
   }

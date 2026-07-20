@@ -5,6 +5,7 @@ import { Enemy } from '../entities/Enemy.ts';
 import { ProjectilePool } from '../entities/Projectile.ts';
 import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { TrapPool } from '../entities/Trap.ts';
+import { Pet } from '../entities/Pet.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -107,6 +108,9 @@ export class WorldScene extends Phaser.Scene {
   private projectiles!: ProjectilePool;
   private ground!: GroundEffectPool;
   private traps!: TrapPool;
+  // The Hunter's companion (one at a time). null until Summon Pet is cast.
+  private pet: Pet | null = null;
+  private mapLayer!: Phaser.Tilemaps.TilemapLayer;
 
   constructor() {
     super('World');
@@ -141,6 +145,7 @@ export class WorldScene extends Phaser.Scene {
     const layer = map.createLayer('ground', tileset, 0, 0);
     if (!layer) throw new Error('failed to create ground layer');
     layer.setCollisionByProperty({ solid: true });
+    this.mapLayer = layer;
     this.solidMask = layer.layer.data.map((row) =>
       row.map((t) => (t.properties as { solid?: boolean }).solid === true),
     );
@@ -254,6 +259,8 @@ export class WorldScene extends Phaser.Scene {
       this.projectiles.destroy();
       this.ground.destroy();
       this.traps.destroy();
+      this.pet?.destroyPet();
+      this.pet = null;
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-R', () => {
@@ -324,6 +331,7 @@ export class WorldScene extends Phaser.Scene {
     this.projectiles.update(dt);
     this.ground.update(dt);
     this.traps.update(dt);
+    this.pet?.updatePet(dt, this.player);
 
     const cam = this.cameras.main;
     this.fog.update(this.player.x - cam.scrollX, this.player.y - cam.scrollY);
@@ -632,6 +640,7 @@ export class WorldScene extends Phaser.Scene {
         const dmg = scaleValue(skill.damageBonusPct, rank);
         if (dmg) p.applyDamageBuff(dmg, skill.duration);
         if (skill.damageReductionPct) p.applyDamageReduction(scaleValue(skill.damageReductionPct, rank), skill.duration);
+        if (skill.attackSpeedPct) p.applyAttackSpeedBuff(scaleValue(skill.attackSpeedPct, rank), skill.duration);
         this.aoeRing(p.x, p.y, 30, skill.fxColor ?? '#d8503f');
         break;
       }
@@ -710,6 +719,28 @@ export class WorldScene extends Phaser.Scene {
         });
         break;
       }
+      case 'summon': {
+        const dmgMult = scaleValue(skill.petDamageMultiplier, rank);
+        const cfg = {
+          maxHp: Math.round(scaleValue(skill.petHp, rank)),
+          damage: () => this.effectiveDamage() * dmgMult,
+          attackCooldown: skill.petAttackCooldown,
+          speed: skill.petSpeed,
+          leashRange: skill.leashRange,
+          respawnTime: skill.respawnTime,
+        };
+        if (this.pet) {
+          this.pet.resummon(p, cfg); // re-cast heals + recalls the companion
+        } else {
+          this.pet = new Pet(this, p.x, p.y, cfg, {
+            enemies: () => (this.enemies.getChildren() as Enemy[]).filter((e) => e.active),
+            numbers: this.numbers,
+          });
+          this.physics.add.collider(this.pet, this.mapLayer);
+        }
+        this.aoeRing(p.x, p.y, 24, skill.fxColor ?? '#6ac06a');
+        break;
+      }
     }
   }
 
@@ -771,7 +802,7 @@ export class WorldScene extends Phaser.Scene {
 
   private playerAttack(): void {
     if (this.player.atkCd > 0) return;
-    this.player.atkCd = attackCooldown(this.player.aspdPct);
+    this.player.atkCd = attackCooldown(this.player.aspdPct + this.player.aspdBuffPct);
     const aim = this.aimDir();
     const ax = this.player.x + aim.x * ATTACK_REACH;
     const ay = this.player.y + aim.y * ATTACK_REACH;

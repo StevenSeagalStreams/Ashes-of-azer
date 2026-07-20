@@ -108,9 +108,10 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     lifeThresholdPct: RankScaling,
   }),
   SkillCommon.extend({
-    mechanic: z.literal('buff'), // War Cry (offensive), Iron Guard (defensive)
+    mechanic: z.literal('buff'), // War Cry (offensive), Iron Guard (defensive), Rapid Fire (attack speed)
     damageBonusPct: RankScaling,
     damageReductionPct: RankScaling.optional(), // Iron Guard
+    attackSpeedPct: RankScaling.optional(), // Rapid Fire
     duration: z.number().positive(),
   }),
   SkillCommon.extend({
@@ -154,6 +155,15 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     chillPct: RankScaling.optional(),
     chillDuration: z.number().positive().optional(),
     burnDuration: z.number().positive().optional(),
+  }),
+  SkillCommon.extend({
+    mechanic: z.literal('summon'), // Hunter: a companion that follows and bites
+    petHp: RankScaling, // pet max life
+    petDamageMultiplier: RankScaling, // per-bite damage as a fraction of player damage
+    petAttackCooldown: z.number().positive(),
+    petSpeed: z.number().positive(),
+    leashRange: z.number().positive(), // won't chase enemies further than this from you
+    respawnTime: z.number().positive(), // seconds to respawn after dying
   }),
 ]);
 export type SkillData = z.infer<typeof SkillSchema>;

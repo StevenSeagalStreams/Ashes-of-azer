@@ -46,6 +46,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   /** Iron Guard: % incoming damage reduced while the timer runs. */
   damageReductionPct = 0;
   private damageReductionT = 0;
+  /** Rapid Fire: +attack-speed% while the timer runs (on top of gear aspd). */
+  aspdBuffPct = 0;
+  private aspdBuffT = 0;
 
   private rng: () => number = Math.random;
 
@@ -126,6 +129,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.damageReductionT = duration;
   }
 
+  applyAttackSpeedBuff(pct: number, duration: number): void {
+    this.aspdBuffPct = pct;
+    this.aspdBuffT = duration;
+  }
+
   /** Ticks timed effects; called from the scene's update. */
   tickEffects(dt: number): void {
     if (this.damageBuffT > 0) {
@@ -135,6 +143,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.damageReductionT > 0) {
       this.damageReductionT -= dt;
       if (this.damageReductionT <= 0) this.damageReductionPct = 0;
+    }
+    if (this.aspdBuffT > 0) {
+      this.aspdBuffT -= dt;
+      if (this.aspdBuffT <= 0) this.aspdBuffPct = 0;
     }
   }
 }
