@@ -6,6 +6,8 @@ import { ProjectilePool } from '../entities/Projectile.ts';
 import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { TrapPool } from '../entities/Trap.ts';
 import { Pet } from '../entities/Pet.ts';
+import { Npc } from '../entities/Npc.ts';
+import { questMarker, type DialogueContext } from '../systems/dialogue.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
 import { recordEvent, startAvailable } from '../systems/quests.ts';
@@ -124,6 +126,7 @@ export class WorldScene extends Phaser.Scene {
   private readonly skillCooldowns = new Map<string, number>();
   private skillUI!: SkillUI;
   private questUI!: QuestUI;
+  private npcs: Npc[] = [];
   private projectiles!: ProjectilePool;
   private ground!: GroundEffectPool;
   private traps!: TrapPool;
@@ -202,6 +205,12 @@ export class WorldScene extends Phaser.Scene {
       for (let i = 0; i < region.count; i++) this.spawnInRegion(region, 90);
       if (region.respawn) this.regionStates.push({ region, timer: region.respawnInterval });
     }
+
+    // NPCs standing in this zone (placed data-first in npcs.json).
+    this.npcs = this.gameData.npcs
+      .filter((n) => n.zone === this.zoneId)
+      .map((n) => new Npc(this, n));
+    for (const npc of this.npcs) this.physics.add.collider(this.player, npc);
 
     const kb = this.input.keyboard;
     if (!kb) throw new Error('keyboard plugin unavailable');
@@ -291,6 +300,8 @@ export class WorldScene extends Phaser.Scene {
       this.traps.destroy();
       this.pet?.destroyPet();
       this.pet = null;
+      for (const npc of this.npcs) npc.destroyNpc();
+      this.npcs = [];
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-J', () => this.questUI.togglePanel());
@@ -380,6 +391,10 @@ export class WorldScene extends Phaser.Scene {
     this.ground.update(dt);
     this.traps.update(dt);
     this.pet?.updatePet(dt, this.player);
+    if (this.npcs.length) {
+      const ctx = this.dialogueContext();
+      for (const npc of this.npcs) npc.updateNpc(dt, this.player, questMarker(npc.def.offersQuests, ctx));
+    }
 
     const cam = this.cameras.main;
     this.fog.update(this.player.x - cam.scrollX, this.player.y - cam.scrollY);
@@ -903,7 +918,17 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- quests ----------
 
-  /** Auto-offers every quest whose prerequisites are now met (no NPCs yet). */
+  /** Snapshot of world state the dialogue engine reads (conditions, markers). */
+  private dialogueContext(): DialogueContext {
+    return {
+      flags: this.saveData.world.questFlags,
+      quests: this.saveData.quests,
+      catalog: this.gameData.quests,
+      corruption: this.saveData.world.corruption,
+    };
+  }
+
+  /** Auto-offers every quest whose prerequisites are now met. */
   private offerQuests(): void {
     this.saveData.quests = startAvailable(this.gameData.quests, this.saveData.quests);
     this.saveNow();
