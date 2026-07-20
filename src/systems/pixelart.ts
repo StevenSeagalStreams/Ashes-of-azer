@@ -98,6 +98,21 @@ export const ELDER_ROWS = [
   '..kk..kk..',
 ];
 
+// A merchant NPC (m2.3): brown hair, tan face, green apron.
+export const VENDOR_ROWS = [
+  '...hhhh...',
+  '..hhhhhh..',
+  '..hssssh..',
+  '..sksks s.',
+  '...ssss...',
+  '..tGGGGt..',
+  '.tGGGGGGt.',
+  '.tGyGGyGt.',
+  '.tGGGGGGt.',
+  '..GG..GG..',
+  '..kk..kk..',
+];
+
 // Fallback for a `sprite` key in enemies.json that has no dedicated art
 // (e.g. a freshly-added enemy type) — a plain magenta blob, so content
 // authors can add a new enemy purely in JSON without the game crashing on
@@ -111,6 +126,7 @@ const SPRITE_ROW_SETS: Record<string, string[]> = {
   skel: SKEL_ROWS,
   boss: BOSS_ROWS,
   elder: ELDER_ROWS,
+  vendor: VENDOR_ROWS,
 };
 
 export const spriteRowsFor = (key: string): string[] => SPRITE_ROW_SETS[key] ?? DEFAULT_ENEMY_ROWS;

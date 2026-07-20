@@ -66,6 +66,22 @@ function rollAffixes(affixes: AffixesFile, count: number, rng: Rng): { key: stri
   return out;
 }
 
+// ---- pricing (m2.3 vendor) ----
+
+const RARITY_VALUE_MULT: Record<string, number> = { white: 1, magic: 2, rare: 4, epic: 8, legendary: 16 };
+
+/** Buy price: base value scaled by rarity, plus a little per affix. */
+export const itemValue = (item: ItemInstance): number =>
+  Math.max(1, Math.round((item.base + item.affixes.length * 3) * (RARITY_VALUE_MULT[item.rarity] ?? 1)));
+
+/** Sell price: a fraction of buy value (vendors low-ball you). */
+export const sellValue = (item: ItemInstance): number => Math.max(1, Math.floor(itemValue(item) * 0.4));
+
+/** A fresh vendor stock of `count` rolled items for a character level. */
+export function rollVendorStock(items: ItemsFile, affixes: AffixesFile, rng: Rng, count = 8): ItemInstance[] {
+  return Array.from({ length: count }, () => rollItem(items, affixes, rng));
+}
+
 // ---- gear → stats ----
 
 export interface GearStats {

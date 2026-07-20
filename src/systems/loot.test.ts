@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadGameData } from '../data/gameData.ts';
-import { gearStats, rollItem, type Rng } from './loot.ts';
+import { gearStats, itemValue, rollItem, sellValue, type Rng } from './loot.ts';
 import type { ItemInstance } from './save/schema.ts';
 
 const { items, affixes } = loadGameData();
@@ -82,5 +82,21 @@ describe('gearStats', () => {
     expect(s.flatDamage).toBe(0);
     expect(s.maxHp).toBe(0);
     expect(s.poison).toBe(false);
+  });
+});
+
+describe('pricing', () => {
+  const white: ItemInstance = { slot: 'Ring', name: 'Copper', base: 5, rarity: 'white', affixes: [] };
+  const legendary: ItemInstance = { slot: 'Ring', name: 'Frostheart', base: 5, rarity: 'legendary', affixes: [{ key: 'frost', value: 30 }] };
+
+  it('scales value by rarity and affix count', () => {
+    expect(itemValue(white)).toBe(5); // base 5 × ×1, no affixes
+    expect(itemValue(legendary)).toBe((5 + 3) * 16); // (base + 1 affix×3) × ×16
+    expect(itemValue(legendary)).toBeGreaterThan(itemValue(white));
+  });
+
+  it('sell value is a fraction of buy value and at least 1', () => {
+    expect(sellValue(legendary)).toBe(Math.floor(itemValue(legendary) * 0.4));
+    expect(sellValue(white)).toBeGreaterThanOrEqual(1);
   });
 });

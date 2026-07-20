@@ -13,8 +13,9 @@ import { recordEvent, startAvailable, startQuest } from '../systems/quests.ts';
 import type { DialogueChoice, DialogueTreeData } from '../data/schemas/index.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
-import { gearStats, rollItem } from '../systems/loot.ts';
+import { gearStats, itemValue, rollItem, rollVendorStock, sellValue } from '../systems/loot.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
+import { ShopUI } from '../ui/ShopUI.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -156,6 +157,9 @@ export class WorldScene extends Phaser.Scene {
   private questUI!: QuestUI;
   private npcs: Npc[] = [];
   private inventoryUI!: InventoryUI;
+  private shopUI!: ShopUI;
+  // The current vendor's stock (in-memory; re-rolls on zone load + level-up).
+  private vendorStock: ItemInstance[] = [];
   private dialogueUI!: DialogueUI;
   private dialogueTree: DialogueTreeData | null = null;
   private dialogueNpc: Npc | null = null;
@@ -332,6 +336,17 @@ export class WorldScene extends Phaser.Scene {
       equip: (i) => this.equipFromBag(i),
       unequip: (slot) => this.unequipToBag(slot),
     });
+    this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random);
+    this.shopUI = new ShopUI({
+      affixes: this.gameData.affixes,
+      gold: () => this.player.gold,
+      stock: () => this.vendorStock,
+      bag: () => this.saveData.bag,
+      buyPrice: (item) => itemValue(item),
+      sellPrice: (item) => sellValue(item),
+      buy: (i) => this.buyFromVendor(i),
+      sell: (i) => this.sellToVendor(i),
+    });
     // Left-click to basic-attack. pointerdown only fires for canvas clicks
     // (DOM skill-UI clicks target their own elements), so the UI is safe.
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -346,6 +361,7 @@ export class WorldScene extends Phaser.Scene {
       this.questUI.destroy();
       this.dialogueUI.destroy();
       this.inventoryUI.destroy();
+      this.shopUI.destroy();
       this.projectiles.destroy();
       this.ground.destroy();
       this.traps.destroy();
@@ -413,9 +429,9 @@ export class WorldScene extends Phaser.Scene {
       this.hitStopT -= dt;
       return;
     }
-    // Conversations freeze the player's own controls (movement/attacks) but
-    // leave the rest of the sim running.
-    const talking = this.dialogueUI.isOpen();
+    // Conversations / shops freeze the player's own controls (movement/attacks)
+    // but leave the rest of the sim running.
+    const talking = this.dialogueUI.isOpen() || this.shopUI.isOpen();
     if (talking) this.player.setVelocity(0, 0);
     else this.player.update();
 
@@ -978,6 +994,8 @@ export class WorldScene extends Phaser.Scene {
       this.player.mp = this.player.maxMp;
       this.numbers.spawn(this.player.x, this.player.y - 12, `LEVEL ${res.level}!`, '#9bd44a');
       this.aoeRing(this.player.x, this.player.y, 50, '#9bd44a');
+      // Vendor stock refreshes on level-up (roadmap).
+      this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random);
     }
     this.saveNow();
   }
@@ -1051,17 +1069,50 @@ export class WorldScene extends Phaser.Scene {
 
   /** E near an NPC opens their dialogue (talking also fires a talkTo objective). */
   private tryTalk(): void {
+    if (this.shopUI.isOpen()) {
+      this.shopUI.close(); // E toggles the shop closed
+      return;
+    }
     if (this.dialogueUI.isOpen() || this.player.dead || this.transitioning) return;
     const npc = this.npcs.find((n) => n.inRange(this.player));
     if (!npc) return;
+    this.player.setVelocity(0, 0);
+    this.questEvent('talkTo', npc.def.id); // any interaction can satisfy a talkTo
+    if (npc.def.service === 'vendor') {
+      this.shopUI.openShop();
+      return;
+    }
     const tree = this.gameData.dialogue.find((t) => t.id === npc.def.dialogue);
     if (!tree) return;
     this.dialogueNpc = npc;
     this.dialogueTree = tree;
     this.dialogueNodeId = tree.startNodeId;
-    this.player.setVelocity(0, 0);
-    this.questEvent('talkTo', npc.def.id);
     this.renderDialogueNode();
+  }
+
+  // ---------- vendor ----------
+
+  private buyFromVendor(stockIndex: number): void {
+    const item = this.vendorStock[stockIndex];
+    if (!item) return;
+    const price = itemValue(item);
+    if (this.player.gold < price) return;
+    this.player.gold -= price;
+    this.saveData.bag.push(item);
+    this.vendorStock.splice(stockIndex, 1);
+    this.saveNow();
+    this.shopUI.refresh();
+    this.inventoryUI.refresh();
+  }
+
+  private sellToVendor(bagIndex: number): void {
+    const item = this.saveData.bag[bagIndex];
+    if (!item) return;
+    this.player.gold += sellValue(item);
+    this.saveData.bag.splice(bagIndex, 1);
+    this.saveNow();
+    this.shopUI.refresh();
+    this.inventoryUI.refresh();
   }
 
   private renderDialogueNode(): void {

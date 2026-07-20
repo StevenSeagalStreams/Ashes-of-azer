@@ -7,35 +7,74 @@
         "id": "greet",
         "text": "Well met, traveler. Azer's ashes stir on the wind again.",
         "choices": [
-          { "text": "Who are you?", "nextNodeId": "lore" },
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
           {
             "text": "Thin the bats plaguing the plains. (Accept)",
-            "condition": { "questAvailable": "q_elder_hunt" },
-            "action": { "startsQuest": "q_elder_hunt" },
+            "condition": {
+              "questAvailable": "q_elder_hunt"
+            },
+            "action": {
+              "startsQuest": "q_elder_hunt"
+            },
             "nextNodeId": "accepted"
           },
           {
             "text": "The hunt goes on.",
-            "condition": { "questActive": "q_elder_hunt" },
+            "condition": {
+              "questActive": "q_elder_hunt"
+            },
             "nextNodeId": "inprogress"
           },
-          { "text": "Farewell." }
+          {
+            "text": "Farewell."
+          }
         ]
       },
       {
         "id": "lore",
         "text": "I have kept this waystone since the Sundering. Ash falls thickest where the corruption bites.",
-        "choices": [{ "text": "I see.", "nextNodeId": "greet" }]
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
       },
       {
         "id": "accepted",
         "text": "Bless your blade. Six of the vermin should quiet them.",
-        "choices": [{ "text": "It is done." }]
+        "choices": [
+          {
+            "text": "It is done."
+          }
+        ]
       },
       {
         "id": "inprogress",
         "text": "Return when the bats are silenced.",
-        "choices": [{ "text": "Soon." }]
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vendor",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Wares for a wanderer? Buy low, sell... well, low.",
+        "choices": [
+          {
+            "text": "Let's trade."
+          }
+        ]
       }
     ]
   }

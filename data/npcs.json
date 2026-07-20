@@ -8,6 +8,21 @@
     "y": 470,
     "dialogue": "elder",
     "wander": false,
-    "offersQuests": ["q_meet_elder", "q_elder_hunt"]
+    "offersQuests": [
+      "q_meet_elder",
+      "q_elder_hunt"
+    ]
+  },
+  {
+    "id": "vendor",
+    "name": "Merchant Pell",
+    "sprite": "vendor",
+    "zone": "town",
+    "x": 208,
+    "y": 208,
+    "dialogue": "vendor",
+    "wander": false,
+    "offersQuests": [],
+    "service": "vendor"
   }
 ]
