@@ -118,6 +118,7 @@ export function describeSkill(skill: SkillData, rank: number): string {
       if (skill.pierce) bits.push(`pierces ${Math.round(scaleValue(skill.pierce, r))}`);
       if (skill.chain) bits.push(`chains ${Math.round(scaleValue(skill.chain, r))}`);
       if (skill.split) bits.push(`splits into ${skill.split}`);
+      if (skill.returns) bits.push('returns');
       if (skill.element === 'fire') bits.push('burns');
       if (skill.element === 'frost') bits.push('chills');
       return bits.join(', ');

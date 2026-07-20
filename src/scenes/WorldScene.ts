@@ -666,6 +666,7 @@ export class WorldScene extends Phaser.Scene {
           chain: skill.chain ? Math.round(scaleValue(skill.chain, rank)) : 0,
           chainRange: skill.chainRange ?? 80,
           split: skill.split ?? 0,
+          returns: skill.returns ?? false,
           element: skill.element,
           burn:
             skill.burnDps && skill.burnDuration

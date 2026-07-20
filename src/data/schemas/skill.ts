@@ -126,6 +126,7 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     chain: RankScaling.optional(), // jumps to a new target after pierce is spent
     chainRange: z.number().positive().optional(), // max jump distance
     split: z.number().int().nonnegative().optional(), // extra projectiles fanned on first hit
+    returns: z.boolean().optional(), // boomerang: flies back once at end of range (m1.5 skillMod)
     element: ElementSchema.default('none'),
     burnDps: RankScaling.optional(), // fire: DoT applied on hit
     burnDuration: z.number().positive().optional(),

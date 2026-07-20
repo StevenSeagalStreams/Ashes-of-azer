@@ -15,6 +15,7 @@ export interface ProjectileConfig {
   chain: number;
   chainRange: number;
   split: number; // fan of extra projectiles spawned on first hit
+  returns: boolean; // boomerang: reverse once at end of range, then retire
   element: Element;
   burn?: { dps: number; duration: number };
   chill?: { pct: number; duration: number };
@@ -25,6 +26,7 @@ interface Live extends ProjectileConfig {
   active: boolean;
   t: number;
   hasHit: boolean;
+  returned: boolean;
   hitIds: Set<number>;
   gfx: Phaser.GameObjects.Arc;
 }
@@ -65,6 +67,7 @@ export class ProjectilePool {
       active: false,
       t: 0,
       hasHit: false,
+      returned: false,
       hitIds: new Set(),
       gfx,
       x: 0,
@@ -78,6 +81,7 @@ export class ProjectilePool {
       chain: 0,
       chainRange: 0,
       split: 0,
+      returns: false,
       element: 'none',
       color: 0xffffff,
     };
@@ -94,6 +98,7 @@ export class ProjectilePool {
     p.active = true;
     p.t = 0;
     p.hasHit = false;
+    p.returned = false;
     p.hitIds = new Set();
     const color = cfg.color || ELEMENT_COLOR[cfg.element];
     p.color = color;
@@ -110,8 +115,17 @@ export class ProjectilePool {
       if (!p.active) continue;
       p.t += dt;
       if (p.t >= p.lifetime) {
-        this.retire(p);
-        continue;
+        // Boomerang: reverse once and fly back (clearing hits so it can strike
+        // again on the return), then retire at the end of the return leg.
+        if (p.returns && !p.returned) {
+          p.returned = true;
+          p.angle += Math.PI;
+          p.t = 0;
+          p.hitIds = new Set();
+        } else {
+          this.retire(p);
+          continue;
+        }
       }
       p.x += Math.cos(p.angle) * p.speed * dt;
       p.y += Math.sin(p.angle) * p.speed * dt;
@@ -133,11 +147,11 @@ export class ProjectilePool {
     if (p.element === 'fire' && p.burn) e.applyBurn(p.burn.dps, p.burn.duration);
     if (p.element === 'frost' && p.chill) e.applyChill(p.chill.pct, p.chill.duration);
 
-    // Split once, on the first enemy struck.
+    // Split once, on the first enemy struck. Children never split or return.
     if (!p.hasHit && p.split > 0) {
       for (const a of fanAngles(p.angle, p.split + 1, 0.9)) {
         if (a === p.angle) continue;
-        this.fire({ ...this.cfgOf(p), x: p.x, y: p.y, angle: a, split: 0, damage: p.damage * 0.6 });
+        this.fire({ ...this.cfgOf(p), x: p.x, y: p.y, angle: a, split: 0, returns: false, damage: p.damage * 0.6 });
       }
     }
     p.hasHit = true;
@@ -175,6 +189,7 @@ export class ProjectilePool {
       chain: p.chain,
       chainRange: p.chainRange,
       split: p.split,
+      returns: p.returns,
       element: p.element,
       burn: p.burn,
       chill: p.chill,
