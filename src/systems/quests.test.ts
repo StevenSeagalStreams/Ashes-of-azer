@@ -97,4 +97,13 @@ describe('startAvailable + chain flow', () => {
     s = startAvailable(quests, s);
     expect(s.active).toContain('q_into_the_barrow');
   });
+
+  it('does NOT auto-start an NPC-given (autoOffer:false) quest', () => {
+    // q_elder_hunt is NPC-given; even once its prereq clears, auto-offer skips it.
+    const s = startAvailable(quests, { ...emptyQuestState(), completed: ['q_meet_elder'] });
+    expect(availableQuests(quests, { ...emptyQuestState(), completed: ['q_meet_elder'] }).map((q) => q.id)).toContain(
+      'q_elder_hunt',
+    );
+    expect(s.active).not.toContain('q_elder_hunt');
+  });
 });

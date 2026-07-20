@@ -7,10 +7,12 @@ import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { TrapPool } from '../entities/Trap.ts';
 import { Pet } from '../entities/Pet.ts';
 import { Npc } from '../entities/Npc.ts';
-import { questMarker, type DialogueContext } from '../systems/dialogue.ts';
+import { nodeById, questMarker, visibleChoices, type DialogueContext } from '../systems/dialogue.ts';
+import { DialogueUI } from '../ui/DialogueUI.ts';
+import { recordEvent, startAvailable, startQuest } from '../systems/quests.ts';
+import type { DialogueChoice, DialogueTreeData } from '../data/schemas/index.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
-import { recordEvent, startAvailable } from '../systems/quests.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -127,6 +129,10 @@ export class WorldScene extends Phaser.Scene {
   private skillUI!: SkillUI;
   private questUI!: QuestUI;
   private npcs: Npc[] = [];
+  private dialogueUI!: DialogueUI;
+  private dialogueTree: DialogueTreeData | null = null;
+  private dialogueNpc: Npc | null = null;
+  private dialogueNodeId = '';
   private projectiles!: ProjectilePool;
   private ground!: GroundEffectPool;
   private traps!: TrapPool;
@@ -283,6 +289,13 @@ export class WorldScene extends Phaser.Scene {
         this.saveNow();
       },
     });
+    this.dialogueUI = new DialogueUI({
+      onChoice: (choice) => this.onDialogueChoice(choice),
+      onClose: () => {
+        this.dialogueTree = null;
+        this.dialogueNpc = null;
+      },
+    });
     // Left-click to basic-attack. pointerdown only fires for canvas clicks
     // (DOM skill-UI clicks target their own elements), so the UI is safe.
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -295,6 +308,7 @@ export class WorldScene extends Phaser.Scene {
       window.removeEventListener('pointerup', this.clearAttackHeld);
       this.skillUI.destroy();
       this.questUI.destroy();
+      this.dialogueUI.destroy();
       this.projectiles.destroy();
       this.ground.destroy();
       this.traps.destroy();
@@ -305,6 +319,7 @@ export class WorldScene extends Phaser.Scene {
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-J', () => this.questUI.togglePanel());
+    kb.on('keydown-E', () => this.tryTalk());
     kb.on('keydown-R', () => {
       // Prototype: rising again always returns you to the overworld spawn.
       if (this.player.dead) {
@@ -356,7 +371,11 @@ export class WorldScene extends Phaser.Scene {
       this.hitStopT -= dt;
       return;
     }
-    this.player.update();
+    // Conversations freeze the player's own controls (movement/attacks) but
+    // leave the rest of the sim running.
+    const talking = this.dialogueUI.isOpen();
+    if (talking) this.player.setVelocity(0, 0);
+    else this.player.update();
 
     this.player.tickEffects(dt);
     for (const [id, t] of this.skillCooldowns) {
@@ -365,7 +384,7 @@ export class WorldScene extends Phaser.Scene {
       else this.skillCooldowns.set(id, left);
     }
 
-    if (!this.player.dead) {
+    if (!this.player.dead && !talking) {
       this.player.mp = Math.min(this.player.mp + MANA_REGEN * dt, this.player.maxMp);
       this.player.atkCd = Math.max(0, this.player.atkCd - dt);
       if (this.spaceKey.isDown || this.attackHeld) this.playerAttack();
@@ -917,6 +936,60 @@ export class WorldScene extends Phaser.Scene {
   }
 
   // ---------- quests ----------
+
+  // ---------- dialogue ----------
+
+  /** E near an NPC opens their dialogue (talking also fires a talkTo objective). */
+  private tryTalk(): void {
+    if (this.dialogueUI.isOpen() || this.player.dead || this.transitioning) return;
+    const npc = this.npcs.find((n) => n.inRange(this.player));
+    if (!npc) return;
+    const tree = this.gameData.dialogue.find((t) => t.id === npc.def.dialogue);
+    if (!tree) return;
+    this.dialogueNpc = npc;
+    this.dialogueTree = tree;
+    this.dialogueNodeId = tree.startNodeId;
+    this.player.setVelocity(0, 0);
+    this.questEvent('talkTo', npc.def.id);
+    this.renderDialogueNode();
+  }
+
+  private renderDialogueNode(): void {
+    const tree = this.dialogueTree;
+    const npc = this.dialogueNpc;
+    if (!tree || !npc) return;
+    const node = nodeById(tree, this.dialogueNodeId);
+    if (!node) {
+      this.dialogueUI.close();
+      return;
+    }
+    const choices = visibleChoices(node, this.dialogueContext());
+    this.dialogueUI.show(npc.def.name, this.portraitFor(npc.def.sprite), node.text, choices);
+  }
+
+  private onDialogueChoice(choice: DialogueChoice): void {
+    if (choice.action?.setsFlag) {
+      this.saveData.world.questFlags[choice.action.setsFlag] = true;
+      this.saveNow();
+    }
+    if (choice.action?.startsQuest) {
+      this.saveData.quests = startQuest(this.gameData.quests, this.saveData.quests, choice.action.startsQuest);
+      this.saveNow();
+      this.questUI.refresh();
+    }
+    if (choice.nextNodeId) {
+      this.dialogueNodeId = choice.nextNodeId;
+      this.renderDialogueNode();
+    } else {
+      this.dialogueUI.close();
+    }
+  }
+
+  /** Data-URL of an NPC's procedural sprite for the dialogue portrait. */
+  private portraitFor(spriteKey: string): string {
+    const img = this.textures.get(spriteKey).getSourceImage();
+    return img instanceof HTMLCanvasElement ? img.toDataURL() : '';
+  }
 
   /** Snapshot of world state the dialogue engine reads (conditions, markers). */
   private dialogueContext(): DialogueContext {

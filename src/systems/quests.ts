@@ -51,10 +51,14 @@ export function startQuest(quests: readonly QuestData[], state: QuestState, ques
   return next;
 }
 
-/** Starts every currently-available quest (prereqs met). Used to auto-offer. */
+/**
+ * Auto-starts every available quest flagged `autoOffer` (the default). Quests
+ * with `autoOffer: false` are NPC-given and only start via a dialogue action,
+ * even though they still count as "available" for markers/conditions.
+ */
 export function startAvailable(quests: readonly QuestData[], state: QuestState): QuestState {
   let next = state;
-  for (const q of availableQuests(quests, next)) next = startQuest(quests, next, q.id);
+  for (const q of availableQuests(quests, next)) if (q.autoOffer) next = startQuest(quests, next, q.id);
   return next;
 }
 
