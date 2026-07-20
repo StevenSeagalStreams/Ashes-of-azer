@@ -39,6 +39,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   },
   // v5 → v6 (m2.1): quest progress joins the save; older saves start with none.
   5: (raw) => ({ ...raw, quests: { active: [], completed: [], progress: {}, tracked: null } }),
+  // v6 → v7 (m2.3): a shared stash chest; older saves start with an empty one.
+  6: (raw) => ({ ...raw, stash: Array.isArray(raw['stash']) ? raw['stash'] : [] }),
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

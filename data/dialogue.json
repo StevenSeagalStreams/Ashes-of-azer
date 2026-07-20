@@ -77,5 +77,77 @@
         ]
       }
     ]
+  },
+  {
+    "id": "trainer",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Skills grown crooked? I can unmake them. Or you can prove your mettle.",
+        "choices": [
+          {
+            "text": "Reset my skills (free).",
+            "action": {
+              "respec": true
+            },
+            "nextNodeId": "greet"
+          },
+          {
+            "text": "Give me a trial.",
+            "condition": {
+              "questAvailable": "q_trainer_trial"
+            },
+            "action": {
+              "startsQuest": "q_trainer_trial"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The trial goes on.",
+            "condition": {
+              "questActive": "q_trainer_trial"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Slay ten of the Barrow's dead and return changed.",
+        "choices": [
+          {
+            "text": "I will."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The dead still walk. Finish what you began.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "keeper",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Your things are safe with me.",
+        "choices": [
+          {
+            "text": "Let me sort my stash."
+          }
+        ]
+      }
+    ]
   }
 ]

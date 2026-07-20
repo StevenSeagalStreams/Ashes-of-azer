@@ -9,7 +9,7 @@ import { ClassSchema } from '../../data/schemas/skill.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 6; // v6 (m2.1): quest state
+export const CURRENT_SAVE_VERSION = 7; // v7 (m2.3): shared stash storage
 
 // Per-character quest progress (m2.1). `progress[questId]` is a parallel array
 // of per-objective counts; `tracked` is the pinned quest for the HUD tracker.
@@ -49,6 +49,7 @@ export const SaveSchema = z.object({
   }),
   gear: z.partialRecord(ItemSlotSchema, ItemInstanceSchema.nullable()),
   bag: z.array(ItemInstanceSchema),
+  stash: z.array(ItemInstanceSchema), // shared storage chest (since v7)
   skillRanks: z.record(z.string(), z.number().int().min(0)),
   // Which skills sit in the 6 active slots (keys 1-6); null = empty slot.
   // All-null means "never customised" and the scene seeds the default bar.
@@ -74,6 +75,7 @@ export function defaultSave(now: number = Date.now()): SaveData {
     character: { class: 'warrior', level: 1, xp: 0, gold: 0 },
     gear: {},
     bag: [],
+    stash: [],
     skillRanks: {},
     loadout: {
       actives: [null, null, null, null, null, null],

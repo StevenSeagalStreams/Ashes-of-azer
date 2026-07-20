@@ -20,6 +20,7 @@ export type DialogueCondition = z.infer<typeof DialogueConditionSchema>;
 export const DialogueActionSchema = z.object({
   setsFlag: z.string().optional(),
   startsQuest: z.string().optional(),
+  respec: z.boolean().optional(), // trainer: reset skill points + passive slots
 });
 export type DialogueAction = z.infer<typeof DialogueActionSchema>;
 

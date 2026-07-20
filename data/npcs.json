@@ -24,5 +24,30 @@
     "wander": false,
     "offersQuests": [],
     "service": "vendor"
+  },
+  {
+    "id": "trainer",
+    "name": "Master Vane",
+    "sprite": "elder",
+    "zone": "town",
+    "x": 400,
+    "y": 208,
+    "dialogue": "trainer",
+    "wander": false,
+    "offersQuests": [
+      "q_trainer_trial"
+    ]
+  },
+  {
+    "id": "keeper",
+    "name": "Stashkeeper Odd",
+    "sprite": "vendor",
+    "zone": "town",
+    "x": 720,
+    "y": 208,
+    "dialogue": "keeper",
+    "wander": false,
+    "offersQuests": [],
+    "service": "stash"
   }
 ]

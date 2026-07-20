@@ -108,8 +108,9 @@ describe('migrateAndValidate (real chain)', () => {
     expect(out.skillRanks).toEqual(v1.skillRanks);
     expect(out.world.killedBosses).toEqual(['boss']);
     expect(out.world.corruption).toBe(25);
-    // Pre-2.1 saves gain an empty quest log.
+    // Pre-2.1 saves gain an empty quest log; pre-2.3 saves an empty stash.
     expect(out.quests).toEqual({ active: [], completed: [], progress: {}, tracked: null });
+    expect(out.stash).toEqual([]);
   });
 
   it('adds an empty quest log when upgrading a v5 save (v5 → v6)', () => {

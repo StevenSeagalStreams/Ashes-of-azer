@@ -101,5 +101,24 @@
     ],
     "chain": "starter_plains",
     "autoOffer": false
+  },
+  {
+    "id": "q_trainer_trial",
+    "name": "The Trainer's Trial",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "skel",
+        "count": 10
+      }
+    ],
+    "rewards": {
+      "xp": 150,
+      "gold": 50,
+      "itemIds": []
+    },
+    "prerequisites": [],
+    "chain": "trainer",
+    "autoOffer": false
   }
 ]

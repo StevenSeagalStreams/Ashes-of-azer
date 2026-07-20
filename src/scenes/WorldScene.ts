@@ -16,6 +16,7 @@ import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../sy
 import { gearStats, itemValue, rollItem, rollVendorStock, sellValue } from '../systems/loot.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
 import { ShopUI } from '../ui/ShopUI.ts';
+import { StashUI } from '../ui/StashUI.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -158,6 +159,7 @@ export class WorldScene extends Phaser.Scene {
   private npcs: Npc[] = [];
   private inventoryUI!: InventoryUI;
   private shopUI!: ShopUI;
+  private stashUI!: StashUI;
   // The current vendor's stock (in-memory; re-rolls on zone load + level-up).
   private vendorStock: ItemInstance[] = [];
   private dialogueUI!: DialogueUI;
@@ -298,13 +300,7 @@ export class WorldScene extends Phaser.Scene {
         this.skillUI.buildPassiveBar();
         this.saveNow();
       },
-      respec: () => {
-        // Free skill-point reset; its "town trainer" home arrives in m2.3.
-        this.saveData.skillRanks = {};
-        this.saveData.loadout.passives = [null, null, null, null, null, null];
-        this.recomputeStats();
-        this.saveNow();
-      },
+      respec: () => this.doRespec(), // also offered by the town Trainer (m2.3)
       setSlot: (slot, skillId) => {
         const skill = skillId ? this.classSkills.find((s) => s.id === skillId) : null;
         if (skill?.mechanic === 'passive') return; // passives go in passive slots, not the hotbar
@@ -347,6 +343,13 @@ export class WorldScene extends Phaser.Scene {
       buy: (i) => this.buyFromVendor(i),
       sell: (i) => this.sellToVendor(i),
     });
+    this.stashUI = new StashUI({
+      affixes: this.gameData.affixes,
+      bag: () => this.saveData.bag,
+      stash: () => this.saveData.stash,
+      toStash: (i) => this.moveToStash(i),
+      toBag: (i) => this.moveToBag(i),
+    });
     // Left-click to basic-attack. pointerdown only fires for canvas clicks
     // (DOM skill-UI clicks target their own elements), so the UI is safe.
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -362,6 +365,7 @@ export class WorldScene extends Phaser.Scene {
       this.dialogueUI.destroy();
       this.inventoryUI.destroy();
       this.shopUI.destroy();
+      this.stashUI.destroy();
       this.projectiles.destroy();
       this.ground.destroy();
       this.traps.destroy();
@@ -431,7 +435,7 @@ export class WorldScene extends Phaser.Scene {
     }
     // Conversations / shops freeze the player's own controls (movement/attacks)
     // but leave the rest of the sim running.
-    const talking = this.dialogueUI.isOpen() || this.shopUI.isOpen();
+    const talking = this.dialogueUI.isOpen() || this.shopUI.isOpen() || this.stashUI.isOpen();
     if (talking) this.player.setVelocity(0, 0);
     else this.player.update();
 
@@ -1069,19 +1073,16 @@ export class WorldScene extends Phaser.Scene {
 
   /** E near an NPC opens their dialogue (talking also fires a talkTo objective). */
   private tryTalk(): void {
-    if (this.shopUI.isOpen()) {
-      this.shopUI.close(); // E toggles the shop closed
-      return;
-    }
+    // E toggles an open service panel closed.
+    if (this.shopUI.isOpen()) return this.shopUI.close();
+    if (this.stashUI.isOpen()) return this.stashUI.close();
     if (this.dialogueUI.isOpen() || this.player.dead || this.transitioning) return;
     const npc = this.npcs.find((n) => n.inRange(this.player));
     if (!npc) return;
     this.player.setVelocity(0, 0);
     this.questEvent('talkTo', npc.def.id); // any interaction can satisfy a talkTo
-    if (npc.def.service === 'vendor') {
-      this.shopUI.openShop();
-      return;
-    }
+    if (npc.def.service === 'vendor') return this.shopUI.openShop();
+    if (npc.def.service === 'stash') return this.stashUI.openStash();
     const tree = this.gameData.dialogue.find((t) => t.id === npc.def.dialogue);
     if (!tree) return;
     this.dialogueNpc = npc;
@@ -1115,6 +1116,28 @@ export class WorldScene extends Phaser.Scene {
     this.inventoryUI.refresh();
   }
 
+  // ---------- stash ----------
+
+  private moveToStash(bagIndex: number): void {
+    const item = this.saveData.bag[bagIndex];
+    if (!item) return;
+    this.saveData.bag.splice(bagIndex, 1);
+    this.saveData.stash.push(item);
+    this.saveNow();
+    this.stashUI.refresh();
+    this.inventoryUI.refresh();
+  }
+
+  private moveToBag(stashIndex: number): void {
+    const item = this.saveData.stash[stashIndex];
+    if (!item) return;
+    this.saveData.stash.splice(stashIndex, 1);
+    this.saveData.bag.push(item);
+    this.saveNow();
+    this.stashUI.refresh();
+    this.inventoryUI.refresh();
+  }
+
   private renderDialogueNode(): void {
     const tree = this.dialogueTree;
     const npc = this.dialogueNpc;
@@ -1138,12 +1161,25 @@ export class WorldScene extends Phaser.Scene {
       this.saveNow();
       this.questUI.refresh();
     }
+    if (choice.action?.respec) {
+      this.doRespec();
+      this.numbers.spawn(this.player.x, this.player.y - 14, 'SKILLS RESET', '#8bd06a');
+    }
     if (choice.nextNodeId) {
       this.dialogueNodeId = choice.nextNodeId;
       this.renderDialogueNode();
     } else {
       this.dialogueUI.close();
     }
+  }
+
+  /** Refunds all skill points and clears slotted passives (Trainer / K-panel). */
+  private doRespec(): void {
+    this.saveData.skillRanks = {};
+    this.saveData.loadout.passives = [null, null, null, null, null, null];
+    this.recomputeStats();
+    this.skillUI.buildPassiveBar();
+    this.saveNow();
   }
 
   /** Data-URL of an NPC's procedural sprite for the dialogue portrait. */
