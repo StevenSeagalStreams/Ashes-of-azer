@@ -84,8 +84,10 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Enable Hunter in the class-select menu
 
 ### 1.5 Item-modifies-skill system (the heart of the design)
-- [ ] Affix hook types in `affixes.json`: `onCast`, `onHit`, `onKill`, `projectileMod`, `skillMod`
-- [ ] `skillMod` targets a specific skill: `{"skill":"fireball","mod":"split","value":3}`
+- [ ] `skillMod` data model + pure resolver: fold equipped item mods onto a skill (`{"skill":"fireball","mod":"split","value":3}`)
+- [ ] Projectile `returns` (boomerang) engine support — the last link of the example chain
+- [ ] Equipped-gear → active skillMods: WorldScene builds effective skills from `saveData.gear` legendaries
+- [ ] Affix/legendary hook types: `onCast`, `onHit`, `onKill` as data-driven effects
 - [ ] Implement the doc's example chain end-to-end: Fireball splits → chains → burns → returns
 - [ ] At least 2 skill-modifying legendaries per class
 - [ ] Tooltips show modified skill values (item bonuses included)
