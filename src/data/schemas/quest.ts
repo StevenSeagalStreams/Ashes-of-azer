@@ -25,6 +25,7 @@ export const QuestSchema = z.object({
   }),
   prerequisites: z.array(z.string()).default([]), // quest ids that must be completed first
   chain: z.string().optional(), // groups quests into a story chain
+  autoOffer: z.boolean().default(true), // false = only started by an NPC dialogue action
 });
 export type QuestData = z.infer<typeof QuestSchema>;
 

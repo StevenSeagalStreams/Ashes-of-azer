@@ -1,20 +1,42 @@
 import { z } from 'zod';
 
-// Schema for Milestone 2.2's NPC/dialogue system. No prototype content
-// exists to port — this defines the shape ahead of that milestone.
-// data/dialogue.json is an empty array until then.
+// NPC/dialogue system (Milestone 2.2). A tree is a set of nodes; each node has
+// text and choices. A choice may be gated by a `condition` (quest state, flags,
+// corruption) and may fire an `action` (set a flag, start a quest) before
+// jumping to its `nextNodeId` (omitted = end the conversation).
+
+// Visibility gate for a choice. All present sub-conditions must hold.
+export const DialogueConditionSchema = z.object({
+  flag: z.string().optional(), // questFlags[flag] is truthy
+  notFlag: z.string().optional(), // questFlags[flag] is falsy/absent
+  questActive: z.string().optional(),
+  questCompleted: z.string().optional(),
+  questAvailable: z.string().optional(), // prereqs met, not active/completed
+  corruptionMin: z.number().optional(),
+  corruptionMax: z.number().optional(),
+});
+export type DialogueCondition = z.infer<typeof DialogueConditionSchema>;
+
+export const DialogueActionSchema = z.object({
+  setsFlag: z.string().optional(),
+  startsQuest: z.string().optional(),
+});
+export type DialogueAction = z.infer<typeof DialogueActionSchema>;
+
 export const DialogueChoiceSchema = z.object({
   text: z.string(),
   nextNodeId: z.string().optional(), // omitted ends the conversation
-  setsFlag: z.string().optional(),
-  requiresFlag: z.string().optional(),
+  condition: DialogueConditionSchema.optional(),
+  action: DialogueActionSchema.optional(),
 });
+export type DialogueChoice = z.infer<typeof DialogueChoiceSchema>;
 
 export const DialogueNodeSchema = z.object({
   id: z.string(),
   text: z.string(),
   choices: z.array(DialogueChoiceSchema).default([]),
 });
+export type DialogueNode = z.infer<typeof DialogueNodeSchema>;
 
 export const DialogueTreeSchema = z.object({
   id: z.string(), // usually the NPC id

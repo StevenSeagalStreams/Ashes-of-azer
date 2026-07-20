@@ -5,3 +5,4 @@ export * from './skill.ts';
 export * from './zone.ts';
 export * from './quest.ts';
 export * from './dialogue.ts';
+export * from './npc.ts';

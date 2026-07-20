@@ -14,6 +14,7 @@ const validRaw = {
   zones: [{ id: 'overworld', name: 'Starter Plains', dark: false, enemyTypes: ['slime'] }],
   quests: [],
   dialogue: [],
+  npcs: [],
 };
 
 describe('validateGameData', () => {

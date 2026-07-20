@@ -1,0 +1,13 @@
+[
+  {
+    "id": "elder",
+    "name": "Elder Maru",
+    "sprite": "elder",
+    "zone": "overworld",
+    "x": 240,
+    "y": 470,
+    "dialogue": "elder",
+    "wander": false,
+    "offersQuests": ["q_meet_elder", "q_elder_hunt"]
+  }
+]

@@ -13,6 +13,7 @@ const baseData: GameData = {
   zones: [{ id: 'overworld', name: 'Starter Plains', dark: false, enemyTypes: ['slime', 'bat'] }],
   quests: [],
   dialogue: [],
+  npcs: [],
 };
 
 describe('zoneEnemyDefs', () => {

@@ -1,29 +1,105 @@
 [
   {
+    "id": "q_meet_elder",
+    "name": "A Word with the Elder",
+    "objectives": [
+      {
+        "type": "talkTo",
+        "target": "elder",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 30,
+      "gold": 5,
+      "itemIds": []
+    },
+    "prerequisites": [],
+    "chain": "starter_plains",
+    "autoOffer": true
+  },
+  {
     "id": "q_cull_slimes",
     "name": "Cull the Slimes",
-    "objectives": [{ "type": "kill", "target": "slime", "count": 5 }],
-    "rewards": { "xp": 60, "gold": 10, "itemIds": [] },
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "slime",
+        "count": 5
+      }
+    ],
+    "rewards": {
+      "xp": 60,
+      "gold": 10,
+      "itemIds": []
+    },
     "prerequisites": [],
     "chain": "starter_plains"
   },
   {
     "id": "q_into_the_barrow",
     "name": "Into the Barrow",
-    "objectives": [{ "type": "reach", "target": "dungeon", "count": 1 }],
-    "rewards": { "xp": 80, "gold": 25, "itemIds": [] },
-    "prerequisites": ["q_cull_slimes"],
+    "objectives": [
+      {
+        "type": "reach",
+        "target": "dungeon",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 80,
+      "gold": 25,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_cull_slimes"
+    ],
     "chain": "starter_plains"
   },
   {
     "id": "q_slay_rotfang",
     "name": "Slay Rotfang",
     "objectives": [
-      { "type": "kill", "target": "skel", "count": 4 },
-      { "type": "kill", "target": "boss", "count": 1 }
+      {
+        "type": "kill",
+        "target": "skel",
+        "count": 4
+      },
+      {
+        "type": "kill",
+        "target": "boss",
+        "count": 1
+      }
     ],
-    "rewards": { "xp": 220, "gold": 100, "itemIds": [] },
-    "prerequisites": ["q_into_the_barrow"],
+    "rewards": {
+      "xp": 220,
+      "gold": 100,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_into_the_barrow"
+    ],
     "chain": "starter_plains"
+  },
+  {
+    "id": "q_elder_hunt",
+    "name": "The Elder's Hunt",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "bat",
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "xp": 120,
+      "gold": 40,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_meet_elder"
+    ],
+    "chain": "starter_plains",
+    "autoOffer": false
   }
 ]
