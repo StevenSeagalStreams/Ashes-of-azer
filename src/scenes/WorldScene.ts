@@ -8,7 +8,8 @@ import { TrapPool } from '../entities/Trap.ts';
 import { Pet } from '../entities/Pet.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
-import type { ItemHook } from '../data/schemas/index.ts';
+import { recordEvent, startAvailable } from '../systems/quests.ts';
+import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
   ATTACK_RADIUS,
@@ -43,6 +44,7 @@ import {
 import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects } from '../systems/triggers.ts';
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 import { SkillUI } from '../ui/SkillUI.ts';
+import { QuestUI } from '../ui/QuestUI.ts';
 import type { SkillData } from '../data/schemas/index.ts';
 
 declare global {
@@ -121,6 +123,7 @@ export class WorldScene extends Phaser.Scene {
   private hotbar: (SkillData | null)[] = [];
   private readonly skillCooldowns = new Map<string, number>();
   private skillUI!: SkillUI;
+  private questUI!: QuestUI;
   private projectiles!: ProjectilePool;
   private ground!: GroundEffectPool;
   private traps!: TrapPool;
@@ -263,6 +266,14 @@ export class WorldScene extends Phaser.Scene {
         this.saveNow();
       },
     });
+    this.questUI = new QuestUI({
+      quests: this.gameData.quests,
+      state: () => this.saveData.quests,
+      setTracked: (id) => {
+        this.saveData.quests = { ...this.saveData.quests, tracked: id };
+        this.saveNow();
+      },
+    });
     // Left-click to basic-attack. pointerdown only fires for canvas clicks
     // (DOM skill-UI clicks target their own elements), so the UI is safe.
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -274,6 +285,7 @@ export class WorldScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       window.removeEventListener('pointerup', this.clearAttackHeld);
       this.skillUI.destroy();
+      this.questUI.destroy();
       this.projectiles.destroy();
       this.ground.destroy();
       this.traps.destroy();
@@ -281,6 +293,7 @@ export class WorldScene extends Phaser.Scene {
       this.pet = null;
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
+    kb.on('keydown-J', () => this.questUI.togglePanel());
     kb.on('keydown-R', () => {
       // Prototype: rising again always returns you to the overworld spawn.
       if (this.player.dead) {
@@ -295,6 +308,12 @@ export class WorldScene extends Phaser.Scene {
 
     this.time.addEvent({ delay: AUTOSAVE_MS, loop: true, callback: () => this.saveNow() });
     this.publishHud();
+
+    // Quests: auto-offer whatever is now available, then fire a "reach" for the
+    // zone we just entered (this scene rebuilds per zone, so create() = entry).
+    this.offerQuests();
+    this.questEvent('reach', this.zoneId);
+    this.questUI.refresh();
 
     window.__AZER = {
       player: this.player,
@@ -863,18 +882,50 @@ export class WorldScene extends Phaser.Scene {
       this.saveData.world.killedBosses.push(def.id);
       this.saveNow();
     }
-    const res = applyXp({ level: this.player.level, xp: this.player.xp }, def.xp);
+    this.gainXp(def.xp);
+    this.questEvent('kill', def.id);
+  }
+
+  /** Awards XP and handles the prototype level-up (full heal/mana, toast). */
+  private gainXp(amount: number): void {
+    const res = applyXp({ level: this.player.level, xp: this.player.xp }, amount);
     this.player.xp = res.xp;
     if (res.levelsGained > 0) {
       this.player.level = res.level;
-      // Prototype level-up: stats refresh, full heal, full mana.
       this.recomputeStats();
       this.player.hp = this.player.maxHp;
       this.player.mp = this.player.maxMp;
       this.numbers.spawn(this.player.x, this.player.y - 12, `LEVEL ${res.level}!`, '#9bd44a');
       this.aoeRing(this.player.x, this.player.y, 50, '#9bd44a');
-      this.saveNow();
     }
+    this.saveNow();
+  }
+
+  // ---------- quests ----------
+
+  /** Auto-offers every quest whose prerequisites are now met (no NPCs yet). */
+  private offerQuests(): void {
+    this.saveData.quests = startAvailable(this.gameData.quests, this.saveData.quests);
+    this.saveNow();
+  }
+
+  /** Feeds a gameplay event to the quest engine, granting rewards on completion. */
+  private questEvent(type: QuestObjectiveType, target: string): void {
+    const before = this.saveData.quests;
+    const r = recordEvent(this.gameData.quests, before, { type, target });
+    if (r.state === before) return; // nothing advanced
+    this.saveData.quests = r.state;
+    for (const q of r.completed) this.grantQuestReward(q);
+    if (r.completed.length) this.offerQuests(); // completing one may unlock the next
+    this.saveNow();
+    this.questUI.refresh();
+  }
+
+  private grantQuestReward(quest: QuestData): void {
+    this.player.gold += quest.rewards.gold;
+    this.numbers.spawn(this.player.x, this.player.y - 22, `✓ ${quest.name}`, '#ffd84a');
+    if (quest.rewards.gold) this.numbers.spawn(this.player.x + 18, this.player.y - 12, `+${quest.rewards.gold}g`, '#e8c86a');
+    if (quest.rewards.xp) this.gainXp(quest.rewards.xp); // item rewards wait on the loot system
   }
 
   // ---------- combat ----------
