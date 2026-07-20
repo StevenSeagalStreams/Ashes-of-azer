@@ -1,6 +1,15 @@
 # Changelog
 
 ## Unreleased
+- The **Hunter** is playable — a ranged skirmisher with 14 actives and 10
+  passives. Loose **Quick Shot** and **Multi Shot** (a spreading fan of
+  arrows), **Piercing Arrow**, **Chain Shot**, and the **Arrow Storm** ultimate;
+  lay **Snare / Explosive / Frost traps** that arm and then detonate when an
+  enemy steps in; summon a **Wolf** companion that hunts down your foes and can
+  die and respawn; pop **Rapid Fire** for a burst of attack speed; and kite with
+  **Disengage**, **Hunter's Mark**, and a raining **Volley**.
+- Traps, pets, and multi-projectile fans are all new engine systems, so future
+  classes and enemies can reuse them.
 - A title menu now greets you on every launch: **Continue** picks up your
   saved character (it shows their class and level), and **New Game** opens the
   class picker. This means you can start a Mage even if you already have a

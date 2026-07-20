@@ -1,29 +1,56 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 1.3 COMPLETE** (Mage class — all 4 boxes ticked). Next:
-**Milestone 1.4 — Hunter class**, first box: "Kit: Multi Shot, Trap, Pet,
-Rapid Fire + fill to ~25 skills."
+**MILESTONE 1.4 COMPLETE** (Hunter class — all 6 sub-boxes ticked; all 3
+classes now playable). Next: **Milestone 1.5 — Item-modifies-skill system
+(the heart of the design)**, first box: "Affix hook types in `affixes.json`:
+`onCast`, `onHit`, `onKill`, `projectileMod`, `skillMod`."
 
 Notes for that session:
-- 1.4 needs TWO new entity systems the roadmap calls out: **pet AI** (follow,
-  attack player's target, HP/respawn) and a **trap system** (placed entities
-  with a trigger radius + arming time). Neither exists yet. Multi Shot is a
-  fan of `projectile` casts (the projectile engine + `fanAngles()` already
-  support this — a multi-projectile mechanic or a `split`-at-origin variant).
-  Rapid Fire is a channel/buff. Like the Mage, this is a kit + design the
-  docs underspecify — but the user has twice been happy for me to proceed on
-  recommended defaults, and the class scaffolding is now all in place (see
-  below), so a Hunter is mostly: new mechanics for pet/trap + content tagged
-  `class: "hunter"`.
-- The class plumbing is DONE and reusable: `ClassSchema` already lists
-  `hunter`; `skillsForClass()` filters by class; the save stores
-  `character.class`; the class-select screen has a Hunter card (currently
-  "coming soon" — flip `playable: true` in `ClassSelectScene.OPTIONS` once the
-  kit exists). WorldScene is fully class-scoped via `this.classSkills`, so a
-  Hunter save will automatically see only Hunter skills.
+- 1.5 is THE core-design milestone (items change how skills behave, not just
+  add numbers). It needs: affix hook types in affixes.json; `skillMod` that
+  targets a specific skill by id (e.g. `{"skill":"fireball","mod":"split","value":3}`);
+  the doc's Fireball split→chain→burn→return example end-to-end; ≥2
+  skill-modifying legendaries per class; tooltips showing modified values.
+- The skill mechanics are now richly parameterised data (projectile:
+  count/spreadArc/pierce/chain/split/element; trap; summon; groundEffect;
+  buff aspd) — `skillMod` should target these fields. The cast path reads
+  `scaleValue(skill.field, rank)`; a skillMod layer would adjust the resolved
+  value (or the skill def) before/at cast. Design where the hook applies:
+  cleanest is to resolve an "effective skill" = base skill + equipped
+  skillMods, then the existing cast code needs no per-mod branching.
+- Items don't drop yet (loot system is later); 1.5 can hard-equip test
+  legendaries via the save's `gear`/`bag` (already in the schema) to prove the
+  hooks, then real drops wire in with the loot milestone.
 
 ## Done
+- **Milestone 1.4 COMPLETE: Hunter class.** Three new mechanics + kit, all
+  data-driven and headless-verified (11/11 smoke checks):
+  - **Multi Shot** — added `count` + `spreadArc` to the `projectile` mechanic;
+    the cast fires a fan via the existing `fanAngles()` (count 1 = a plain
+    bolt, so Mage/Warrior projectiles are unaffected).
+  - **Trap system** (`src/entities/Trap.ts`, small managed list): placed at the
+    player's feet, arms after `armTime`, then detonates the instant an enemy
+    enters its radius — AoE damage + element/stun to everything in the blast —
+    or fizzles after `lifetime`. New `trap` mechanic (Snare/Explosive/Frost).
+  - **Pet AI** (`src/entities/Pet.ts`): a companion sprite that heels to the
+    player, runs down the nearest enemy within leash of the player and bites it
+    (damage resolved through a hook so it tracks player buffs), takes contact
+    damage from adjacent enemies, and dies → respawns at the player after
+    `respawnTime`. New `summon` mechanic; re-casting heals/recalls it. One pet
+    per player; colliders with the map; destroyed on zone change. Enemy AI is
+    untouched (enemies still target the player; the pet takes damage only when
+    an enemy is already adjacent).
+  - **Rapid Fire** — added a transient `aspdBuffPct` (+timer) to Player and an
+    optional `attackSpeedPct` to the `buff` mechanic; basic-attack cooldown now
+    uses `aspdPct + aspdBuffPct`.
+  - **Hunter kit** in skills.json: 14 actives (Quick Shot, Multi Shot, Piercing
+    Arrow, Chain Shot, Arrow Storm, Point Blank generator, Summon Wolf, Rapid
+    Fire, Snare/Explosive/Frost traps, Disengage, Hunter's Mark, Volley) + 10
+    passives, all `class: "hunter"`. **Hunter flipped to playable** in the
+    class picker.
+  - Debug: `__AZER.counts()` now returns `{projectiles, traps, pet}` for
+    headless smoke tests (and the m2.5 debug tools). 109 unit tests.
 - **Title / main menu (m5.2 pulled forward, at the user's request).**
   `src/scenes/TitleScene.ts` (DOM overlay): BootScene now always opens the
   Title. **Continue** loads the slot-1 save (shows its class + level and starts
@@ -314,6 +341,17 @@ Notes for that session:
   "existing" (skips class-select) — the World's `loadSaveSafe()` already
   recovers a damaged save as a fresh Warrior, so re-routing to class-select
   would double-handle it. Only a genuinely empty slot 1 shows the picker.
+- **1.4**: proceeded on recommended defaults again (the `AskUserQuestion` tool
+  keeps failing in this environment, and the user said "continue"). Hunter uses
+  the same **Mana + generators** model (Point Blank is the generator) and the
+  light element model. The **pet does not draw enemy aggro** — reworking enemy
+  AI to target the pet would be a much bigger change; instead the pet takes
+  contact damage only when an enemy is already adjacent (which happens because
+  enemies chase the player and the pet heels to the player). If pets should
+  tank, that's a follow-up: give enemies a "nearest of {player, pet}" target.
+- **1.4**: Multi Shot is `count`+`spreadArc` ON the existing `projectile`
+  mechanic rather than a new mechanic, so pierce/chain/split/element all
+  compose with it for free (and a `skillMod` in 1.5 can bump `count`).
 
 ## Backlog
 - Enable branch protection on `main` (human, GitHub Settings → Branches) —
@@ -358,9 +396,23 @@ Notes for that session:
   → class picker; the ← Back button should return you to the menu; picking a
   class over your existing save should ask you to click again to confirm before
   it replaces the save. Does the menu read well at the game's scale?
+- **Hunter class (m1.4)**: from the Title menu **New Game → Hunter**. Left-click
+  aims. Quick Shot (1) streams arrows; Multi Shot (2) should visibly fan
+  several arrows at once. Learn and slot the rest via the K panel as you level:
+  - **Traps** (Snare/Explosive/Frost): cast drops one at your feet as a faint
+    ring; it brightens when armed, then detonates the moment an enemy walks in
+    (Snare stuns, Explosive burns, Frost chills). Does the arm→trigger timing
+    feel right?
+  - **Summon Wolf**: a companion should appear (currently the fallback sprite —
+    see Asset requests), heel to you, chase and bite enemies, show a green HP
+    bar, and — if it dies — respawn at your side after a few seconds. Re-casting
+    heals/recalls it.
+  - **Rapid Fire**: your basic attacks should visibly speed up for its duration.
+  Machine-verified, but the *feel* (fan spread, trap timing, pet pathing) wants
+  human eyes.
 - **Mage class (m1.3)**: from the Title menu choose **New Game** → the picker
-  offers Warrior / Mage / Hunter(coming soon). Pick Mage (confirm the
-  overwrite if prompted):
+  offers Warrior / Mage / Hunter. Pick Mage (confirm the overwrite if
+  prompted):
   - Left-click aims; Arcane Bolt (1) should stream cheap bolts toward the
     cursor. Fireball (2) should leave a lingering orange burn tick on foes;
     Ice Shard (3) should visibly slow them (frost). Chain Lightning should
@@ -379,4 +431,10 @@ Notes for that session:
   points — next sub-task.)
 
 ## Asset requests
-(none yet)
+- **Pet/wolf sprite (m1.4)**: the Hunter's Summon Wolf currently renders with
+  the fallback enemy sprite (key `petwolf` → `DEFAULT_ENEMY_ROWS`). A dedicated
+  4-direction companion sprite (wolf/hawk/etc.) would make it read as an ally,
+  not an enemy. Purely cosmetic; the pet works.
+- **Hunter arrow/trap VFX (m1.4)**: arrows reuse the generic projectile dot and
+  traps a tinted circle. Fine for now; a proper arrow sprite + trap telegraph
+  art would sell the class. Cosmetic.

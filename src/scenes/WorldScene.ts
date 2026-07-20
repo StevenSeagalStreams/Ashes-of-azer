@@ -50,6 +50,8 @@ declare global {
       enemies: () => Enemy[];
       zone: () => string;
       save: { now: () => void; export: () => string; import: (s: string) => void };
+      // Read-only entity counts for headless smoke tests (and the m2.5 debug tools).
+      counts: () => { projectiles: number; traps: number; pet: { hp: number; dead: boolean } | null };
     };
   }
 }
@@ -291,6 +293,11 @@ export class WorldScene extends Phaser.Scene {
           this.scene.restart({ zone: this.saveData.world.currentZone });
         },
       },
+      counts: () => ({
+        projectiles: this.projectiles.activeCount(),
+        traps: this.traps.activeCount(),
+        pet: this.pet ? { hp: this.pet.hp, dead: this.pet.dead } : null,
+      }),
     };
   }
 
