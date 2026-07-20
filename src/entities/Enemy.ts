@@ -7,6 +7,12 @@ import type { Player } from './Player.ts';
 
 let nextEnemyId = 1;
 
+// Attack telegraphs (m1.6): brace + flash before a contact hit, and show the
+// slam ring before the slam lands — so every hit is readable and dodgeable.
+const CONTACT_WINDUP = 0.28;
+const SLAM_WINDUP = 0.4;
+const WINDUP_TINT = 0xffd24a;
+
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   readonly def: EnemyData;
   /** Stable per-instance id (projectile pierce/chain tracking). */
@@ -25,6 +31,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private vulnerablePct = 0;
   private vulnerableT = 0;
   private bobPhase = 0; // procedural walk squash (m1.6)
+  private windupT = 0; // contact-attack telegraph timer
+  private slamPendingT = 0; // slam telegraph → impact timer
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
@@ -66,6 +74,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.positionHpBar();
       return;
     }
+    // Contact-attack windup: brace + flash, then strike if still in reach.
+    if (this.windupT > 0) {
+      this.windupT -= dt;
+      this.setVelocity(0, 0);
+      if (this.windupT <= 0) {
+        this.clearTint();
+        const reach = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+        if (reach < CONTACT_RANGE + 4) this.receiveThorns(player.takeDamage(this.def.dmg, numbers), numbers);
+      }
+      this.positionHpBar();
+      return;
+    }
     const d = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
     if (d < this.def.aggro && d > 2) {
       const chill = 1 - this.chillPct / 100; // frost slow
@@ -79,13 +99,22 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.setVelocity(0, 0);
       this.setScale(1, 1);
     }
+    // Begin a contact attack with a telegraph (the hit lands when it resolves).
     if (d < CONTACT_RANGE && this.atkCd <= 0) {
       this.atkCd = ENEMY_ATTACK_COOLDOWN;
-      this.receiveThorns(player.takeDamage(this.def.dmg, numbers), numbers);
+      this.windupT = CONTACT_WINDUP;
+      this.setTint(WINDUP_TINT);
     }
-    // Data-driven AoE ground slam (prototype: Rotfang every 4.5s).
+    // Data-driven AoE ground slam (prototype: Rotfang every 4.5s). The ring is
+    // the area indicator; the blow lands only after the slam windup.
     const slam = this.def.slam;
     if (slam) {
+      if (this.slamPendingT > 0) {
+        this.slamPendingT -= dt;
+        if (this.slamPendingT <= 0 && d < slam.radius) {
+          this.receiveThorns(player.takeDamage(slam.damage, numbers), numbers);
+        }
+      }
       this.slamT -= dt;
       if (this.slamT <= 0) {
         this.slamT = slam.interval;
@@ -93,8 +122,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           .image(this.x, this.y, 'ring')
           .setDepth(7)
           .setScale((slam.radius * 2) / 64);
-        this.scene.tweens.add({ targets: ring, alpha: 0, duration: 400, onComplete: () => ring.destroy() });
-        if (d < slam.radius) this.receiveThorns(player.takeDamage(slam.damage, numbers), numbers);
+        this.scene.tweens.add({ targets: ring, alpha: 0, duration: SLAM_WINDUP * 1000, onComplete: () => ring.destroy() });
+        this.slamPendingT = SLAM_WINDUP;
       }
     }
     this.positionHpBar();
