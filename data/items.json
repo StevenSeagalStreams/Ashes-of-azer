@@ -1,61 +1,324 @@
 {
-  "slots": ["Weapon", "Helmet", "Chest", "Boots", "Ring"],
+  "slots": [
+    "Weapon",
+    "Helmet",
+    "Chest",
+    "Boots",
+    "Ring"
+  ],
   "bases": {
     "Weapon": [
-      { "name": "Rusty Sword", "base": 3 },
-      { "name": "Broad Axe", "base": 5 },
-      { "name": "War Maul", "base": 7 },
-      { "name": "Kingsteel Blade", "base": 9 }
+      {
+        "name": "Rusty Sword",
+        "base": 3
+      },
+      {
+        "name": "Broad Axe",
+        "base": 5
+      },
+      {
+        "name": "War Maul",
+        "base": 7
+      },
+      {
+        "name": "Kingsteel Blade",
+        "base": 9
+      }
     ],
     "Helmet": [
-      { "name": "Leather Cap", "base": 2 },
-      { "name": "Iron Helm", "base": 4 },
-      { "name": "Crested Helm", "base": 6 }
+      {
+        "name": "Leather Cap",
+        "base": 2
+      },
+      {
+        "name": "Iron Helm",
+        "base": 4
+      },
+      {
+        "name": "Crested Helm",
+        "base": 6
+      }
     ],
     "Chest": [
-      { "name": "Padded Vest", "base": 3 },
-      { "name": "Chainmail", "base": 5 },
-      { "name": "Titan Plate", "base": 8 }
+      {
+        "name": "Padded Vest",
+        "base": 3
+      },
+      {
+        "name": "Chainmail",
+        "base": 5
+      },
+      {
+        "name": "Titan Plate",
+        "base": 8
+      }
     ],
     "Boots": [
-      { "name": "Worn Boots", "base": 2 },
-      { "name": "Striders", "base": 4 },
-      { "name": "Windwalkers", "base": 6 }
+      {
+        "name": "Worn Boots",
+        "base": 2
+      },
+      {
+        "name": "Striders",
+        "base": 4
+      },
+      {
+        "name": "Windwalkers",
+        "base": 6
+      }
     ],
     "Ring": [
-      { "name": "Copper Ring", "base": 1 },
-      { "name": "Silver Band", "base": 3 },
-      { "name": "Runed Loop", "base": 5 }
+      {
+        "name": "Copper Ring",
+        "base": 1
+      },
+      {
+        "name": "Silver Band",
+        "base": 3
+      },
+      {
+        "name": "Runed Loop",
+        "base": 5
+      }
     ]
   },
   "rarities": [
-    { "id": "white", "dropChance": 0.42, "affixCount": 0 },
-    { "id": "magic", "dropChance": 0.34, "affixCount": 1 },
-    { "id": "rare", "dropChance": 0.16, "affixCount": 2 },
-    { "id": "epic", "dropChance": 0.06, "affixCount": 3 },
-    { "id": "legendary", "dropChance": 0.02, "affixCount": 3 }
+    {
+      "id": "white",
+      "dropChance": 0.42,
+      "affixCount": 0
+    },
+    {
+      "id": "magic",
+      "dropChance": 0.34,
+      "affixCount": 1
+    },
+    {
+      "id": "rare",
+      "dropChance": 0.16,
+      "affixCount": 2
+    },
+    {
+      "id": "epic",
+      "dropChance": 0.06,
+      "affixCount": 3
+    },
+    {
+      "id": "legendary",
+      "dropChance": 0.02,
+      "affixCount": 3
+    }
   ],
   "legendaries": [
+    {
+      "name": "Emberfall Signet",
+      "slot": "Ring",
+      "power": "emberfall",
+      "text": "Fireball splits into 3, chains to 2 foes, and returns to you.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 6
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "fireball",
+          "mod": "split",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "chain",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "returns",
+          "value": 1,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Glacial Crown",
+      "slot": "Helmet",
+      "power": "glacial",
+      "text": "Ice Shard pierces 2 more enemies and chills far harder.",
+      "forcedAffixes": [
+        {
+          "key": "frost",
+          "value": 30
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "ice_shard",
+          "mod": "pierce",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "ice_shard",
+          "mod": "chillPct",
+          "value": 20,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Colossus Plate",
+      "slot": "Chest",
+      "power": "colossus",
+      "text": "Whirlwind's reach and Shield Slam's stun both grow.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 40
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "whirlwind",
+          "mod": "radius",
+          "value": 20,
+          "op": "add"
+        },
+        {
+          "skill": "shield_slam",
+          "mod": "stunDuration",
+          "value": 0.6,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Executioner's Edge",
+      "slot": "Weapon",
+      "power": "executioner",
+      "text": "Execute reaches far wider, and each kill mends your wounds.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 8
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "execute",
+          "mod": "range",
+          "value": 30,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "heal",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "name": "Beastmaster Totem",
+      "slot": "Ring",
+      "power": "beastmaster",
+      "text": "Multi Shot looses 2 extra arrows and your wolf bites harder.",
+      "forcedAffixes": [
+        {
+          "key": "aspd",
+          "value": 20
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "multi_shot",
+          "mod": "count",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "summon_wolf",
+          "mod": "petDamageMultiplier",
+          "value": 0.3,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Snarelord Boots",
+      "slot": "Boots",
+      "power": "snarelord",
+      "text": "Traps arm instantly and snap shut over a wider area.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 12
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "snare_trap",
+          "mod": "radius",
+          "value": 15,
+          "op": "add"
+        },
+        {
+          "skill": "snare_trap",
+          "mod": "armTime",
+          "value": 0,
+          "op": "set"
+        }
+      ],
+      "hooks": []
+    },
     {
       "name": "Frostheart",
       "slot": "Ring",
       "power": "frostheart",
-      "text": "Frozen enemies explode for 40 damage.",
-      "forcedAffixes": [{ "key": "frost", "value": 30 }]
+      "text": "Slain enemies burst in a 40-damage frost nova.",
+      "forcedAffixes": [
+        {
+          "key": "frost",
+          "value": 30
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "explode",
+          "value": 40,
+          "radius": 70
+        }
+      ]
     },
     {
-      "name": "Thornroot Boots",
-      "slot": "Boots",
-      "power": "thornroot",
-      "text": "Movement leaves damaging vines behind you.",
-      "forcedAffixes": [{ "key": "ms", "value": 12 }]
-    },
-    {
-      "name": "Crown of the First King",
-      "slot": "Helmet",
-      "power": "ghostking",
-      "text": "Every third attack summons a ghost knight strike.",
-      "forcedAffixes": [{ "key": "dmg", "value": 6 }]
+      "name": "Bloodmyre Band",
+      "slot": "Ring",
+      "power": "bloodmyre",
+      "text": "Your hits set enemies ablaze for 8 damage a second.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 6
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "burn",
+          "value": 8,
+          "duration": 3
+        }
+      ]
     }
   ]
 }

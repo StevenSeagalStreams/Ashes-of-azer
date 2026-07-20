@@ -444,9 +444,12 @@ export class WorldScene extends Phaser.Scene {
         case 'explode': {
           const r = h.radius ?? 60;
           this.aoeRing(x, y, r, '#e8b64c');
-          for (const e of this.enemies.getChildren() as Enemy[]) {
-            if (e.active && Phaser.Math.Distance.Between(e.x, e.y, x, y) <= r) this.dealDamage(e, h.value);
-          }
+          // Snapshot first: dealDamage can destroy an enemy mid-loop (removing
+          // it from the live group), which would otherwise skip the next one.
+          const targets = (this.enemies.getChildren() as Enemy[]).filter(
+            (e) => e.active && e.hp > 0 && Phaser.Math.Distance.Between(e.x, e.y, x, y) <= r,
+          );
+          for (const e of targets) this.dealDamage(e, h.value);
           break;
         }
         case 'burn':
