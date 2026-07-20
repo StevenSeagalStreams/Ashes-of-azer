@@ -114,7 +114,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
     const taken = Math.round(amount * (1 - this.damageReductionPct / 100));
     this.hp = Math.max(0, this.hp - taken);
-    numbers.spawn(this.x, this.y, taken, '#f08060');
+    numbers.spawn(this.x, this.y, taken, '#f0463c', 'player');
     this.setAlpha(0.55);
     this.scene.time.delayedCall(150, () => {
       if (!this.dead) this.setAlpha(1);

@@ -154,7 +154,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       dot.tick = 0.5;
       const amount = Math.round(dot.dps * 0.5);
       this.hp -= amount;
-      numbers.spawn(this.x, this.y, amount, color);
+      numbers.spawn(this.x, this.y, amount, color, 'dot');
       if (this.hp <= 0) {
         this.die();
         return true;
@@ -210,7 +210,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   takeHit(hit: HitResult, numbers: DamageNumbers): number {
     const amount = Math.round(hit.amount * (1 + this.vulnerablePct / 100));
     this.hp -= amount;
-    numbers.spawn(this.x, this.y, amount, hit.crit ? '#ffd84a' : '#ffffff');
+    numbers.spawn(this.x, this.y, amount, hit.crit ? '#ffd84a' : '#ffffff', hit.crit ? 'crit' : 'normal');
     this.setTintFill(0xffffff);
     this.scene.time.delayedCall(120, () => this.clearTint());
     if (this.hp <= 0) this.die();
