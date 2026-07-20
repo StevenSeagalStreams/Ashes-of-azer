@@ -166,7 +166,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   private die(): void {
-    this.scene.events.emit('enemy-died', this.def);
+    this.scene.events.emit('enemy-died', this.def, this.x, this.y);
     this.hpBarBg.destroy();
     this.hpBarFg.destroy();
     this.destroy();

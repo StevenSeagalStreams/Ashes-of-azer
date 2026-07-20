@@ -7,7 +7,8 @@ import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { TrapPool } from '../entities/Trap.ts';
 import { Pet } from '../entities/Pet.ts';
 import { fanAngles } from '../systems/projectiles.ts';
-import { applySkillModsAll, equippedSkillMods } from '../systems/skillMods.ts';
+import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
+import type { ItemHook } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
   ATTACK_RADIUS,
@@ -96,6 +97,12 @@ export class WorldScene extends Phaser.Scene {
   // tooltips read these so items change how skills behave; learning/ranking
   // still keys off classSkills (mods never change a skill's identity or rank).
   private effectiveSkills: SkillData[] = [];
+  // Equipped-legendary triggered effects (m1.5), partitioned by when they fire.
+  // `inHook` guards against a hook's own damage re-triggering hooks (no cascades).
+  private hooksOnCast: ItemHook[] = [];
+  private hooksOnHit: ItemHook[] = [];
+  private hooksOnKill: ItemHook[] = [];
+  private inHook = false;
   private zoneId = 'overworld';
   private zoneDef!: ZoneData;
   private enemyDefs!: EnemyData[];
@@ -137,6 +144,7 @@ export class WorldScene extends Phaser.Scene {
     this.saveData = this.loadSaveSafe();
     this.classSkills = skillsForClass(this.gameData.skills, this.saveData.character.class);
     this.effectiveSkills = this.computeEffectiveSkills();
+    this.collectItemHooks();
     this.zoneId = this.entry.zone ?? this.saveData.world.currentZone;
     const zoneDef = this.gameData.zones.find((z) => z.id === this.zoneId);
     if (!zoneDef) throw new Error(`zone "${this.zoneId}" not found in zones.json`);
@@ -208,7 +216,7 @@ export class WorldScene extends Phaser.Scene {
       });
     });
     this.events.off('enemy-died');
-    this.events.on('enemy-died', (def: EnemyData) => this.onEnemyDied(def));
+    this.events.on('enemy-died', (def: EnemyData, x: number, y: number) => this.onEnemyDied(def, x, y));
 
     this.skillUI = new SkillUI({
       skills: this.effectiveSkills, // tooltips reflect equipped skillMods
@@ -416,6 +424,48 @@ export class WorldScene extends Phaser.Scene {
     return applySkillModsAll(this.classSkills, mods);
   }
 
+  /** Buckets the equipped legendaries' triggered effects by when they fire. */
+  private collectItemHooks(): void {
+    const hooks = equippedLegendaries(this.saveData.gear, this.gameData.items.legendaries).flatMap((l) => l.hooks);
+    this.hooksOnCast = hooks.filter((h) => h.on === 'onCast');
+    this.hooksOnHit = hooks.filter((h) => h.on === 'onHit');
+    this.hooksOnKill = hooks.filter((h) => h.on === 'onKill');
+  }
+
+  /**
+   * Runs a set of triggered item effects. `inHook` prevents an effect's own
+   * damage from re-entering the hook system (so explosions don't chain forever).
+   */
+  private runHooks(hooks: ItemHook[], x: number, y: number, enemy?: Enemy): void {
+    if (hooks.length === 0 || this.inHook) return;
+    this.inHook = true;
+    for (const h of hooks) {
+      switch (h.effect) {
+        case 'explode': {
+          const r = h.radius ?? 60;
+          this.aoeRing(x, y, r, '#e8b64c');
+          for (const e of this.enemies.getChildren() as Enemy[]) {
+            if (e.active && Phaser.Math.Distance.Between(e.x, e.y, x, y) <= r) this.dealDamage(e, h.value);
+          }
+          break;
+        }
+        case 'burn':
+          enemy?.applyBurn(h.value, h.duration ?? 3);
+          break;
+        case 'chill':
+          enemy?.applyChill(h.value, h.duration ?? 2);
+          break;
+        case 'heal':
+          this.player.heal(this.player.maxHp * (h.value / 100));
+          break;
+        case 'manaGain':
+          this.player.mp = Math.min(this.player.maxMp, this.player.mp + h.value);
+          break;
+      }
+    }
+    this.inHook = false;
+  }
+
   private applySaveToPlayer(): void {
     this.player.level = this.saveData.character.level;
     this.player.xp = this.saveData.character.xp;
@@ -511,6 +561,7 @@ export class WorldScene extends Phaser.Scene {
     }
     const dealt = e.takeHit(rollHit(dmg, this.player.critPct), this.numbers);
     if (this.player.lifestealPct > 0) this.player.heal(dealt * (this.player.lifestealPct / 100));
+    if (this.hooksOnHit.length) this.runHooks(this.hooksOnHit, e.x, e.y, e);
   }
 
   private hitEnemiesWithin(
@@ -540,6 +591,7 @@ export class WorldScene extends Phaser.Scene {
     if (block) return;
     this.player.mp -= skill.manaCost;
     this.skillCooldowns.set(skill.id, skillCooldown(skill.cooldown, this.player.cdrPct));
+    if (this.hooksOnCast.length) this.runHooks(this.hooksOnCast, this.player.x, this.player.y);
 
     const p = this.player;
     switch (skill.mechanic) {
@@ -784,7 +836,8 @@ export class WorldScene extends Phaser.Scene {
     this.saveNow();
   }
 
-  private onEnemyDied(def: EnemyData): void {
+  private onEnemyDied(def: EnemyData, x: number, y: number): void {
+    if (this.hooksOnKill.length) this.runHooks(this.hooksOnKill, x, y);
     if (this.player.manaOnKill > 0) {
       this.player.mp = Math.min(this.player.maxMp, this.player.mp + this.player.manaOnKill);
     }
