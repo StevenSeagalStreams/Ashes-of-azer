@@ -1,29 +1,60 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 1.4 COMPLETE** (Hunter class — all 6 sub-boxes ticked; all 3
-classes now playable). Next: **Milestone 1.5 — Item-modifies-skill system
-(the heart of the design)**, first box: "Affix hook types in `affixes.json`:
-`onCast`, `onHit`, `onKill`, `projectileMod`, `skillMod`."
+**MILESTONE 1.5 COMPLETE** (item-modifies-skill — all 7 sub-boxes ticked).
+Next: **Milestone 1.6 — Combat feel pass**, first box: "4-direction
+walk/attack/hit/death animations for all 3 classes (32×32, 4–6 frames)."
 
 Notes for that session:
-- 1.5 is THE core-design milestone (items change how skills behave, not just
-  add numbers). It needs: affix hook types in affixes.json; `skillMod` that
-  targets a specific skill by id (e.g. `{"skill":"fireball","mod":"split","value":3}`);
-  the doc's Fireball split→chain→burn→return example end-to-end; ≥2
-  skill-modifying legendaries per class; tooltips showing modified values.
-- The skill mechanics are now richly parameterised data (projectile:
-  count/spreadArc/pierce/chain/split/element; trap; summon; groundEffect;
-  buff aspd) — `skillMod` should target these fields. The cast path reads
-  `scaleValue(skill.field, rank)`; a skillMod layer would adjust the resolved
-  value (or the skill def) before/at cast. Design where the hook applies:
-  cleanest is to resolve an "effective skill" = base skill + equipped
-  skillMods, then the existing cast code needs no per-mod branching.
-- Items don't drop yet (loot system is later); 1.5 can hard-equip test
-  legendaries via the save's `gear`/`bag` (already in the schema) to prove the
-  hooks, then real drops wire in with the loot milestone.
+- 1.6 is a polish/juice milestone: directional animations (needs sprite
+  sheets — likely an **Asset request**, since art is procedural today),
+  enemy attack telegraphs (windup flash + area indicator), hit-stop + screen
+  shake + knockback, death animations/corpse fade, and a damage-number pass
+  (crits bigger, DoT smaller, player damage red). Much of this is feel/visual
+  — verify with headless where feasible, flag the rest under Needs human
+  playtest.
+- The DamageNumbers pool (`src/systems/DamageNumbers.ts`) and the color-coded
+  `numbers.spawn(x,y,text,color)` already exist; the number pass is mostly
+  sizing/color tweaks there. Hit-stop = a brief `this.time`/tween pause on
+  hit; screen shake = `this.cameras.main.shake()`. Enemy telegraphs slot into
+  `Enemy.updateEnemy` before the contact/slam hit.
 
 ## Done
+- **Milestone 1.5 COMPLETE: item-modifies-skill system (the design's heart).**
+  Items change how skills *behave*, not just their numbers — fully data-driven
+  (no code per legendary), headless-verified 9/9.
+  - **skillMod resolver** (`src/systems/skillMods.ts`, pure, 12 tests):
+    `applySkillMods(skill, mods)` folds mods onto a skill — adds to existing
+    RankScaling `.base`/number/bool fields, or *creates* absent ones from a
+    `CREATABLE` whitelist (so a mod can grant chaining/returning/splitting a
+    skill never had). `equippedSkillMods`/`equippedLegendaries` resolve gear via
+    each ItemInstance's `power` key.
+  - **Data model** (`item.ts`): `SkillModSchema {skill, mod, value, op}` and
+    `ItemHookSchema {on, effect, value, radius?, duration?, element?}` on
+    `LegendarySchema.skillMods[]` / `.hooks[]` (both default `[]`, so the 3 old
+    legendaries stay valid).
+  - **Projectile `returns`** (boomerang): reverses once at end of range,
+    clearing hits so it can strike again on the way back — the last link of the
+    Fireball chain.
+  - **Effective skills**: WorldScene computes `effectiveSkills =
+    applySkillModsAll(classSkills, equippedSkillMods(gear, legendaries))`; the
+    hotbar and the K-panel tooltips read these (learning/ranking still key off
+    base `classSkills`). So a modded Fireball *casts* split/chain/return AND its
+    tooltip shows it.
+  - **Triggered hooks** (`onCast`/`onHit`/`onKill`) dispatched generically via
+    `runHooks` with effects `explode`/`burn`/`chill`/`heal`/`manaGain`; an
+    `inHook` flag stops an effect's own damage from cascading. Enemy death now
+    emits its position so `onKill explode` lands where the enemy fell.
+  - **8 legendaries** (≥2 skill-modifying per class): Emberfall (the canonical
+    Fireball split→chain→burn→return), Glacial Crown, Colossus Plate,
+    Executioner's Edge, Beastmaster Totem, Snarelord Boots, Frostheart (onKill
+    explode), Bloodmyre (onHit burn).
+  - **Bug fixed along the way**: an AoE damage loop iterating the live enemy
+    group skipped the next target when `dealDamage` destroyed the dying enemy
+    mid-iteration — now snapshots in-range targets first. (Applies to the
+    explode hook; the pattern is worth watching in other AoE loops.)
+  - Items don't *drop* yet (loot is a later milestone); tests equip legendaries
+    through the save's `gear` (schema already supports it). 121 unit tests.
 - **Milestone 1.4 COMPLETE: Hunter class.** Three new mechanics + kit, all
   data-driven and headless-verified (11/11 smoke checks):
   - **Multi Shot** — added `count` + `spreadArc` to the `projectile` mechanic;
@@ -352,6 +383,27 @@ Notes for that session:
 - **1.4**: Multi Shot is `count`+`spreadArc` ON the existing `projectile`
   mechanic rather than a new mechanic, so pierce/chain/split/element all
   compose with it for free (and a `skillMod` in 1.5 can bump `count`).
+- **1.5**: legendary "powers" are **data, not code dispatch** — a legendary
+  carries `skillMods[]` and `hooks[]` that the engine interprets generically,
+  so adding a legendary that reuses existing mod fields / hook effects needs
+  **zero code** (CLAUDE.md's most important rule). A genuinely new *effect
+  type* (beyond explode/burn/chill/heal/manaGain) or a new moddable **absent**
+  field still needs a one-line addition (to `runHooks` / the `CREATABLE`
+  whitelist) — that's a new mechanic, treated like adding a skill mechanic.
+- **1.5**: skillMods apply by resolving an **effective skill** (base +
+  equipped mods) that the cast path and tooltips read unchanged — no per-mod
+  branching in the cast switch. Present fields are detected by runtime shape
+  (RankScaling vs number vs bool); absent fields are created only for a
+  whitelist (`split/chainRange/returns/count/pierce/chain/burnDps`) to avoid
+  the `radius`-is-number-on-projectile-but-RankScaling-elsewhere ambiguity.
+- **1.5**: `element`-changing mods are intentionally NOT supported (skillMod
+  value is numeric). The Fireball example doesn't need one (Fireball already
+  burns). If a "make skill X deal fire" mod is ever wanted, add an
+  element/string mod channel then.
+- **1.5**: no equip UI yet — `effectiveSkills`/hooks are computed once in
+  `create()` from `saveData.gear`. When the loot/equip system lands, call the
+  recompute (`computeEffectiveSkills` + `collectItemHooks` + rebuild hotbar +
+  rebuild SkillUI) on every gear change. Tests equip via the save directly.
 
 ## Backlog
 - Enable branch protection on `main` (human, GitHub Settings → Branches) —
@@ -390,6 +442,14 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
+- **Item-modifies-skill (m1.5)**: no loot drops yet, so this needs a save
+  edit to see live — in the console run (as a Mage):
+  `let s=JSON.parse(localStorage.azer['azer:save:1']||localStorage.getItem('azer:save:1')); s.gear={Ring:{slot:'Ring',name:'Emberfall Signet',base:3,rarity:'legendary',affixes:[],power:'emberfall'}}; localStorage.setItem('azer:save:1',JSON.stringify(s)); location.reload()`
+  then Continue. Press **K** — Fireball's tooltip should now read
+  "splits… chains… returns… burns". Cast it into a group: the bolt should
+  fork, hop between enemies, and fly back. Try **Frostheart** (`power:'frostheart'`)
+  — slain enemies should burst in a nova. Does an item visibly transform a
+  skill? (This is the whole game's promise — worth eyeballing the feel.)
 - **Title menu (m5.2 preview)**: on load you should see ASHES OF AZER with
   **Continue** (your Warrior, with level shown) and **New Game**. Continue
   should drop you straight into the world as your existing character. New Game

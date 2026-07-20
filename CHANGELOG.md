@@ -1,6 +1,16 @@
 # Changelog
 
 ## Unreleased
+- **Items now change how your skills behave, not just their numbers** — the core
+  of the game. Legendaries carry *skill mods*: the **Emberfall Signet** makes
+  Fireball split into three, chain between enemies, *and* boomerang back to you;
+  **Glacial Crown** makes Ice Shard pierce and deep-freeze; **Colossus Plate**
+  widens Whirlwind and lengthens Shield Slam's stun; **Beastmaster Totem** adds
+  arrows to Multi Shot and teeth to your wolf; and more — at least two per class.
+- Legendaries can also trigger on events: **Frostheart** bursts slain foes in a
+  frost nova, **Executioner's Edge** heals you on every kill, **Bloodmyre Band**
+  sets your targets ablaze on hit. The skill panel's tooltips show the modified
+  values, so you can see exactly what an item does to a skill.
 - The **Hunter** is playable — a ranged skirmisher with 14 actives and 10
   passives. Loose **Quick Shot** and **Multi Shot** (a spreading fan of
   arrows), **Piercing Arrow**, **Chain Shot**, and the **Arrow Storm** ultimate;
