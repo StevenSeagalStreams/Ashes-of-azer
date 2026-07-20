@@ -218,9 +218,22 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   private die(): void {
+    if (!this.active) return; // already dying — never award a kill twice
     this.scene.events.emit('enemy-died', this.def, this.x, this.y);
+    // Become a non-interactive corpse (combat loops all gate on `active`),
+    // then splat-fade instead of vanishing instantly.
+    this.setActive(false);
+    this.setVelocity(0, 0);
     this.hpBarBg.destroy();
     this.hpBarFg.destroy();
-    this.destroy();
+    this.scene.tweens.add({
+      targets: this,
+      alpha: 0,
+      scaleX: 1.3,
+      scaleY: 0.5,
+      duration: 260,
+      ease: 'Quad.easeOut',
+      onComplete: () => this.destroy(),
+    });
   }
 }
