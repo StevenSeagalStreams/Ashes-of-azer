@@ -114,9 +114,9 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Quest flags integrate with the save system
 
 ### 2.2 NPC & dialogue system
-- [ ] Dialogue schema: nodes, choices, conditions (quest state, corruption level), flags set
-- [ ] Dialogue UI: portrait, text crawl, choice buttons
-- [ ] NPC entities: idle wander, interaction prompt, quest indicator (! / ?)
+- [x] Dialogue schema: nodes, choices, conditions (quest state, corruption level), flags set
+- [x] Dialogue UI: portrait, text crawl, choice buttons
+- [x] NPC entities: idle wander, interaction prompt, quest indicator (! / ?)
 
 ### 2.3 First real town (Starter Plains)
 - [ ] Town map in Tiled: 6–10 buildings, enterable interiors or facades

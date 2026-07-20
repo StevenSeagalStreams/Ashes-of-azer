@@ -1,30 +1,55 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.1 mostly COMPLETE** — 4 of 5 boxes done; the open box is
-**objective markers on minimap/compass**, deferred because no minimap exists
-yet (pairs naturally with NPC quest-givers in 2.2 + a minimap subsystem). The
-1.6 art-sheets box is also still open (BLOCKED on an art-direction decision —
-see Asset requests). Next: **Milestone 2.2 — NPC & dialogue system** (read
-ROADMAP), which is a clean prerequisite for making quests NPC-given and for
-the objective markers.
+**MILESTONE 2.2 COMPLETE** (NPC & dialogue — all 3 boxes ticked). Next:
+**Milestone 2.3 — First real town (Starter Plains)** (read ROADMAP): town map,
+Vendor (buy/sell + gold economy), Blacksmith (repair/durability + crafting),
+Trainer (respec + class quests), Stash (48-slot storage), 5–8 quest NPCs.
+Two boxes remain open from earlier and are still BLOCKED/deferred: the 1.6
+class sprite sheets (art decision) and the 2.1 objective markers (needs a
+minimap).
 
 Notes for that session:
-- 2.2 (NPCs + dialogue) unblocks a lot: `talkTo` quest objectives (the quest
-  engine already supports the type — just needs a `questEvent('talkTo', npcId)`
-  fired on interaction), NPC-gated quest starts (replace the current auto-offer
-  with "accept at an NPC"), and quest-giver `!`/`?` indicators. Dialogue schema
-  (`src/data/schemas/dialogue.ts`) and `data/dialogue.json` (empty) already
-  exist to fill in.
-- The quest engine (`src/systems/quests.ts`) is pure and event-driven:
-  `recordEvent(quests, state, {type,target})` advances objectives and
-  auto-completes. `collect` objectives are ready in the engine but wait on the
-  loot system to fire `questEvent('collect', itemId)`.
-- Objective markers (deferred 2.1 box): once a minimap exists, drive markers
-  from the tracked quest's incomplete objectives (nearest matching enemy for
-  `kill`, the zone transition for `reach`, the NPC for `talkTo`).
+- 2.3 leans on systems not built yet: the **Vendor/Blacksmith/Stash need the
+  loot+inventory system** (items don't drop or get equipped yet — gear lives in
+  the save schema but nothing fills or reads it in gameplay). Consider whether
+  loot/inventory (a Milestone-1.x-ish gap) should come first, or build the town
+  services against hand-seeded inventory. The **Trainer's respec** already
+  exists (the K-panel RESPEC button) and could move into a town NPC. **NPCs are
+  now easy to add** (npcs.json + a dialogue tree), so the "5–8 quest NPCs" box
+  is mostly content once their quests exist.
+- Town map: needs a Tiled map (`assets/maps/`) + a zone entry in zones.json +
+  the id in BootScene's MAP_ZONES. NPCs place via npcs.json (zone + x/y).
+- ⚠️ **Build-cache gotcha (cost me time in 2.2):** `npm run build` can serve a
+  STALE bundle from Vite's cache — a rebuilt bundle kept the same hash and old
+  logic. If a smoke test contradicts a passing unit test, `rm -rf dist
+  node_modules/.vite` and rebuild before trusting the preview.
 
 ## Done
+- **Milestone 2.2 COMPLETE: NPC & dialogue system** (headless-verified 10/10,
+  143 unit tests):
+  - **Schemas**: `NpcSchema` (data-placed: zone + x/y, sprite, dialogue tree,
+    wander, offersQuests) and an enriched `DialogueSchema` — choices carry a
+    `condition` (flag/notFlag/questActive/questCompleted/questAvailable/
+    corruption range) and an `action` (setsFlag/startsQuest). Added
+    `quest.autoOffer` (false = NPC-given only). Registered `npcs.json` through
+    the loader/gameData.
+  - **Pure dialogue engine** (`src/systems/dialogue.ts`, 10 tests):
+    `evalCondition`, `visibleChoices`, `nodeById`, and `questMarker` (the ! / ?
+    over an NPC). `startAvailable` now skips `autoOffer:false` quests so they
+    only start via a dialogue action.
+  - **Npc entity** (`src/entities/Npc.ts`): procedural elder sprite, name tag,
+    optional idle wander (steers home when it strays), a "▲ Talk (E)" prompt
+    when the player is close, and a live ! / ? marker. Collides with the player.
+  - **DialogueUI** (`src/ui/DialogueUI.ts`, DOM): portrait (the NPC's sprite
+    rendered to a data-URL), a typewriter **text crawl** (click text to skip),
+    and condition-gated **choice buttons**.
+  - **WorldScene wiring**: E near an NPC opens their tree; talking fires
+    `questEvent('talkTo', npcId)`; a choice's action sets flags / starts an
+    NPC-given quest; player movement + attacks freeze during a conversation.
+  - **Content**: Elder Maru (overworld) + his dialogue tree + two quests —
+    `q_meet_elder` (talkTo, auto-offered) and `q_elder_hunt` (kill 6 bats,
+    NPC-given via the Accept choice).
 - **Milestone 2.1 (4/5 boxes): quest system** (headless-verified 14/14, 132
   unit tests):
   - **Schema** (`quest.ts`): objectives (`kill`/`collect`/`talkTo`/`reach` +
@@ -491,6 +516,12 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
+- **NPCs & dialogue (m2.2)**: start a new game — **Elder Maru** stands a bit
+  east of spawn with a **?** over him. Walk up (a "▲ Talk (E)" prompt appears),
+  press **E**: a portrait dialogue with a text crawl. Talking completes "A Word
+  with the Elder"; his **Accept** choice starts "The Elder's Hunt" (kill 6
+  bats), and his marker flips **?**→ (accept) → **?** while active. Does the
+  conversation read well? Portrait legible? Does the ! / ? guidance feel clear?
 - **Quests (m2.1)**: start a new game — the tracker (top-right) should show
   "Cull the Slimes 0/5". Kill slimes and watch it tick up; at 5/5 it should
   complete (gold + XP toast) and "Into the Barrow" should appear pinned. Press

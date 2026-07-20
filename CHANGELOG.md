@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **NPCs & conversations.** Elder Maru now stands in the Starter Plains. Walk up
+  and press **E** to talk — a portrait dialogue with a text crawl and choices
+  that change based on your quests. Talking to him completes "A Word with the
+  Elder", and he'll offer a new hunt you can **Accept** right in the
+  conversation. A **!** over an NPC means a quest to pick up, a **?** means one
+  in progress. (Quests can now be given by NPCs, not just auto-started.)
 - **Quests!** Your character now has a quest log. A starter chain kicks off
   automatically — cull some slimes, then venture into the Barrow, then slay
   Rotfang — and finishing one unlocks the next. An always-on **tracker**
