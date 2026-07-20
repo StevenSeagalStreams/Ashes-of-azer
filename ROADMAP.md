@@ -125,8 +125,8 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] NPC entities: idle wander, interaction prompt, quest indicator (! / ?)
 
 ### 2.3 First real town (Starter Plains)
-- [ ] Town map in Tiled: 6–10 buildings, enterable interiors or facades
-- [ ] **Vendor**: buy/sell UI, gold economy, stock refreshes on level-up
+- [x] Town map in Tiled: 6–10 buildings, enterable interiors or facades — Ashfall Village (6 building facades, gate from the plains, well)
+- [x] **Vendor**: buy/sell UI, gold economy, stock refreshes on level-up
 - [ ] **Blacksmith**: repair (durability system) + crafting (recipes in JSON, materials drop from enemies)
 - [ ] **Trainer**: respec + class quest giver
 - [ ] **Stash**: shared storage chest (48 slots)

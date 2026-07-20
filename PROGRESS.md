@@ -1,33 +1,53 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 1.7 COMPLETE** (loot & inventory — the loot loop; added scope,
-all 4 boxes ticked). The core pillar (kill → loot → equip → build change) is
-now playable end-to-end. Next: **Milestone 2.3 — First real town (Starter
-Plains)** (read ROADMAP): town map, Vendor, Blacksmith, Trainer, Stash, 5–8
-quest NPCs — now UNBLOCKED because loot/inventory exists. Still open from
-earlier: 1.6 class sprite sheets (art decision) and 2.1 objective markers
-(needs a minimap).
+**MILESTONE 2.3 IN PROGRESS** — 2 of 6 boxes done (town map + Vendor). Next
+box: **Blacksmith** (repair/durability + crafting), then **Stash** (48-slot
+storage), **Trainer** (respec + class quests), and **5–8 quest NPCs**. Still
+open from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers
+(minimap).
 
 Notes for that session:
-- 2.3 is now buildable: the **Vendor** buys/sells against `saveData.bag` +
-  `character.gold` (rollItem can stock its shelves; selling = bag→gold); the
-  **Stash** is a second item array in the save (needs a v7 field + migration);
-  the **Blacksmith** needs a durability field on ItemInstance (another save
-  bump) + a crafting recipe schema. The **Trainer's respec** already exists
-  (K-panel RESPEC) — move it behind a town NPC. NPCs are trivial to add now
-  (npcs.json + dialogue tree), so "5–8 quest NPCs" is mostly content.
-- Town map: a Tiled map in `assets/maps/` + a zones.json entry + the id in
-  BootScene's MAP_ZONES. Reuse the dungeon/overworld authoring flow.
-- The inventory/vendor/stash UIs will want a shared item-cell + tooltip
-  component — `InventoryUI` has the tooltip logic (`tipHtml`) to extract.
+- **Blacksmith** needs a `durability` field on ItemInstance (save v7 +
+  migration; gear loses durability on hits taken? or over time — decide) and a
+  crafting recipe schema (`data/recipes.json` + materials that drop from
+  enemies — add a `material` item kind or a separate materials array). Repair =
+  gold for durability. This is the heaviest remaining box.
+- **Stash**: a second `ItemInstance[]` in the save (v7 field + migration); a
+  StashUI mirroring InventoryUI (move item bag↔stash). A `service: 'stash'`
+  NPC opens it (routing already exists in `tryTalk`).
+- **Trainer**: `service: 'trainer'` NPC; move the K-panel RESPEC behind it (the
+  respec logic already exists in the SkillUI host). Class quests = content.
+- **5–8 quest NPCs**: trivial to add now (npcs.json + dialogue trees +
+  quests.json). Content task; place them in Ashfall Village.
+- The three item UIs (Inventory/Shop, soon Stash) duplicate a tooltip + rarity
+  palette — worth extracting a shared `ItemCell`/`itemTooltip` helper when the
+  Stash lands.
+- Service NPCs: `NpcSchema.service` ('vendor'|'blacksmith'|'stash'|'trainer');
+  `tryTalk` opens the matching UI (only 'vendor' wired so far). Vendor stock is
+  in-memory (`this.vendorStock`), re-rolled on zone load + level-up.
 - ⚠️ **Build-cache gotcha:** `npm run build` can serve a STALE bundle from
-  Vite's cache (same hash, old logic). If a smoke test contradicts a passing
-  unit test, `rm -rf dist node_modules/.vite` and rebuild before trusting the
-  preview. (Bit me in 2.2; `rm -rf node_modules/.vite` before the preview in
-  1.7 avoided it.)
+  Vite's cache. If a smoke contradicts a passing unit test, `rm -rf
+  node_modules/.vite` (and `dist`) then rebuild. Also: build the preview in the
+  FOREGROUND then start `npm run preview` separately — chaining
+  `build && preview` in one backgrounded command failed here.
 
 ## Done
+- **Milestone 2.3 (2/6 boxes): the town + the Vendor** (headless-verified
+  10/10 town-reachable + vendor, 153 unit tests):
+  - **Ashfall Village** (`town` zone): `genTown()` added to
+    `scripts/generate-maps.mjs` (regeneratable) → grass + a path plaza, 6
+    building facades (solid stone with a door), a healing well; a **town gate**
+    on the overworld (west of the path) transitions in, a **plains gate**
+    transitions back. Registered in zones.json (`enemyTypes: []`, safe) +
+    BootScene's MAP_ZONES. No enemies spawn (no spawn objects/regions).
+  - **Vendor** (`Merchant Pell`, `service: 'vendor'`): E opens **ShopUI**
+    (`src/ui/ShopUI.ts`) — buy from a rolled stock (`rollVendorStock`), sell
+    from the bag, against `player.gold`. Pricing: `itemValue` (base + affixes,
+    ×rarity) and `sellValue` (40%). Stock is in-memory, re-rolled on zone load
+    and on level-up. Added `NpcSchema.service`; `tryTalk` routes service NPCs
+    to their UI (and still fires a `talkTo`); shop/dialogue both freeze the
+    player. A merchant sprite added to pixelart.
 - **Milestone 1.7 COMPLETE: loot & inventory (the loot loop)** — added scope
   (no roadmap box existed; the town + the core pillar needed it). Headless-
   verified 10/10, 151 unit tests.
@@ -540,6 +560,13 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
+- **Town + Vendor (m2.3)**: from the plains, head to the **doorway west of the
+  path** (near the healing well) — it should drop you into **Ashfall Village**
+  (grass plaza, stone buildings, a well). Find **Merchant Pell** (a green-aproned
+  NPC) and press **E** to trade: buy something (gold in the header ticks down),
+  sell a drop (gold ticks up), press E to leave. The gate at the south end of
+  the plaza returns you to the plains. Does the town read as a place? Is Pell
+  easy to find? Prices feel sane?
 - **Loot loop (m1.7)**: kill things and watch for **gems** to pop out (bosses
   always drop) — walk over one to bank it (a rarity-colored name toast floats
   up). Press **I**: equip a bag item (does your damage/HP number in the HUD

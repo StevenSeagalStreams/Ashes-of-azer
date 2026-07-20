@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **Ashfall Village.** There's a town now — take the gate west of the plains
+  path to reach it (and the gate back home). It's a safe zone with a healing
+  well and, so far, **Merchant Pell**: walk up and press **E** to trade. Buy
+  from her rolled stock (prices scale with rarity) or sell your loot for gold;
+  her shelves restock when you level up. Your gold is saved with your character.
 - **Loot drops!** Enemies now drop items — a rarity-colored gem you walk over to
   scoop into your bag (bosses always drop). Press **I** for your inventory: an
   equipment panel and bag grid. Click a bag item to equip it (whatever was there
