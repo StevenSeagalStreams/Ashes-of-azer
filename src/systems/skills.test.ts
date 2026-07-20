@@ -20,6 +20,7 @@ import {
 const skills = loadGameData().skills;
 const warriorSkills = skillsForClass(skills, 'warrior');
 const mageSkills = skillsForClass(skills, 'mage');
+const hunterSkills = skillsForClass(skills, 'hunter');
 const byId = (id: string) => {
   const s = skills.find((s) => s.id === id);
   if (!s) throw new Error(`missing skill ${id}`);
@@ -181,6 +182,35 @@ describe('mage kit content', () => {
     expect(bar[0]).toBe('arcane_bolt');
     expect(bar).not.toContain('shield_slam');
     expect(bar.every((id) => id === null || mageSkills.some((s) => s.id === id))).toBe(true);
+  });
+});
+
+describe('hunter kit content', () => {
+  it('has 14 actives and 10 passives, all tagged hunter', () => {
+    expect(hunterSkills.filter((s) => s.mechanic !== 'passive')).toHaveLength(14);
+    expect(hunterSkills.filter((s) => s.mechanic === 'passive')).toHaveLength(10);
+    expect(hunterSkills.every((s) => s.class === 'hunter')).toBe(true);
+  });
+
+  it('brings the Hunter-specific mechanics (trap, summon, multi-shot fan)', () => {
+    expect(hunterSkills.some((s) => s.mechanic === 'trap')).toBe(true);
+    expect(hunterSkills.some((s) => s.mechanic === 'summon')).toBe(true);
+    const multi = byId('multi_shot');
+    expect(multi.mechanic === 'projectile' && multi.count).toBeTruthy();
+  });
+
+  it('describes the new mechanics without throwing', () => {
+    expect(describeSkill(byId('multi_shot'), 1)).toMatch(/bolts/i);
+    expect(describeSkill(byId('snare_trap'), 1)).toMatch(/trap/i);
+    expect(describeSkill(byId('summon_wolf'), 1)).toMatch(/companion/i);
+    expect(describeSkill(byId('rapid_fire'), 1)).toMatch(/attack speed/i);
+  });
+
+  it('seeds a hunter default bar led by Quick Shot', () => {
+    const bar = defaultActives(hunterSkills);
+    expect(bar[0]).toBe('quick_shot');
+    expect(bar).not.toContain('shield_slam');
+    expect(bar.every((id) => id === null || hunterSkills.some((s) => s.id === id))).toBe(true);
   });
 });
 

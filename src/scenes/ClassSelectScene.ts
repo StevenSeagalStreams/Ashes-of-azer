@@ -63,8 +63,8 @@ const OPTIONS: ClassOption[] = [
     id: 'hunter',
     icon: '🏹',
     name: 'Hunter',
-    blurb: 'Ranged skirmisher with traps and pets.',
-    playable: false,
+    blurb: 'Ranged skirmisher. Rains arrows and multi-shots, lays traps, and fights beside a summoned wolf.',
+    playable: true,
   },
 ];
 

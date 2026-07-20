@@ -1001,5 +1001,529 @@
         "perRank": 4
       }
     }
+  },
+  {
+    "id": "quick_shot",
+    "mechanic": "projectile",
+    "class": "hunter",
+    "key": "1",
+    "icon": "🏹",
+    "name": "Quick Shot",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 0.7,
+    "manaCost": 4,
+    "startingRank": 1,
+    "speed": 340,
+    "radius": 8,
+    "lifetime": 1.4,
+    "damageMultiplier": {
+      "base": 0.85,
+      "perRank": 0.15
+    },
+    "element": "none",
+    "fxColor": "#cdb26a"
+  },
+  {
+    "id": "multi_shot",
+    "mechanic": "projectile",
+    "class": "hunter",
+    "key": "2",
+    "icon": "🎯",
+    "name": "Multi Shot",
+    "unlockLevel": 1,
+    "maxRank": 5,
+    "cooldown": 3,
+    "manaCost": 14,
+    "startingRank": 1,
+    "speed": 300,
+    "radius": 9,
+    "lifetime": 1.2,
+    "damageMultiplier": {
+      "base": 0.6,
+      "perRank": 0.1
+    },
+    "count": {
+      "base": 3,
+      "perRank": 0.5
+    },
+    "spreadArc": 0.6,
+    "element": "none",
+    "fxColor": "#cdb26a"
+  },
+  {
+    "id": "piercing_arrow",
+    "mechanic": "projectile",
+    "class": "hunter",
+    "key": "3",
+    "icon": "📌",
+    "name": "Piercing Arrow",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "cooldown": 4,
+    "manaCost": 16,
+    "startingRank": 0,
+    "speed": 380,
+    "radius": 9,
+    "lifetime": 1.6,
+    "damageMultiplier": {
+      "base": 1.2,
+      "perRank": 0.3
+    },
+    "pierce": {
+      "base": 2,
+      "perRank": 0.5
+    },
+    "element": "none",
+    "fxColor": "#e8d28a"
+  },
+  {
+    "id": "point_blank",
+    "mechanic": "generator",
+    "class": "hunter",
+    "key": "4",
+    "icon": "💥",
+    "name": "Point Blank",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "cooldown": 2,
+    "manaCost": 0,
+    "startingRank": 0,
+    "radius": {
+      "base": 30,
+      "perRank": 3
+    },
+    "damageMultiplier": {
+      "base": 1.0,
+      "perRank": 0.2
+    },
+    "manaGain": {
+      "base": 7,
+      "perRank": 1.5
+    },
+    "fxColor": "#e5d0a0"
+  },
+  {
+    "id": "summon_wolf",
+    "mechanic": "summon",
+    "class": "hunter",
+    "key": "5",
+    "icon": "🐺",
+    "name": "Summon Wolf",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "cooldown": 12,
+    "manaCost": 30,
+    "startingRank": 0,
+    "petHp": {
+      "base": 60,
+      "perRank": 15
+    },
+    "petDamageMultiplier": {
+      "base": 0.5,
+      "perRank": 0.1
+    },
+    "petAttackCooldown": 1.0,
+    "petSpeed": 90,
+    "leashRange": 220,
+    "respawnTime": 8,
+    "fxColor": "#6ac06a"
+  },
+  {
+    "id": "rapid_fire",
+    "mechanic": "buff",
+    "class": "hunter",
+    "key": "6",
+    "icon": "⚡",
+    "name": "Rapid Fire",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "cooldown": 16,
+    "manaCost": 22,
+    "startingRank": 0,
+    "damageBonusPct": {
+      "base": 0,
+      "perRank": 0
+    },
+    "attackSpeedPct": {
+      "base": 40,
+      "perRank": 10
+    },
+    "duration": 6,
+    "fxColor": "#f0c040"
+  },
+  {
+    "id": "snare_trap",
+    "mechanic": "trap",
+    "class": "hunter",
+    "icon": "🕸",
+    "name": "Snare Trap",
+    "key": "1",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "cooldown": 8,
+    "manaCost": 20,
+    "startingRank": 0,
+    "radius": {
+      "base": 34,
+      "perRank": 3
+    },
+    "armTime": 0.5,
+    "lifetime": 12,
+    "damageMultiplier": {
+      "base": 0.8,
+      "perRank": 0.2
+    },
+    "element": "none",
+    "stunDuration": {
+      "base": 1.2,
+      "perRank": 0.2
+    },
+    "fxColor": "#d0c020"
+  },
+  {
+    "id": "explosive_trap",
+    "mechanic": "trap",
+    "class": "hunter",
+    "icon": "💣",
+    "name": "Explosive Trap",
+    "key": "2",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "cooldown": 10,
+    "manaCost": 26,
+    "startingRank": 0,
+    "radius": {
+      "base": 44,
+      "perRank": 4
+    },
+    "armTime": 0.6,
+    "lifetime": 12,
+    "damageMultiplier": {
+      "base": 1.6,
+      "perRank": 0.4
+    },
+    "element": "fire",
+    "burnDps": {
+      "base": 6,
+      "perRank": 2
+    },
+    "burnDuration": 3,
+    "fxColor": "#e07830"
+  },
+  {
+    "id": "frost_trap",
+    "mechanic": "trap",
+    "class": "hunter",
+    "icon": "❄",
+    "name": "Frost Trap",
+    "key": "3",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "cooldown": 9,
+    "manaCost": 22,
+    "startingRank": 0,
+    "radius": {
+      "base": 40,
+      "perRank": 4
+    },
+    "armTime": 0.5,
+    "lifetime": 12,
+    "damageMultiplier": {
+      "base": 0.7,
+      "perRank": 0.15
+    },
+    "element": "frost",
+    "chillPct": {
+      "base": 40,
+      "perRank": 5
+    },
+    "chillDuration": 2.5,
+    "fxColor": "#7fa8ee"
+  },
+  {
+    "id": "disengage",
+    "mechanic": "leap",
+    "class": "hunter",
+    "icon": "🤸",
+    "name": "Disengage",
+    "key": "4",
+    "unlockLevel": 3,
+    "maxRank": 3,
+    "cooldown": 6,
+    "manaCost": 12,
+    "startingRank": 0,
+    "distance": {
+      "base": 110,
+      "perRank": 15
+    },
+    "damageMultiplier": {
+      "base": 0.4,
+      "perRank": 0.1
+    },
+    "landingRadius": 28,
+    "stunDuration": 0,
+    "fxColor": "#e8d28a"
+  },
+  {
+    "id": "hunters_mark",
+    "mechanic": "debuff",
+    "class": "hunter",
+    "icon": "👁",
+    "name": "Hunter's Mark",
+    "key": "5",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "cooldown": 12,
+    "manaCost": 20,
+    "startingRank": 0,
+    "radius": {
+      "base": 60,
+      "perRank": 5
+    },
+    "vulnerablePct": {
+      "base": 18,
+      "perRank": 4
+    },
+    "duration": 6,
+    "fxColor": "#c07ef2"
+  },
+  {
+    "id": "volley",
+    "mechanic": "groundEffect",
+    "class": "hunter",
+    "icon": "🌧",
+    "name": "Volley",
+    "key": "6",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "cooldown": 9,
+    "manaCost": 28,
+    "startingRank": 0,
+    "radius": {
+      "base": 50,
+      "perRank": 4
+    },
+    "duration": 3,
+    "tickDps": {
+      "base": 8,
+      "perRank": 2
+    },
+    "element": "none",
+    "fxColor": "#cdb26a"
+  },
+  {
+    "id": "chain_shot",
+    "mechanic": "projectile",
+    "class": "hunter",
+    "icon": "🔗",
+    "name": "Chain Shot",
+    "key": "1",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "cooldown": 6,
+    "manaCost": 26,
+    "startingRank": 0,
+    "speed": 420,
+    "radius": 10,
+    "lifetime": 1.2,
+    "damageMultiplier": {
+      "base": 1.1,
+      "perRank": 0.25
+    },
+    "chain": {
+      "base": 2,
+      "perRank": 0.5
+    },
+    "chainRange": 90,
+    "element": "none",
+    "fxColor": "#e8d28a"
+  },
+  {
+    "id": "arrow_storm",
+    "mechanic": "projectile",
+    "class": "hunter",
+    "icon": "🏹",
+    "name": "Arrow Storm",
+    "key": "2",
+    "unlockLevel": 10,
+    "maxRank": 5,
+    "cooldown": 12,
+    "manaCost": 45,
+    "startingRank": 0,
+    "speed": 300,
+    "radius": 9,
+    "lifetime": 1.3,
+    "damageMultiplier": {
+      "base": 0.7,
+      "perRank": 0.15
+    },
+    "count": {
+      "base": 6,
+      "perRank": 1
+    },
+    "spreadArc": 1.2,
+    "element": "none",
+    "fxColor": "#ffcf6a"
+  },
+  {
+    "id": "eagle_eye",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🦅",
+    "name": "Eagle Eye",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "critPct": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "fleet_footed",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🏃",
+    "name": "Fleet-Footed",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "moveSpeedPct": {
+        "base": 0,
+        "perRank": 3
+      }
+    }
+  },
+  {
+    "id": "full_quiver",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🎯",
+    "name": "Full Quiver",
+    "unlockLevel": 3,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "aspdPct": {
+        "base": 0,
+        "perRank": 4
+      }
+    }
+  },
+  {
+    "id": "survivalist",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🌿",
+    "name": "Survivalist",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "maxHpPct": {
+        "base": 0,
+        "perRank": 4
+      }
+    }
+  },
+  {
+    "id": "marksmanship",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🎖",
+    "name": "Marksmanship",
+    "unlockLevel": 2,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "damagePct": {
+        "base": 0,
+        "perRank": 4
+      }
+    }
+  },
+  {
+    "id": "quick_hands",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "✋",
+    "name": "Quick Hands",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "cdrPct": {
+        "base": 0,
+        "perRank": 3
+      }
+    }
+  },
+  {
+    "id": "bloodthirst",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🩸",
+    "name": "Bloodthirst",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "lifestealPct": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "opportunist",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🗡",
+    "name": "Opportunist",
+    "unlockLevel": 5,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "damageVsStunnedPct": {
+        "base": 0,
+        "perRank": 6
+      }
+    }
+  },
+  {
+    "id": "spirit_bond",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "🌟",
+    "name": "Spirit Bond",
+    "unlockLevel": 4,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "manaOnKill": {
+        "base": 0,
+        "perRank": 2
+      }
+    }
+  },
+  {
+    "id": "desperate_shot",
+    "mechanic": "passive",
+    "class": "hunter",
+    "icon": "💢",
+    "name": "Desperate Shot",
+    "unlockLevel": 6,
+    "maxRank": 5,
+    "startingRank": 0,
+    "modifiers": {
+      "berserkDamagePct": {
+        "base": 0,
+        "perRank": 8
+      }
+    }
   }
 ]
