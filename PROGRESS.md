@@ -1,40 +1,46 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.3 IN PROGRESS** — 2 of 6 boxes done (town map + Vendor). Next
-box: **Blacksmith** (repair/durability + crafting), then **Stash** (48-slot
-storage), **Trainer** (respec + class quests), and **5–8 quest NPCs**. Still
-open from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers
-(minimap).
+**MILESTONE 2.3 IN PROGRESS** — 4 of 6 boxes done (town map, Vendor, Stash,
+Trainer). Remaining: **Blacksmith** (repair/durability + crafting — the
+heaviest box) and **5–8 quest NPCs** (content). Still open from earlier: 1.6
+class sprite sheets (art) and 2.1 objective markers (minimap).
 
 Notes for that session:
-- **Blacksmith** needs a `durability` field on ItemInstance (save v7 +
-  migration; gear loses durability on hits taken? or over time — decide) and a
-  crafting recipe schema (`data/recipes.json` + materials that drop from
-  enemies — add a `material` item kind or a separate materials array). Repair =
-  gold for durability. This is the heaviest remaining box.
-- **Stash**: a second `ItemInstance[]` in the save (v7 field + migration); a
-  StashUI mirroring InventoryUI (move item bag↔stash). A `service: 'stash'`
-  NPC opens it (routing already exists in `tryTalk`).
-- **Trainer**: `service: 'trainer'` NPC; move the K-panel RESPEC behind it (the
-  respec logic already exists in the SkillUI host). Class quests = content.
-- **5–8 quest NPCs**: trivial to add now (npcs.json + dialogue trees +
-  quests.json). Content task; place them in Ashfall Village.
-- The three item UIs (Inventory/Shop, soon Stash) duplicate a tooltip + rarity
-  palette — worth extracting a shared `ItemCell`/`itemTooltip` helper when the
-  Stash lands.
+- **Blacksmith** (`service: 'blacksmith'` — routing pattern exists in
+  `tryTalk`): needs a `durability`/`maxDurability` on ItemInstance (save v8 +
+  migration; decide how gear wears — e.g. lose 1 durability per hit the player
+  takes, per equipped item), a repair UI (gold → restore durability), and a
+  crafting recipe schema (`data/recipes.json` + materials that drop — add a
+  materials array to the save + a `material` drop kind, or reuse items). Repair
+  is the smaller half; crafting + materials is the bigger half.
+- **5–8 quest NPCs**: content. Add NPCs (npcs.json) + dialogue trees + quests
+  forming a small Ashfall chain. Currently the town has Vendor/Trainer/Keeper +
+  the plains Elder; need ~4–5 more quest-givers with a linked story. NPCs are
+  trivial to add now.
+- The three+ item UIs (Inventory/Shop/Stash) duplicate a tooltip + rarity
+  palette — extract a shared `itemTooltip(item, affixes)` + RARITY_HEX helper
+  before adding the Blacksmith/repair UI.
 - Service NPCs: `NpcSchema.service` ('vendor'|'blacksmith'|'stash'|'trainer');
-  `tryTalk` opens the matching UI (only 'vendor' wired so far). Vendor stock is
-  in-memory (`this.vendorStock`), re-rolled on zone load + level-up.
+  `tryTalk` opens the matching UI (vendor + stash wired; trainer is a dialogue
+  NPC using the new `respec` action, not a service UI).
 - ⚠️ **Build-cache gotcha:** `npm run build` can serve a STALE bundle from
   Vite's cache. If a smoke contradicts a passing unit test, `rm -rf
-  node_modules/.vite` (and `dist`) then rebuild. Also: build the preview in the
-  FOREGROUND then start `npm run preview` separately — chaining
-  `build && preview` in one backgrounded command failed here.
+  node_modules/.vite` (and `dist`) then rebuild. Build in the FOREGROUND then
+  start `npm run preview` separately — chaining `build && preview` in one
+  backgrounded command failed here.
 
 ## Done
-- **Milestone 2.3 (2/6 boxes): the town + the Vendor** (headless-verified
-  10/10 town-reachable + vendor, 153 unit tests):
+- **Milestone 2.3 (4/6 boxes): town + Vendor + Stash + Trainer** (headless-
+  verified: town+vendor 10/10, stash+trainer 7/7; 153 unit tests):
+  - **Stash** (save **v7**): a `stash: ItemInstance[]` array (v6→v7 migration).
+    **StashUI** (`src/ui/StashUI.ts`) moves items bag↔stash; **Stashkeeper Odd**
+    (`service: 'stash'`) opens it.
+  - **Trainer** (`Master Vane`, dialogue NPC): a new `respec` **dialogue action**
+    resets skill points + passive slots (shared `doRespec()` with the K-panel
+    button); a `startsQuest` choice gives **The Trainer's Trial** (kill 10
+    skeletons, `autoOffer:false`). Per-class quest variants are future content.
+  - (below) — the town + the Vendor:
   - **Ashfall Village** (`town` zone): `genTown()` added to
     `scripts/generate-maps.mjs` (regeneratable) → grass + a path plaza, 6
     building facades (solid stone with a door), a healing well; a **town gate**
@@ -566,7 +572,10 @@ Notes for that session:
   NPC) and press **E** to trade: buy something (gold in the header ticks down),
   sell a drop (gold ticks up), press E to leave. The gate at the south end of
   the plaza returns you to the plains. Does the town read as a place? Is Pell
-  easy to find? Prices feel sane?
+  easy to find? Prices feel sane? Two more services stand nearby: **Master Vane**
+  (trainer — "Reset my skills" wipes spent points; "Give me a trial" starts a
+  hunt) and **Stashkeeper Odd** (E opens a bag↔stash mover). Any trouble telling
+  the service NPCs apart or knowing what each does?
 - **Loot loop (m1.7)**: kill things and watch for **gems** to pop out (bosses
   always drop) — walk over one to bank it (a rarity-colored name toast floats
   up). Press **I**: equip a bag item (does your damage/HP number in the HUD

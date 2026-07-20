@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **More village services.** **Stashkeeper Odd** keeps a shared **stash** — press
+  E to move items between your bag and storage (saved with your character).
+  **Master Vane** the trainer will **reset your skills for free** and hand you a
+  combat trial to prove yourself. Both stand in Ashfall Village.
 - **Ashfall Village.** There's a town now — take the gate west of the plains
   path to reach it (and the gate back home). It's a safe zone with a healing
   well and, so far, **Merchant Pell**: walk up and press **E** to trade. Buy

@@ -128,8 +128,8 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Town map in Tiled: 6–10 buildings, enterable interiors or facades — Ashfall Village (6 building facades, gate from the plains, well)
 - [x] **Vendor**: buy/sell UI, gold economy, stock refreshes on level-up
 - [ ] **Blacksmith**: repair (durability system) + crafting (recipes in JSON, materials drop from enemies)
-- [ ] **Trainer**: respec + class quest giver
-- [ ] **Stash**: shared storage chest (48 slots)
+- [x] **Trainer**: respec + class quest giver — Master Vane (free respec + The Trainer's Trial); per-class quest variants are future content
+- [x] **Stash**: shared storage chest — Stashkeeper Odd (save v7 stash array, bag↔stash)
 - [ ] 5–8 quest NPCs forming the zone's quest chain
 
 ### 2.4 Zone 2 — Forest Kingdom (full production, sets the template)
