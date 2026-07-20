@@ -1,30 +1,52 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 1.6 mostly COMPLETE** — 5 of 6 boxes done; the only open box is
-the **final 4-direction per-class sprite sheets**, which is BLOCKED on an
-art-direction decision (see Asset requests + the note below). Next feasible
-work: **Milestone 1.7 — Boss & encounter polish** (read ROADMAP for its boxes);
-do NOT tick 1.6 complete until the art sheets land.
+**MILESTONE 2.1 mostly COMPLETE** — 4 of 5 boxes done; the open box is
+**objective markers on minimap/compass**, deferred because no minimap exists
+yet (pairs naturally with NPC quest-givers in 2.2 + a minimap subsystem). The
+1.6 art-sheets box is also still open (BLOCKED on an art-direction decision —
+see Asset requests). Next: **Milestone 2.2 — NPC & dialogue system** (read
+ROADMAP), which is a clean prerequisite for making quests NPC-given and for
+the objective markers.
 
 Notes for that session:
-- The 1.6 art box (32×32 4-dir walk/attack/hit/death for all 3 classes) needs
-  real sprite sheets and an art-direction call — a CLAUDE.md "stop and ask"
-  (art style/licensing). The classes don't even have distinct sprites yet (all
-  use the procedural `hero`). Options to raise with the user: (a) commission/
-  source a cohesive 3-class sheet set, (b) I hand-draw procedural multi-frame
-  sheets (bigger, lower-fidelity), (c) defer directional sheets and keep the
-  procedural squash/lunge motion as the "animation" for now. **Ask before
-  doing art.** When sheets exist, the sprite system (`pixelart.ts`
-  `addSpriteTexture`) makes single-frame canvas textures — it'll need a
-  spritesheet loader + a Phaser anim-state machine (idle/walk/attack/hit/death
-  × 4 dirs) on Player/Enemy.
-- If moving on: 1.7+ is unblocked. The procedural motion + telegraphs +
-  hit-stop/shake/knockback + corpse fade + number pass already deliver most of
-  the "feel" the milestone was after (its completion criterion — 3 classes,
-  differing builds, a skill-transforming legendary — was already met at 1.5).
+- 2.2 (NPCs + dialogue) unblocks a lot: `talkTo` quest objectives (the quest
+  engine already supports the type — just needs a `questEvent('talkTo', npcId)`
+  fired on interaction), NPC-gated quest starts (replace the current auto-offer
+  with "accept at an NPC"), and quest-giver `!`/`?` indicators. Dialogue schema
+  (`src/data/schemas/dialogue.ts`) and `data/dialogue.json` (empty) already
+  exist to fill in.
+- The quest engine (`src/systems/quests.ts`) is pure and event-driven:
+  `recordEvent(quests, state, {type,target})` advances objectives and
+  auto-completes. `collect` objectives are ready in the engine but wait on the
+  loot system to fire `questEvent('collect', itemId)`.
+- Objective markers (deferred 2.1 box): once a minimap exists, drive markers
+  from the tracked quest's incomplete objectives (nearest matching enemy for
+  `kill`, the zone transition for `reach`, the NPC for `talkTo`).
 
 ## Done
+- **Milestone 2.1 (4/5 boxes): quest system** (headless-verified 14/14, 132
+  unit tests):
+  - **Schema** (`quest.ts`): objectives (`kill`/`collect`/`talkTo`/`reach` +
+    target + count), rewards (xp/gold/itemIds), prerequisites, chain id — was
+    stubbed in 0.3, now real content.
+  - **Pure engine** (`src/systems/quests.ts`, immutable, 11 tests):
+    `availableQuests` (prereq-gated), `startQuest`/`startAvailable` (auto-pins
+    the first), `recordEvent` (advances matching objectives, caps at count,
+    auto-completes + reports finished quests), `completeQuest`. Returns the same
+    state reference when nothing changed, so callers can skip a save.
+  - **Save v6**: `QuestState {active, completed, progress, tracked}` in the
+    save with a v5→v6 migration (older saves get an empty log). This is the
+    "quest flags integrate with the save" box.
+  - **WorldScene wiring**: auto-offers available quests on entry, fires
+    `questEvent('kill', enemyId)` on death and `questEvent('reach', zoneId)` on
+    zone entry; completion grants xp (via the new shared `gainXp` helper) + gold
+    and unlocks the next quest in the chain.
+  - **QuestUI** (`src/ui/QuestUI.ts`, DOM): an always-on **tracker** (top-right)
+    for the pinned quest's objectives with live counts, and a **journal** panel
+    toggled with **J** (Active + Completed; click a quest to pin it).
+  - **3 starter quests** (`quests.json`): Cull the Slimes (kill 5) → Into the
+    Barrow (reach dungeon) → Slay Rotfang (kill 4 skel + 1 boss).
 - **Milestone 1.6 (5/6 boxes): combat feel pass** (all headless-verified 7/7,
   121 unit tests still green):
   - **Procedural motion** (no art dep): `Player`/`Enemy` do a walk squash-bob
@@ -469,6 +491,13 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
+- **Quests (m2.1)**: start a new game — the tracker (top-right) should show
+  "Cull the Slimes 0/5". Kill slimes and watch it tick up; at 5/5 it should
+  complete (gold + XP toast) and "Into the Barrow" should appear pinned. Press
+  **J** for the journal (Active + Completed; click a quest to pin it). Step into
+  the dungeon door → "Into the Barrow" completes and "Slay Rotfang" begins.
+  Does the flow read clearly at the game's scale? (No NPCs yet — quests
+  auto-accept for now; NPC-given quests come with 2.2.)
 - **Combat feel (m1.6)**: play any class and just fight — the whole point is
   *feel*, which only human eyes can judge. Watch for: the walk bob + attack
   lunge; the yellow **brace-flash** before an enemy melees you and the slam

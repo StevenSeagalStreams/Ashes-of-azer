@@ -107,11 +107,11 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 ## Milestone 2 — World, Quests & Towns (5–8 weeks)
 
 ### 2.1 Quest system
-- [ ] Quest schema: objectives (kill N / collect N / talk to / reach), rewards, prerequisites, chain links
-- [ ] Quest journal UI (J): active, tracked, completed
-- [ ] On-screen tracker for the pinned quest
-- [ ] Objective markers on minimap/compass
-- [ ] Quest flags integrate with the save system
+- [x] Quest schema: objectives (kill N / collect N / talk to / reach), rewards, prerequisites, chain links
+- [x] Quest journal UI (J): active, tracked, completed
+- [x] On-screen tracker for the pinned quest
+- [ ] Objective markers on minimap/compass — deferred: no minimap exists yet; pairs with NPC quest-givers (2.2) + a minimap system
+- [x] Quest flags integrate with the save system
 
 ### 2.2 NPC & dialogue system
 - [ ] Dialogue schema: nodes, choices, conditions (quest state, corruption level), flags set

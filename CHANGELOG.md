@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **Quests!** Your character now has a quest log. A starter chain kicks off
+  automatically — cull some slimes, then venture into the Barrow, then slay
+  Rotfang — and finishing one unlocks the next. An always-on **tracker**
+  (top-right) shows your pinned quest and its objectives with live progress;
+  press **J** for the full **journal** (active + completed), and click any quest
+  there to pin it. Completing a quest pays out XP and gold. Progress is saved
+  with your character.
 - **Combat feels chunkier.** Hero and enemies now bob as they walk and the hero
   lunges when it swings; enemies **telegraph** their attacks — a yellow brace-flash
   before a melee hit, and the slam ring now shows *before* the blow lands, so
