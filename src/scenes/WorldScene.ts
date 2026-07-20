@@ -13,6 +13,8 @@ import { recordEvent, startAvailable, startQuest } from '../systems/quests.ts';
 import type { DialogueChoice, DialogueTreeData } from '../data/schemas/index.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
+import { gearStats, rollItem } from '../systems/loot.ts';
+import type { ItemInstance } from '../systems/save/schema.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -59,7 +61,13 @@ declare global {
       zone: () => string;
       save: { now: () => void; export: () => string; import: (s: string) => void };
       // Read-only entity counts for headless smoke tests (and the m2.5 debug tools).
-      counts: () => { projectiles: number; traps: number; pet: { hp: number; dead: boolean } | null };
+      counts: () => {
+        projectiles: number;
+        traps: number;
+        pet: { hp: number; dead: boolean } | null;
+        drops: number;
+        bag: number;
+      };
     };
   }
 }
@@ -68,6 +76,23 @@ declare global {
 // multi-slot save management is deferred to the m5.2 UI pass.
 const ACTIVE_SLOT = 1;
 const AUTOSAVE_MS = 60_000; // roadmap: every 60s; transitions also save (doTransition)
+
+// Loot loop (m1.7): rarity → drop-gem colour; how often normal enemies drop;
+// how close the player collects from.
+const RARITY_COLOR: Record<string, number> = {
+  white: 0xf4f0e0,
+  magic: 0x7fa8ee,
+  rare: 0xe8b64c,
+  epic: 0xc88af5,
+  legendary: 0xe07830,
+};
+const NORMAL_DROP_CHANCE = 0.4;
+const PICKUP_RANGE = 16;
+
+interface Drop {
+  item: ItemInstance;
+  gfx: Phaser.GameObjects.Rectangle;
+}
 
 interface ZoneInit {
   zone?: string;
@@ -139,6 +164,8 @@ export class WorldScene extends Phaser.Scene {
   // The Hunter's companion (one at a time). null until Summon Pet is cast.
   private pet: Pet | null = null;
   private mapLayer!: Phaser.Tilemaps.TilemapLayer;
+  // Item drops lying on the ground, collected by walking over them (m1.7).
+  private drops: Drop[] = [];
 
   constructor() {
     super('World');
@@ -316,6 +343,8 @@ export class WorldScene extends Phaser.Scene {
       this.pet = null;
       for (const npc of this.npcs) npc.destroyNpc();
       this.npcs = [];
+      for (const d of this.drops) d.gfx.destroy();
+      this.drops = [];
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-J', () => this.questUI.togglePanel());
@@ -358,6 +387,8 @@ export class WorldScene extends Phaser.Scene {
         projectiles: this.projectiles.activeCount(),
         traps: this.traps.activeCount(),
         pet: this.pet ? { hp: this.pet.hp, dead: this.pet.dead } : null,
+        drops: this.drops.length,
+        bag: this.saveData.bag.length,
       }),
     };
   }
@@ -410,6 +441,7 @@ export class WorldScene extends Phaser.Scene {
     this.ground.update(dt);
     this.traps.update(dt);
     this.pet?.updatePet(dt, this.player);
+    if (this.drops.length) this.collectDrops();
     if (this.npcs.length) {
       const ctx = this.dialogueContext();
       for (const npc of this.npcs) npc.updateNpc(dt, this.player, questMarker(npc.def.offersQuests, ctx));
@@ -547,23 +579,26 @@ export class WorldScene extends Phaser.Scene {
       this.saveData.skillRanks,
       this.saveData.loadout.passives,
     );
+    const gs = gearStats(this.saveData.gear); // equipped item bonuses (m1.7)
     const p = this.player;
     const hpFrac = p.maxHp > 0 ? p.hp / p.maxHp : 1;
-    p.maxHp = Math.round((90 + p.level * 10) * (1 + (mods.maxHpPct ?? 0) / 100));
+    p.maxHp = Math.round((90 + p.level * 10) * (1 + (mods.maxHpPct ?? 0) / 100)) + gs.maxHp;
     p.hp = Math.min(p.maxHp, Math.max(1, Math.round(p.maxHp * hpFrac)));
     p.maxMp = manaMaxFor(p.level);
     p.mp = Math.min(p.mp, p.maxMp);
-    p.critPct = 5 + (mods.critPct ?? 0);
-    p.moveSpeedPct = mods.moveSpeedPct ?? 0;
-    p.aspdPct = mods.aspdPct ?? 0;
-    p.cdrPct = mods.cdrPct ?? 0;
+    p.critPct = 5 + (mods.critPct ?? 0) + gs.critPct;
+    p.moveSpeedPct = (mods.moveSpeedPct ?? 0) + gs.moveSpeedPct;
+    p.aspdPct = (mods.aspdPct ?? 0) + gs.aspdPct;
+    p.cdrPct = (mods.cdrPct ?? 0) + gs.cdrPct;
     p.passiveDamagePct = mods.damagePct ?? 0;
-    p.lifestealPct = mods.lifestealPct ?? 0;
+    p.lifestealPct = (mods.lifestealPct ?? 0) + gs.lifestealPct;
     p.thornsPct = mods.thornsPct ?? 0;
     p.blockPct = mods.blockPct ?? 0;
-    p.manaOnKill = mods.manaOnKill ?? 0;
+    p.manaOnKill = (mods.manaOnKill ?? 0) + gs.manaOnKill;
     p.damageVsStunnedPct = mods.damageVsStunnedPct ?? 0;
     p.berserkDamagePct = mods.berserkDamagePct ?? 0;
+    p.gearFlatDamage = gs.flatDamage;
+    p.visionBonus = gs.visionBonus; // applies to the fog on the next zone load
   }
 
   private snapshot(): SaveData {
@@ -603,7 +638,7 @@ export class WorldScene extends Phaser.Scene {
     const p = this.player;
     const berserk = p.berserkDamagePct > 0 && p.hp < p.maxHp * 0.3 ? p.berserkDamagePct : 0;
     return (
-      playerBaseDamage(p.level) *
+      (playerBaseDamage(p.level) + p.gearFlatDamage) *
       (1 + p.damageBuffPct / 100) *
       (1 + p.passiveDamagePct / 100) *
       (1 + berserk / 100)
@@ -909,6 +944,7 @@ export class WorldScene extends Phaser.Scene {
 
   private onEnemyDied(def: EnemyData, x: number, y: number): void {
     if (this.hooksOnKill.length) this.runHooks(this.hooksOnKill, x, y);
+    this.maybeDropLoot(def, x, y);
     if (this.player.manaOnKill > 0) {
       this.player.mp = Math.min(this.player.maxMp, this.player.mp + this.player.manaOnKill);
     }
@@ -936,6 +972,38 @@ export class WorldScene extends Phaser.Scene {
   }
 
   // ---------- quests ----------
+
+  // ---------- loot ----------
+
+  /** Bosses always drop; normal enemies roll a chance. Drops a ground gem. */
+  private maybeDropLoot(def: EnemyData, x: number, y: number): void {
+    if (!def.boss && Math.random() >= NORMAL_DROP_CHANCE) return;
+    const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random);
+    this.spawnDrop(x, y, item);
+  }
+
+  private spawnDrop(x: number, y: number, item: ItemInstance): void {
+    const gem = this.add
+      .rectangle(x, y, 6, 6, RARITY_COLOR[item.rarity] ?? 0xffffff)
+      .setStrokeStyle(1, 0x000000, 0.7)
+      .setAngle(45)
+      .setDepth(3);
+    this.tweens.add({ targets: gem, y: y - 3, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' });
+    this.drops.push({ item, gfx: gem });
+  }
+
+  /** Collect any drop the player is standing on into the bag. */
+  private collectDrops(): void {
+    for (let i = this.drops.length - 1; i >= 0; i--) {
+      const d = this.drops[i]!;
+      if (Phaser.Math.Distance.Between(d.gfx.x, d.gfx.y, this.player.x, this.player.y) > PICKUP_RANGE) continue;
+      this.saveData.bag.push(d.item);
+      this.numbers.spawn(this.player.x, this.player.y - 14, d.item.name, `#${(RARITY_COLOR[d.item.rarity] ?? 0xffffff).toString(16).padStart(6, '0')}`);
+      d.gfx.destroy();
+      this.drops.splice(i, 1);
+      this.saveNow();
+    }
+  }
 
   // ---------- dialogue ----------
 

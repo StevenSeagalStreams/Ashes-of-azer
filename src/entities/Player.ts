@@ -29,7 +29,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   hp = 100;
   maxMp = 55; // prototype: 50 + level*5
   mp = 55;
-  cdrPct = 0; // gear stat stub (m0.3 data, wired with items)
+  cdrPct = 0;
+  /** Flat weapon/gear damage added before multipliers (m1.7). */
+  gearFlatDamage = 0;
   atkCd = 0;
   dead = false;
   // From slotted passives (recomputed by the scene each stat change).
