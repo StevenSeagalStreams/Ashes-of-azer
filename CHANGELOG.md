@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- **Combat feels chunkier.** Hero and enemies now bob as they walk and the hero
+  lunges when it swings; enemies **telegraph** their attacks — a yellow brace-flash
+  before a melee hit, and the slam ring now shows *before* the blow lands, so
+  everything is readable and dodgeable. Landing a **critical** hit briefly
+  freezes the action and shakes the screen, your hits **knock enemies back**,
+  and slain foes **splat and fade** instead of blinking out.
+- Damage numbers got a pass: **crits punch in big and gold**, damage-over-time
+  ticks are small, and damage *you* take pops in aggressive red.
 - **Items now change how your skills behave, not just their numbers** — the core
   of the game. Legendaries carry *skill mods*: the **Emberfall Signet** makes
   Fireball split into three, chain between enemies, *and* boomerang back to you;

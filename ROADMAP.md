@@ -93,12 +93,12 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Tooltips show modified skill values (item bonuses included)
 
 ### 1.6 Combat feel pass
-- [ ] Procedural motion now (no art dep): walk squash/bob + attack lunge on hero & enemies
+- [x] Procedural motion now (no art dep): walk squash/bob + attack lunge on hero & enemies
 - [ ] Final 4-direction walk/attack/hit/death sheets for all 3 classes (32×32, 4–6 frames) — needs art direction (Asset request)
-- [ ] Enemy attack telegraphs: windup flash + area indicator before every hit
-- [ ] Hit-stop (2–3 frame freeze on hit), screen shake on heavy hits, knockback
-- [ ] Death animations + corpse fade instead of instant despawn
-- [ ] Damage number pass: crits pop bigger, DoT ticks smaller, player damage red
+- [x] Enemy attack telegraphs: windup flash + area indicator before every hit
+- [x] Hit-stop (2–3 frame freeze on hit), screen shake on heavy hits, knockback
+- [x] Death animations + corpse fade instead of instant despawn
+- [x] Damage number pass: crits pop bigger, DoT ticks smaller, player damage red
 
 **Milestone complete when:** all 3 classes are playable with full kits, builds differ meaningfully, and at least one "my fireball behaves completely differently now" legendary works.
 

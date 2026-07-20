@@ -1,25 +1,52 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 1.5 COMPLETE** (item-modifies-skill — all 7 sub-boxes ticked).
-Next: **Milestone 1.6 — Combat feel pass**, first box: "4-direction
-walk/attack/hit/death animations for all 3 classes (32×32, 4–6 frames)."
+**MILESTONE 1.6 mostly COMPLETE** — 5 of 6 boxes done; the only open box is
+the **final 4-direction per-class sprite sheets**, which is BLOCKED on an
+art-direction decision (see Asset requests + the note below). Next feasible
+work: **Milestone 1.7 — Boss & encounter polish** (read ROADMAP for its boxes);
+do NOT tick 1.6 complete until the art sheets land.
 
 Notes for that session:
-- 1.6 is a polish/juice milestone: directional animations (needs sprite
-  sheets — likely an **Asset request**, since art is procedural today),
-  enemy attack telegraphs (windup flash + area indicator), hit-stop + screen
-  shake + knockback, death animations/corpse fade, and a damage-number pass
-  (crits bigger, DoT smaller, player damage red). Much of this is feel/visual
-  — verify with headless where feasible, flag the rest under Needs human
-  playtest.
-- The DamageNumbers pool (`src/systems/DamageNumbers.ts`) and the color-coded
-  `numbers.spawn(x,y,text,color)` already exist; the number pass is mostly
-  sizing/color tweaks there. Hit-stop = a brief `this.time`/tween pause on
-  hit; screen shake = `this.cameras.main.shake()`. Enemy telegraphs slot into
-  `Enemy.updateEnemy` before the contact/slam hit.
+- The 1.6 art box (32×32 4-dir walk/attack/hit/death for all 3 classes) needs
+  real sprite sheets and an art-direction call — a CLAUDE.md "stop and ask"
+  (art style/licensing). The classes don't even have distinct sprites yet (all
+  use the procedural `hero`). Options to raise with the user: (a) commission/
+  source a cohesive 3-class sheet set, (b) I hand-draw procedural multi-frame
+  sheets (bigger, lower-fidelity), (c) defer directional sheets and keep the
+  procedural squash/lunge motion as the "animation" for now. **Ask before
+  doing art.** When sheets exist, the sprite system (`pixelart.ts`
+  `addSpriteTexture`) makes single-frame canvas textures — it'll need a
+  spritesheet loader + a Phaser anim-state machine (idle/walk/attack/hit/death
+  × 4 dirs) on Player/Enemy.
+- If moving on: 1.7+ is unblocked. The procedural motion + telegraphs +
+  hit-stop/shake/knockback + corpse fade + number pass already deliver most of
+  the "feel" the milestone was after (its completion criterion — 3 classes,
+  differing builds, a skill-transforming legendary — was already met at 1.5).
 
 ## Done
+- **Milestone 1.6 (5/6 boxes): combat feel pass** (all headless-verified 7/7,
+  121 unit tests still green):
+  - **Procedural motion** (no art dep): `Player`/`Enemy` do a walk squash-bob
+    while moving (scale-only, so the physics body is untouched) and the hero
+    does a short attack **lunge** on each swing.
+  - **Enemy attack telegraphs**: a contact hit now has a ~0.28s **windup** —
+    the enemy braces (stops) and flashes yellow, then strikes only if you're
+    still in reach; the boss **slam** shows its ring for ~0.4s *before* the blow
+    lands (dodgeable). New `windupT`/`slamPendingT` timers in `Enemy`.
+  - **Hit-stop + shake + knockback**: a **crit** triggers ~0.05s of hit-stop
+    (WorldScene.update early-returns while `hitStopT>0`; tweens keep playing so
+    the number still pops) plus a small `cameras.main.shake`; every player hit
+    **knocks the enemy back** (`Enemy.knockback` sets an away-from-player
+    impulse that a `knockT` window lets carry before the AI resumes).
+  - **Corpse fade**: `Enemy.die` now goes **inactive** (so all `active`-gated
+    combat/targeting ignores it — with a re-entry guard so a kill is never
+    awarded twice), then splat-fades (alpha→0, scaleX↑/scaleY↓) over 260ms
+    before destroying, instead of vanishing instantly.
+  - **Damage number pass** (`DamageNumbers.spawn(..., kind)`): `crit` pops in
+    big/gold with a Back-ease scale punch, `dot` ticks are small and quick,
+    `player` damage reads in aggressive red (#f0463c). Callers updated in
+    `Enemy.takeHit`/`tickDoT` and `Player.takeDamage`.
 - **Milestone 1.5 COMPLETE: item-modifies-skill system (the design's heart).**
   Items change how skills *behave*, not just their numbers — fully data-driven
   (no code per legendary), headless-verified 9/9.
@@ -442,6 +469,15 @@ Notes for that session:
   up first), learn Execute (4) and try it on a low-hp enemy. Hotbar at the
   bottom: cooldown numbers, blue outline when out of mana. Does the panel
   read well at the game's scale?
+- **Combat feel (m1.6)**: play any class and just fight — the whole point is
+  *feel*, which only human eyes can judge. Watch for: the walk bob + attack
+  lunge; the yellow **brace-flash** before an enemy melees you and the slam
+  ring appearing *before* Rotfang's slam; the brief **freeze + screen-shake**
+  when you land a crit; enemies getting **knocked back** by your hits; and foes
+  **splat-fading** on death. Damage numbers: gold crits are big, DoT ticks
+  small, the red numbers when you get hit. Does it feel punchy? Any telegraph
+  too long/short, knockback too strong, hit-stop too jarring? (All the timings
+  are constants — easy to tune to your taste.)
 - **Item-modifies-skill (m1.5)**: no loot drops yet, so this needs a save
   edit to see live — in the console run (as a Mage):
   `let s=JSON.parse(localStorage.azer['azer:save:1']||localStorage.getItem('azer:save:1')); s.gear={Ring:{slot:'Ring',name:'Emberfall Signet',base:3,rarity:'legendary',affixes:[],power:'emberfall'}}; localStorage.setItem('azer:save:1',JSON.stringify(s)); location.reload()`
@@ -498,3 +534,12 @@ Notes for that session:
 - **Hunter arrow/trap VFX (m1.4)**: arrows reuse the generic projectile dot and
   traps a tinted circle. Fine for now; a proper arrow sprite + trap telegraph
   art would sell the class. Cosmetic.
+- **⭐ Character sprite sheets (m1.6 — BLOCKS the last 1.6 box)**: the one
+  unchecked 1.6 box is "4-direction walk/attack/hit/death sheets for all 3
+  classes (32×32, 4–6 frames)". This needs an **art-direction decision**
+  (CLAUDE.md: ask before art). Today all classes share the single procedural
+  `hero` sprite and there are no animation frames. Decide with the user: source/
+  commission a cohesive 3-class set, hand-draw procedural multi-frame sheets, or
+  defer directional sheets (the procedural squash/lunge stands in for now). Once
+  chosen, the sprite system needs a spritesheet loader + a per-entity anim state
+  machine. **Everything else in 1.6 is done and doesn't depend on this.**
