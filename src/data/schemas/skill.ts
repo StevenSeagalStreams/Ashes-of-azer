@@ -142,6 +142,19 @@ export const SkillSchema = z.discriminatedUnion('mechanic', [
     chillPct: RankScaling.optional(),
     burnDps: RankScaling.optional(),
   }),
+  SkillCommon.extend({
+    mechanic: z.literal('trap'), // Hunter: placed, arms, detonates on enemy contact
+    radius: RankScaling, // trigger + blast radius
+    armTime: z.number().nonnegative(), // delay before it can trigger
+    lifetime: z.number().positive(), // despawns if never tripped
+    damageMultiplier: RankScaling,
+    element: ElementSchema.default('none'),
+    stunDuration: RankScaling.optional(),
+    burnDps: RankScaling.optional(),
+    chillPct: RankScaling.optional(),
+    chillDuration: z.number().positive().optional(),
+    burnDuration: z.number().positive().optional(),
+  }),
 ]);
 export type SkillData = z.infer<typeof SkillSchema>;
 

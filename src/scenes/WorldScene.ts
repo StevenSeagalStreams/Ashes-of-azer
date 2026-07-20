@@ -4,6 +4,7 @@ import type { EnemyData, ZoneData } from '../data/schemas/index.ts';
 import { Enemy } from '../entities/Enemy.ts';
 import { ProjectilePool } from '../entities/Projectile.ts';
 import { GroundEffectPool } from '../entities/GroundEffect.ts';
+import { TrapPool } from '../entities/Trap.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -105,6 +106,7 @@ export class WorldScene extends Phaser.Scene {
   private skillUI!: SkillUI;
   private projectiles!: ProjectilePool;
   private ground!: GroundEffectPool;
+  private traps!: TrapPool;
 
   constructor() {
     super('World');
@@ -163,6 +165,7 @@ export class WorldScene extends Phaser.Scene {
     };
     this.projectiles = new ProjectilePool(this, combatHooks);
     this.ground = new GroundEffectPool(this, combatHooks);
+    this.traps = new TrapPool(this, combatHooks);
 
     this.enemies = this.physics.add.group({ runChildUpdate: false });
     this.physics.add.collider(this.enemies, layer);
@@ -250,6 +253,7 @@ export class WorldScene extends Phaser.Scene {
       this.skillUI.destroy();
       this.projectiles.destroy();
       this.ground.destroy();
+      this.traps.destroy();
     });
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-R', () => {
@@ -319,6 +323,7 @@ export class WorldScene extends Phaser.Scene {
     this.skillUI.refresh();
     this.projectiles.update(dt);
     this.ground.update(dt);
+    this.traps.update(dt);
 
     const cam = this.cameras.main;
     this.fog.update(this.player.x - cam.scrollX, this.player.y - cam.scrollY);
@@ -678,6 +683,30 @@ export class WorldScene extends Phaser.Scene {
           burst: skill.burstMultiplier ? this.effectiveDamage() * scaleValue(skill.burstMultiplier, rank) : undefined,
           color:
             skill.element === 'fire' ? 0xe07830 : skill.element === 'frost' ? 0x7fa8ee : (0x9aa0b0 as number),
+        });
+        break;
+      }
+      case 'trap': {
+        // Dropped at the Hunter's feet; arms, then detonates on contact.
+        this.traps.spawn({
+          x: p.x,
+          y: p.y,
+          radius: scaleValue(skill.radius, rank),
+          armTime: skill.armTime,
+          lifetime: skill.lifetime,
+          damage: this.effectiveDamage() * scaleValue(skill.damageMultiplier, rank),
+          element: skill.element,
+          stun: skill.stunDuration ? scaleValue(skill.stunDuration, rank) : undefined,
+          burn:
+            skill.burnDps && skill.burnDuration
+              ? { dps: scaleValue(skill.burnDps, rank), duration: skill.burnDuration }
+              : undefined,
+          chill:
+            skill.chillPct && skill.chillDuration
+              ? { pct: scaleValue(skill.chillPct, rank), duration: skill.chillDuration }
+              : undefined,
+          color:
+            skill.element === 'fire' ? 0xe07830 : skill.element === 'frost' ? 0x7fa8ee : (0xd0c020 as number),
         });
         break;
       }

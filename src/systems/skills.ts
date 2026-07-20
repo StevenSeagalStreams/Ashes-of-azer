@@ -127,6 +127,11 @@ export function describeSkill(skill: SkillData, rank: number): string {
       const burst = skill.burstMultiplier ? `${pct(skill.burstMultiplier)}% on impact, then ` : '';
       return `${burst}${el} ground: ${Math.round(scaleValue(skill.tickDps, r))} dmg/s for ${skill.duration}s`;
     }
+    case 'trap': {
+      const stun = skill.stunDuration ? `, stun ${scaleValue(skill.stunDuration, r).toFixed(1)}s` : '';
+      const el = skill.element === 'fire' ? ', burns' : skill.element === 'frost' ? ', chills' : '';
+      return `Set a trap (${Math.round(scaleValue(skill.radius, r))}px) that detonates for ${pct(skill.damageMultiplier)}% dmg${stun}${el}`;
+    }
     case 'leap':
       return `Leap ${Math.round(scaleValue(skill.distance, r))}px; landing hits for ${pct(skill.damageMultiplier)}% dmg`;
     case 'execute':
