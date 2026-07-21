@@ -29,9 +29,11 @@
     "name": "Verdant Reach",
     "dark": false,
     "enemyTypes": [
-      "slime",
-      "bat",
-      "skel"
+      "thornwolf",
+      "sporeling",
+      "spitter",
+      "grovewarden",
+      "bat"
     ]
   },
   {

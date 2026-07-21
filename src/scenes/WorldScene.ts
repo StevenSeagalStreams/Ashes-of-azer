@@ -3,6 +3,7 @@ import type { GameData } from '../data/loader.ts';
 import type { EnemyData, ZoneData } from '../data/schemas/index.ts';
 import { Enemy } from '../entities/Enemy.ts';
 import { ProjectilePool } from '../entities/Projectile.ts';
+import { EnemyProjectilePool, type EnemyShot } from '../entities/EnemyProjectile.ts';
 import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { TrapPool } from '../entities/Trap.ts';
 import { Pet } from '../entities/Pet.ts';
@@ -63,11 +64,14 @@ declare global {
     __AZER?: {
       player: Player;
       enemies: () => Enemy[];
+      spawn: (id: string, x: number, y: number) => boolean;
       zone: () => string;
       save: { now: () => void; export: () => string; import: (s: string) => void };
       // Read-only entity counts for headless smoke tests (and the m2.5 debug tools).
       counts: () => {
         projectiles: number;
+        enemyShots: number;
+        enemies: number;
         traps: number;
         pet: { hp: number; dead: boolean } | null;
         drops: number;
@@ -174,6 +178,7 @@ export class WorldScene extends Phaser.Scene {
   private dialogueNpc: Npc | null = null;
   private dialogueNodeId = '';
   private projectiles!: ProjectilePool;
+  private enemyShots!: EnemyProjectilePool;
   private ground!: GroundEffectPool;
   private traps!: TrapPool;
   // The Hunter's companion (one at a time). null until Summon Pet is cast.
@@ -243,6 +248,10 @@ export class WorldScene extends Phaser.Scene {
     this.projectiles = new ProjectilePool(this, combatHooks);
     this.ground = new GroundEffectPool(this, combatHooks);
     this.traps = new TrapPool(this, combatHooks);
+    this.enemyShots = new EnemyProjectilePool(this, {
+      playerPos: () => (this.player.dead ? null : { x: this.player.x, y: this.player.y }),
+      hit: (amount) => this.player.takeDamage(amount, this.numbers),
+    });
 
     this.enemies = this.physics.add.group({ runChildUpdate: false });
     this.physics.add.collider(this.enemies, layer);
@@ -279,6 +288,10 @@ export class WorldScene extends Phaser.Scene {
     });
     this.events.off('enemy-died');
     this.events.on('enemy-died', (def: EnemyData, x: number, y: number) => this.onEnemyDied(def, x, y));
+    this.events.off('enemy-shoot');
+    this.events.on('enemy-shoot', (shot: EnemyShot) => this.enemyShots.fire(shot));
+    this.events.off('enemy-summon');
+    this.events.on('enemy-summon', (cfg: NonNullable<EnemyData['summon']>, x: number, y: number) => this.summonMinions(cfg, x, y));
 
     this.skillUI = new SkillUI({
       skills: this.effectiveSkills, // tooltips reflect equipped skillMods
@@ -384,6 +397,7 @@ export class WorldScene extends Phaser.Scene {
       this.stashUI.destroy();
       this.repairUI.destroy();
       this.projectiles.destroy();
+      this.enemyShots.destroy();
       this.ground.destroy();
       this.traps.destroy();
       this.pet?.destroyPet();
@@ -421,6 +435,12 @@ export class WorldScene extends Phaser.Scene {
     window.__AZER = {
       player: this.player,
       enemies: () => this.enemies.getChildren() as Enemy[],
+      spawn: (id, x, y) => {
+        const def = this.gameData.enemies.find((e) => e.id === id);
+        if (!def) return false;
+        this.enemies.add(new Enemy(this, def, x, y, this.player.level));
+        return true;
+      },
       zone: () => this.zoneId,
       save: {
         now: () => this.saveNow(),
@@ -433,6 +453,8 @@ export class WorldScene extends Phaser.Scene {
       },
       counts: () => ({
         projectiles: this.projectiles.activeCount(),
+        enemyShots: this.enemyShots.activeCount(),
+        enemies: (this.enemies.getChildren() as Enemy[]).filter((e) => e.active).length,
         traps: this.traps.activeCount(),
         pet: this.pet ? { hp: this.pet.hp, dead: this.pet.dead } : null,
         drops: this.drops.length,
@@ -487,6 +509,7 @@ export class WorldScene extends Phaser.Scene {
     this.publishHud();
     this.skillUI.refresh();
     this.projectiles.update(dt);
+    this.enemyShots.update(dt);
     this.ground.update(dt);
     this.traps.update(dt);
     this.pet?.updatePet(dt, this.player);
@@ -544,6 +567,26 @@ export class WorldScene extends Phaser.Scene {
       state.timer = state.region.respawnInterval;
       const alive = (this.enemies.getChildren() as Enemy[]).filter((e) => e.active).length;
       if (alive < state.region.respawnCap) this.spawnInRegion(state.region, 120);
+    }
+  }
+
+  /** A summoner's call: spawn up to `count` minions near it, capped by `max`
+   *  living minions of that type and a hard scene cap (perf guard). */
+  private summonMinions(cfg: NonNullable<EnemyData['summon']>, x: number, y: number): void {
+    const def = this.gameData.enemies.find((e) => e.id === cfg.minion);
+    if (!def) return; // unknown minion id — validated content should never hit this
+    const living = (this.enemies.getChildren() as Enemy[]).filter((e) => e.active);
+    const ofType = living.filter((e) => e.def.id === cfg.minion).length;
+    const HARD_CAP = 80; // never let summoners tank the frame budget
+    let room = Math.min(cfg.count, cfg.max - ofType, HARD_CAP - living.length);
+    for (let i = 0; room > 0 && i < 12; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 14 + Math.random() * 12;
+      const sx = x + Math.cos(ang) * dist;
+      const sy = y + Math.sin(ang) * dist;
+      if (!walkableMask(this.solidMask, sx, sy, 6)) continue;
+      this.enemies.add(new Enemy(this, def, sx, sy, this.player.level));
+      room--;
     }
   }
 

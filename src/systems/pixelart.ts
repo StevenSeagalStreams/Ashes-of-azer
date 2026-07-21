@@ -113,6 +113,52 @@ export const VENDOR_ROWS = [
   '..kk..kk..',
 ];
 
+// ---- Forest Kingdom enemies (m2.4) ----
+// Thornwolf (charger): a lean green-brown beast, fangs bared for the dash.
+export const THORNWOLF_ROWS = [
+  '.k......k.',
+  'tkt....tkt',
+  'tttttttttt',
+  'tykttttkyt',
+  'tttwwwwttt',
+  '.tttttttt.',
+  '.d.d..d.d.',
+];
+
+// Sporeling (exploder): a fat red-capped fungus, about to burst.
+export const SPORELING_ROWS = [
+  '..rRRRr..',
+  '.rRwRRwr.',
+  'rRRRRRRRr',
+  '.rk.rr.k.',
+  '..ewwwe..',
+  '..e...e..',
+];
+
+// Fungal spitter (ranged): a tall spore-shooter, teal maw, orange glands.
+export const SPITTER_ROWS = [
+  '..pPPPp..',
+  '.pPPPPPp.',
+  'pPqqqqqPp',
+  'pPqoooqPp',
+  '.pPPPPPp.',
+  '..oe.eo..',
+  '..e...e..',
+];
+
+// Grovewarden (summoner): a bark treant with a leafy crown and glowing eyes.
+export const GROVEWARDEN_ROWS = [
+  '..tGGGGt..',
+  '.tGGGGGGt.',
+  'tGGGGGGGGt',
+  'tGtGGGGtGt',
+  '.dDyDDyDd.',
+  '.dDDDDDDd.',
+  '.dDdDDdDd.',
+  '.dD.DD.Dd.',
+  '.d......d.',
+];
+
 // Fallback for a `sprite` key in enemies.json that has no dedicated art
 // (e.g. a freshly-added enemy type) — a plain magenta blob, so content
 // authors can add a new enemy purely in JSON without the game crashing on
@@ -127,6 +173,10 @@ const SPRITE_ROW_SETS: Record<string, string[]> = {
   boss: BOSS_ROWS,
   elder: ELDER_ROWS,
   vendor: VENDOR_ROWS,
+  thornwolf: THORNWOLF_ROWS,
+  sporeling: SPORELING_ROWS,
+  spitter: SPITTER_ROWS,
+  grovewarden: GROVEWARDEN_ROWS,
 };
 
 export const spriteRowsFor = (key: string): string[] => SPRITE_ROW_SETS[key] ?? DEFAULT_ENEMY_ROWS;

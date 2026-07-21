@@ -1,17 +1,17 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 2 of 9 boxes done (Tileset+map: the Verdant
-Reach; **Town with all services**: Thornhollow). **Next box (top-to-bottom):
-"4–5 new enemy types with distinct attack patterns"** — data-driven enemies
-(data/enemies.json + the enemy AI/attack system). Check whether the current
-Enemy entity supports the attack variety needed (telegraph/slam exists; may need
-ranged/charger/summoner patterns) — this box likely needs some engine work in
-Enemy.ts, not just data. Then: dungeon+mini-boss+relic, world boss, faction/rep
-track, 8–12 quest chain, 2–3 secrets, *write down the hours*. Still open from
-earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
-Milestone 2 finishes when a new player can play Starter Plains → Forest Kingdom
-carried by quests.
+**MILESTONE 2.4 IN PROGRESS** — 3 of 9 boxes done (Tileset+map; Town; **new enemy
+types**). **Next box (top-to-bottom): "Dungeon with mini-boss + relic fragment"**
+— a forest dungeon map (genForestDungeon, dark) reachable from the Reach, with a
+mini-boss and a "relic fragment" reward. The mini-boss can reuse the slam pattern
+or one of the new m2.4 patterns; "relic fragment" is a new reward concept — decide
+if it's an item, a quest flag, or a new save field (likely a quest/flag for now,
+since the loot system rolls procedurally and has no fixed item ids). Then: world
+boss, faction/rep track, 8–12 quest chain, 2–3 secrets, *write down the hours*.
+Still open from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers
+(minimap). Milestone 2 finishes when a new player can play Starter Plains →
+Forest Kingdom carried by quests.
 
 Notes for the remaining 2.4 boxes:
 - 2.4 is a *production* milestone — most boxes reuse existing systems
@@ -52,6 +52,26 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 new enemy types (3rd box): 4 distinct attack patterns**
+  (headless-verified 9/9; 179 unit tests). The Reach's roster, each a genuinely
+  different fight — all data-driven via optional `EnemySchema` configs:
+  - **Attack-pattern engine** (Enemy.ts): `charge` (telegraph → locked dash,
+    contact once), `ranged` (fire a projectile at the player from range),
+    `explode` (rush → windup ring → self-destruct AoE), `summon` (call minions,
+    scene enforces the `max` + a hard cap). `keepDistance` adds a kite movement
+    mode. Pure movement decision extracted to `src/systems/enemyAI.ts` (`moveMode`
+    / `abilityReady`, unit-tested). New `EnemyProjectilePool` (mirror of the
+    player's pool — straight shots that damage the player). Enemy emits
+    `enemy-shoot` / `enemy-summon` events; WorldScene owns the pool + summon
+    spawner (mirrors the existing `enemy-died` wiring).
+  - **4 enemy types** (data/enemies.json + forest zone enemyTypes): thornwolf
+    (charge), sporeling (explode), spitter (ranged + keepDistance), grovewarden
+    (summon sporelings). Each has its own procedural sprite (pixelart.ts).
+  - Content test now checks summon-minion ids resolve. `__AZER.spawn(id,x,y)`
+    added to the debug handle (test infra + future m2.5 debug tools); `counts()`
+    now reports enemyShots + live enemy count. Exploders/chargers skip the normal
+    contact attack (their dash/detonation is their attack); ring telegraph
+    extracted to `Enemy.spawnRing`.
 - **Milestone 2.4 Town with all services (2nd box): Thornhollow** (headless-
   verified 7/7; 174 unit tests). The Forest Kingdom's town, reusing every m2.3
   service system with zero new code — proof the town/service architecture is
@@ -678,6 +698,13 @@ Notes for the remaining 2.4 boxes:
   work — but **placement/feel want human eyes**: are the four service NPCs easy to
   find under their buildings, and does the forest-floor town read as distinct from
   Ashfall (not just a recolor)? Is the north-spur route to it obvious enough?
+- **Reach enemy patterns (m2.4)**: fight in the Verdant Reach and read the four
+  new foes — thornwolf (yellow flash → dash), sporeling (red flash + ring →
+  explodes), spitter (shoots from range, backs away), grovewarden (hangs back,
+  spawns sporelings). Smoke-verified each behavior fires; **tuning + readability
+  want human eyes**: are the telegraphs long enough to react to? Is the mix fun or
+  overwhelming (esp. grovewarden + sporeling swarms)? Are damage/HP values fair
+  for a just-past-plains player? Do the procedural sprites read as distinct?
 - **The Verdant Reach (m2.4)**: take the **east path out of the plains** (past
   the town turn-off) to the forest gate. Smoke-verified it loads, transitions
   both ways, spawns enemies, and runs ~61 fps — but the **look and feel want

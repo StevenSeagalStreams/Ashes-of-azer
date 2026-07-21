@@ -135,7 +135,9 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 ### 2.4 Zone 2 — Forest Kingdom (full production, sets the template)
 - [x] Tileset + map (~3× Starter Plains size) — the **Verdant Reach**: 100×72 (=3×) forest map, new forest tiles (dark floor, pines, mushrooms), reachable via an east gate from the plains
 - [x] Town with all services — **Thornhollow**: forest-floor town reachable via a north gate off the Reach, with vendor (Fennwick), blacksmith (Garrow), stash (Wren) + trainer/respec (Warden-Master Sylva)
-- [ ] 4–5 new enemy types with distinct attack patterns
+- [x] 4–5 new enemy types with distinct attack patterns
+  - [x] Attack-pattern engine: data-driven charge / ranged / explode / summon behaviors in Enemy.ts + enemy-projectile pool
+  - [x] 4–5 forest enemy types using them, wired into the Verdant Reach — thornwolf (charge), sporeling (explode), spitter (ranged+kite), grovewarden (summon)
 - [ ] Dungeon with mini-boss + relic fragment
 - [ ] World boss (open-world, respawns, announced spawn)
 - [ ] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers)

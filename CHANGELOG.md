@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- **The Reach fights back — four new foes, four ways to die.** The Verdant Reach
+  now hunts you with enemies that don't just walk into your sword:
+  **thornwolves** rear back and **charge** in a fast telegraphed lunge;
+  **sporelings** rush you and **explode** in a spore-burst (bait them and dodge);
+  **fungal spitters** hang back and **shoot spores** at range, backpedalling when
+  you close; and **grovewardens** stay out of reach and **summon sporelings** to
+  swarm you. Watch for the tells — every attack flashes a windup or a ring before
+  it lands.
 - **A town in the forest: Thornhollow.** Follow the **north spur off the Reach's
   main path** to a hold in the pines with the full slate of services — **Trader
   Fennwick** (buy/sell), **Smith Garrow** (repair + craft), **Keeper Wren**

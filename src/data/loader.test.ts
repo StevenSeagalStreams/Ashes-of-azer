@@ -79,6 +79,10 @@ describe('the real /data/*.json content', () => {
     for (const z of data.zones)
       for (const et of z.enemyTypes) expect(enemyIds, `${z.id} enemyType`).toContain(et);
 
+    // A summoner's minion must be a real enemy id.
+    for (const e of data.enemies)
+      if (e.summon) expect(enemyIds, `${e.id} summon minion`).toContain(e.summon.minion);
+
     for (const q of data.quests) {
       for (const pre of q.prerequisites) expect(questIds, `${q.id} prereq`).toContain(pre);
       for (const obj of q.objectives) {

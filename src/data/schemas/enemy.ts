@@ -23,6 +23,50 @@ export const EnemySchema = z.object({
       radius: z.number().positive(),
     })
     .optional(),
+  // ---- Distinct attack patterns (m2.4). All optional + data-driven. ----
+  // A kiter keeps this many px between itself and the player (backs away when
+  // closer, holds at range). Pairs naturally with `ranged`.
+  keepDistance: z.number().positive().optional(),
+  // Charger: telegraph, then dash toward the player's locked position at `speed`
+  // for `duration`s; contact during the dash lands `dmg`. Then waits `cooldown`.
+  charge: z
+    .object({
+      range: z.number().positive(), // start a charge when the player is within this
+      windup: z.number().positive(), // telegraph time before the dash
+      speed: z.number().positive(), // dash speed (px/s)
+      duration: z.number().positive(), // how long the dash lasts
+      cooldown: z.number().positive(),
+    })
+    .optional(),
+  // Ranged: fire a projectile at the player when within `range`, every `cooldown`.
+  ranged: z
+    .object({
+      range: z.number().positive(),
+      cooldown: z.number().positive(),
+      damage: z.number().positive(),
+      projectileSpeed: z.number().positive(),
+    })
+    .optional(),
+  // Exploder: rush in, and within `range` telegraph then self-destruct, dealing
+  // `damage` to the player inside `radius`. Dies on detonation.
+  explode: z
+    .object({
+      range: z.number().positive(),
+      windup: z.number().positive(),
+      damage: z.number().positive(),
+      radius: z.number().positive(),
+    })
+    .optional(),
+  // Summoner: every `interval`s, call up `count` minions (enemy id `minion`),
+  // never exceeding `max` of its own living summons.
+  summon: z
+    .object({
+      minion: z.string(),
+      count: z.number().int().positive(),
+      interval: z.number().positive(),
+      max: z.number().int().positive(),
+    })
+    .optional(),
 });
 export type EnemyData = z.infer<typeof EnemySchema>;
 

@@ -15,5 +15,55 @@
     "boss": true,
     "name": "ROTFANG, BARROW TYRANT",
     "slam": { "interval": 4.5, "damage": 22, "radius": 64 }
+  },
+  {
+    "id": "thornwolf",
+    "sprite": "thornwolf",
+    "hp": 34,
+    "dmg": 12,
+    "spd": 40,
+    "xp": 22,
+    "aggro": 170,
+    "width": 12,
+    "height": 8,
+    "charge": { "range": 130, "windup": 0.5, "speed": 240, "duration": 0.45, "cooldown": 3 }
+  },
+  {
+    "id": "sporeling",
+    "sprite": "sporeling",
+    "hp": 14,
+    "dmg": 0,
+    "spd": 62,
+    "xp": 14,
+    "aggro": 160,
+    "width": 9,
+    "height": 8,
+    "explode": { "range": 24, "windup": 0.6, "damage": 22, "radius": 34 }
+  },
+  {
+    "id": "spitter",
+    "sprite": "spitter",
+    "hp": 26,
+    "dmg": 6,
+    "spd": 30,
+    "xp": 20,
+    "aggro": 240,
+    "width": 10,
+    "height": 10,
+    "keepDistance": 110,
+    "ranged": { "range": 210, "cooldown": 1.8, "damage": 8, "projectileSpeed": 130 }
+  },
+  {
+    "id": "grovewarden",
+    "sprite": "grovewarden",
+    "hp": 80,
+    "dmg": 11,
+    "spd": 20,
+    "xp": 42,
+    "aggro": 190,
+    "width": 14,
+    "height": 12,
+    "keepDistance": 130,
+    "summon": { "minion": "sporeling", "count": 2, "interval": 6, "max": 4 }
   }
 ]

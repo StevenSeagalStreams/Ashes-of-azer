@@ -3,6 +3,7 @@ import type { EnemyData } from '../data/schemas/index.ts';
 import { CONTACT_RANGE, ENEMY_ATTACK_COOLDOWN, scaledEnemyHp, type HitResult } from '../systems/combat.ts';
 import { DamageNumbers } from '../systems/DamageNumbers.ts';
 import { addSpriteTexture, spriteRowsFor } from '../systems/pixelart.ts';
+import { moveMode } from '../systems/enemyAI.ts';
 import type { Player } from './Player.ts';
 
 let nextEnemyId = 1;
@@ -34,6 +35,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private windupT = 0; // contact-attack telegraph timer
   private slamPendingT = 0; // slam telegraph → impact timer
   private knockT = 0; // brief window where knockback velocity overrides the AI
+  // ---- attack-pattern state (m2.4) ----
+  private chargeCd = 0;
+  private chargeWindupT = 0; // charge telegraph → dash
+  private chargeDashT = 0; // active dash
+  private chargeVX = 0;
+  private chargeVY = 0;
+  private chargeHit = false; // dash contact damage lands once per dash
+  private rangedCd = 0;
+  private explodePendingT = 0; // explode telegraph → detonation
+  private summonT = 2; // first summon 2s after spawn
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
@@ -56,6 +67,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   updateEnemy(dt: number, player: Player, numbers: DamageNumbers): void {
     this.atkCd = Math.max(0, this.atkCd - dt);
+    this.chargeCd = Math.max(0, this.chargeCd - dt);
+    this.rangedCd = Math.max(0, this.rangedCd - dt);
     if (this.vulnerableT > 0) {
       this.vulnerableT -= dt;
       if (this.vulnerableT <= 0) this.vulnerablePct = 0;
@@ -96,23 +109,101 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       return;
     }
     const d = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-    if (d < this.def.aggro && d > 2) {
-      const chill = 1 - this.chillPct / 100; // frost slow
-      const vx = ((player.x - this.x) / d) * this.def.spd * chill;
-      const vy = ((player.y - this.y) / d) * this.def.spd * chill;
+    // Charger (m2.4): telegraph in place, then dash the locked heading, dealing a
+    // contact hit once. Overrides normal movement while winding up or dashing.
+    if (this.def.charge) {
+      if (this.chargeWindupT > 0) {
+        this.chargeWindupT -= dt;
+        this.setVelocity(0, 0);
+        if (this.chargeWindupT <= 0) {
+          this.clearTint();
+          const dd = d || 1;
+          this.chargeVX = ((player.x - this.x) / dd) * this.def.charge.speed;
+          this.chargeVY = ((player.y - this.y) / dd) * this.def.charge.speed;
+          this.chargeDashT = this.def.charge.duration;
+          this.chargeHit = false;
+        }
+        this.positionHpBar();
+        return;
+      }
+      if (this.chargeDashT > 0) {
+        this.chargeDashT -= dt;
+        this.setVelocity(this.chargeVX, this.chargeVY);
+        if (!this.chargeHit && d < CONTACT_RANGE + 4) {
+          this.chargeHit = true;
+          this.receiveThorns(player.takeDamage(this.def.dmg, numbers), numbers);
+        }
+        if (this.chargeDashT <= 0) {
+          this.chargeCd = this.def.charge.cooldown;
+          this.setVelocity(0, 0);
+        }
+        this.positionHpBar();
+        return;
+      }
+    }
+    // Movement: chase, kite (keepDistance), or hold — direction from the pure helper.
+    const mode = moveMode(d, this.def.aggro, this.def.keepDistance);
+    const chill = 1 - this.chillPct / 100; // frost slow
+    if (mode === 'chase' || mode === 'kite') {
+      const sign = mode === 'kite' ? -1 : 1;
+      const vx = (((player.x - this.x) / d) * this.def.spd * chill) * sign;
+      const vy = (((player.y - this.y) / d) * this.def.spd * chill) * sign;
       this.setVelocity(vx, vy);
-      this.bobPhase += dt * 14; // walk squash while chasing
+      this.bobPhase += dt * 14; // walk squash while moving
       const s = Math.sin(this.bobPhase);
       this.setScale(1 - s * 0.05, 1 + s * 0.06);
     } else {
       this.setVelocity(0, 0);
       this.setScale(1, 1);
     }
-    // Begin a contact attack with a telegraph (the hit lands when it resolves).
-    if (d < CONTACT_RANGE && this.atkCd <= 0) {
+    // Start a charge when the player wanders into range (telegraph resolves above).
+    if (this.def.charge && this.chargeCd <= 0 && d < this.def.charge.range) {
+      this.chargeWindupT = this.def.charge.windup;
+      this.setTint(WINDUP_TINT);
+    }
+    // Contact attack (chargers dash instead; exploders detonate instead).
+    if (!this.def.charge && !this.def.explode && d < CONTACT_RANGE && this.atkCd <= 0) {
       this.atkCd = ENEMY_ATTACK_COOLDOWN;
       this.windupT = CONTACT_WINDUP;
       this.setTint(WINDUP_TINT);
+    }
+    // Ranged (m2.4): loose a projectile toward the player from range.
+    const ranged = this.def.ranged;
+    if (ranged && this.rangedCd <= 0 && d <= ranged.range && d > 2) {
+      this.rangedCd = ranged.cooldown;
+      this.scene.events.emit('enemy-shoot', {
+        x: this.x,
+        y: this.y,
+        angle: Math.atan2(player.y - this.y, player.x - this.x),
+        speed: ranged.projectileSpeed,
+        damage: ranged.damage,
+      });
+    }
+    // Exploder (m2.4): within range, arm a telegraph then self-destruct in an AoE.
+    const explode = this.def.explode;
+    if (explode) {
+      if (this.explodePendingT > 0) {
+        this.explodePendingT -= dt;
+        if (this.explodePendingT <= 0) {
+          if (d < explode.radius) player.takeDamage(explode.damage, numbers);
+          this.spawnRing(explode.radius, SLAM_WINDUP);
+          this.die();
+          return;
+        }
+      } else if (d < explode.range) {
+        this.explodePendingT = explode.windup;
+        this.setTint(0xff5030);
+        this.spawnRing(explode.radius, explode.windup);
+      }
+    }
+    // Summoner (m2.4): periodically call minions (the scene enforces the cap).
+    const summon = this.def.summon;
+    if (summon) {
+      this.summonT -= dt;
+      if (this.summonT <= 0) {
+        this.summonT = summon.interval;
+        this.scene.events.emit('enemy-summon', summon, this.x, this.y);
+      }
     }
     // Data-driven AoE ground slam (prototype: Rotfang every 4.5s). The ring is
     // the area indicator; the blow lands only after the slam windup.
@@ -127,15 +218,20 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.slamT -= dt;
       if (this.slamT <= 0) {
         this.slamT = slam.interval;
-        const ring = this.scene.add
-          .image(this.x, this.y, 'ring')
-          .setDepth(7)
-          .setScale((slam.radius * 2) / 64);
-        this.scene.tweens.add({ targets: ring, alpha: 0, duration: SLAM_WINDUP * 1000, onComplete: () => ring.destroy() });
+        this.spawnRing(slam.radius, SLAM_WINDUP);
         this.slamPendingT = SLAM_WINDUP;
       }
     }
     this.positionHpBar();
+  }
+
+  /** Area telegraph ring that fades over `seconds` (slam + explode indicator). */
+  private spawnRing(radius: number, seconds: number): void {
+    const ring = this.scene.add
+      .image(this.x, this.y, 'ring')
+      .setDepth(7)
+      .setScale((radius * 2) / 64);
+    this.scene.tweens.add({ targets: ring, alpha: 0, duration: seconds * 1000, onComplete: () => ring.destroy() });
   }
 
   private receiveThorns(thorns: number, numbers: DamageNumbers): void {
