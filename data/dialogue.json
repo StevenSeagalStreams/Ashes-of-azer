@@ -486,6 +486,42 @@
     ]
   },
   {
+    "id": "foresttrainer",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The Wardens train here, under the old pines. Grown into the wrong shape? I can unmake your skills.",
+        "choices": [
+          {
+            "text": "Who trains here?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "Reset my skills (free).",
+            "action": {
+              "respec": true
+            },
+            "nextNodeId": "greet"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Warden-Master Sylva. The Reach's defenders learn the blade and the bow beneath this canopy. Return when your path needs re-cutting.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "priest",
     "startNodeId": "greet",
     "nodes": [

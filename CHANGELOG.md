@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **A town in the forest: Thornhollow.** Follow the **north spur off the Reach's
+  main path** to a hold in the pines with the full slate of services — **Trader
+  Fennwick** (buy/sell), **Smith Garrow** (repair + craft), **Keeper Wren**
+  (stash), and **Warden-Master Sylva**, who'll reset your skills for free. A
+  healing well sits by the north-west building, and the south gate leads back
+  into the Reach.
 - **A whole new zone: the Verdant Reach.** Take the **east path out of the
   plains** (past where you'd turn off for town) to a gate into the Forest
   Kingdom's wilds — a forest roughly **three times the size** of the Starter

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import forestMap from '../../assets/maps/forest.json' assert { type: 'json' };
+import forestTownMap from '../../assets/maps/foresttown.json' assert { type: 'json' };
 import plains from '../../assets/maps/overworld.json' assert { type: 'json' };
 import { TILE } from './mapgen.ts';
 
@@ -66,5 +67,34 @@ describe('Verdant Reach (forest) map', () => {
     const data = (forest.layers.find((l) => l.name === 'ground')!.data as number[]);
     expect(data).toContain(TILE.FOREST + 1);
     expect(data).toContain(TILE.PINE + 1);
+  });
+});
+
+describe('Thornhollow (forest town) map', () => {
+  const forest = forestMap as unknown as TiledMap;
+  const town = forestTownMap as unknown as TiledMap;
+
+  it('is a standard 60×40 town on the forest floor with a healing well', () => {
+    expect(town.width).toBe(60);
+    expect(town.height).toBe(40);
+    const data = town.layers.find((l) => l.name === 'ground')!.data as number[];
+    expect(data).toContain(TILE.FOREST + 1); // forest floor, not plains grass
+    const heals = (town.layers.find((l) => l.name === 'triggers')!.objects as { type: string }[]).filter((o) => o.type === 'heal');
+    expect(heals.length).toBe(1);
+  });
+
+  it('spawns the player on a walkable tile', () => {
+    const s = playerSpawn(town);
+    expect(SOLID_GIDS.has(groundGid(town, s.x, s.y))).toBe(false);
+  });
+
+  it('links to the Reach and back, landing both ways on walkable ground', () => {
+    const toTown = transitions(forest).find((t) => t.props['target'] === 'foresttown');
+    expect(toTown, 'forest has a town gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(town, toTown!.props['targetX'] as number, toTown!.props['targetY'] as number))).toBe(false);
+
+    const toForest = transitions(town).find((t) => t.props['target'] === 'forest');
+    expect(toForest, 'town has a reach gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(forest, toForest!.props['targetX'] as number, toForest!.props['targetY'] as number))).toBe(false);
   });
 });

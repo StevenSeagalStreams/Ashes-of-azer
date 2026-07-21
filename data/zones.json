@@ -33,5 +33,11 @@
       "bat",
       "skel"
     ]
+  },
+  {
+    "id": "foresttown",
+    "name": "Thornhollow",
+    "dark": false,
+    "enemyTypes": []
   }
 ]

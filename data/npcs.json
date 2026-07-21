@@ -126,5 +126,52 @@
     "offersQuests": [
       "q_ash_cleanse"
     ]
+  },
+  {
+    "id": "ft_vendor",
+    "name": "Trader Fennwick",
+    "sprite": "vendor",
+    "zone": "foresttown",
+    "x": 200,
+    "y": 208,
+    "dialogue": "vendor",
+    "wander": false,
+    "offersQuests": [],
+    "service": "vendor"
+  },
+  {
+    "id": "ft_smith",
+    "name": "Smith Garrow",
+    "sprite": "vendor",
+    "zone": "foresttown",
+    "x": 728,
+    "y": 208,
+    "dialogue": "smith",
+    "wander": false,
+    "offersQuests": [],
+    "service": "blacksmith"
+  },
+  {
+    "id": "ft_keeper",
+    "name": "Keeper Wren",
+    "sprite": "vendor",
+    "zone": "foresttown",
+    "x": 200,
+    "y": 512,
+    "dialogue": "keeper",
+    "wander": false,
+    "offersQuests": [],
+    "service": "stash"
+  },
+  {
+    "id": "ft_trainer",
+    "name": "Warden-Master Sylva",
+    "sprite": "elder",
+    "zone": "foresttown",
+    "x": 728,
+    "y": 512,
+    "dialogue": "foresttrainer",
+    "wander": false,
+    "offersQuests": []
   }
 ]

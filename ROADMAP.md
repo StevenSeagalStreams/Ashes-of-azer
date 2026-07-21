@@ -134,7 +134,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 
 ### 2.4 Zone 2 — Forest Kingdom (full production, sets the template)
 - [x] Tileset + map (~3× Starter Plains size) — the **Verdant Reach**: 100×72 (=3×) forest map, new forest tiles (dark floor, pines, mushrooms), reachable via an east gate from the plains
-- [ ] Town with all services
+- [x] Town with all services — **Thornhollow**: forest-floor town reachable via a north gate off the Reach, with vendor (Fennwick), blacksmith (Garrow), stash (Wren) + trainer/respec (Warden-Master Sylva)
 - [ ] 4–5 new enemy types with distinct attack patterns
 - [ ] Dungeon with mini-boss + relic fragment
 - [ ] World boss (open-world, respawns, announced spawn)

@@ -61,7 +61,7 @@ describe('the real /data/*.json content', () => {
     expect(data.enemies.length).toBeGreaterThanOrEqual(4); // slime, bat, skel, boss
     expect(data.items.legendaries.length).toBeGreaterThanOrEqual(3);
     expect(data.skills.length).toBeGreaterThanOrEqual(5);
-    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest']);
+    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest', 'foresttown']);
   });
 
   // Cross-references are plain string ids; zod checks their shape, not that they
@@ -124,5 +124,18 @@ describe('the real /data/*.json content', () => {
       const givers = data.npcs.filter((n) => n.offersQuests.includes(q.id));
       expect(givers.length, `${q.id} givers`).toBe(1);
     }
+  });
+
+  it('Thornhollow (foresttown) offers the full slate of services', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const npcs = data.npcs.filter((n) => n.zone === 'foresttown');
+    const services = new Set(npcs.map((n) => n.service).filter(Boolean));
+    expect(services).toEqual(new Set(['vendor', 'blacksmith', 'stash']));
+    // The trainer is a dialogue NPC (respec), not a service UI — its tree has a respec choice.
+    const trainer = data.dialogue.find((t) => t.id === 'foresttrainer');
+    expect(trainer, 'foresttrainer dialogue tree').toBeTruthy();
+    const hasRespec = trainer!.nodes.some((n) => n.choices.some((c) => c.action?.respec === true));
+    expect(hasRespec).toBe(true);
   });
 });

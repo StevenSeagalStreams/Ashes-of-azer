@@ -1,14 +1,17 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 1 of 9 boxes done (**Tileset + map**: the Verdant
-Reach). **Next box (top-to-bottom): "Town with all services"** — a Forest-Kingdom
-town map + service NPCs (vendor/blacksmith/stash/trainer), same pattern as
-Ashfall. Then: 4–5 new enemy types, dungeon+mini-boss+relic, world boss,
-faction/rep track, 8–12 quest chain, 2–3 secrets, *write down the hours*. Still
-open from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers
-(minimap). Milestone 2 finishes when a new player can play Starter Plains →
-Forest Kingdom carried by quests.
+**MILESTONE 2.4 IN PROGRESS** — 2 of 9 boxes done (Tileset+map: the Verdant
+Reach; **Town with all services**: Thornhollow). **Next box (top-to-bottom):
+"4–5 new enemy types with distinct attack patterns"** — data-driven enemies
+(data/enemies.json + the enemy AI/attack system). Check whether the current
+Enemy entity supports the attack variety needed (telegraph/slam exists; may need
+ranged/charger/summoner patterns) — this box likely needs some engine work in
+Enemy.ts, not just data. Then: dungeon+mini-boss+relic, world boss, faction/rep
+track, 8–12 quest chain, 2–3 secrets, *write down the hours*. Still open from
+earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
+Milestone 2 finishes when a new player can play Starter Plains → Forest Kingdom
+carried by quests.
 
 Notes for the remaining 2.4 boxes:
 - 2.4 is a *production* milestone — most boxes reuse existing systems
@@ -49,6 +52,25 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 Town with all services (2nd box): Thornhollow** (headless-
+  verified 7/7; 174 unit tests). The Forest Kingdom's town, reusing every m2.3
+  service system with zero new code — proof the town/service architecture is
+  reusable:
+  - **`genForestTown` map** (60×40, forest floor + pines, seed 7777): four
+    service buildings (facade + door), a cross of paths, a healing well, a gate
+    back to the Reach. Reached via a **north spur** carved into `genForest`'s main
+    path (DOOR at forest tile 36,3 → foresttown; town's south gate 29,37 → forest).
+  - **Wired**: `data/zones.json` (Thornhollow, no enemies), `BootScene.MAP_ZONES`.
+  - **4 service NPCs** (data-only, `data/npcs.json`): Trader Fennwick (vendor),
+    Smith Garrow (blacksmith), Keeper Wren (stash) — all reuse the existing
+    generic dialogue trees since service NPCs route straight to their UI — and
+    Warden-Master Sylva, a dialogue trainer with a new `foresttrainer` respec
+    tree (no Ashfall trial; class-quest variants come with the 2.4 quest chain).
+  - Service UIs (shop/stash/repair) + `vendorStock` are per-load / global, so a
+    second town's services worked untouched. Verified in-browser: north gate in,
+    all four panels open (shop/repair/stash/dialogue), respec choice present,
+    south gate back to the Reach. Map + content tests guard the wiring + that
+    foresttown offers vendor+blacksmith+stash and a respec trainer.
 - **Milestone 2.4 Tileset + map (1st box): the Verdant Reach** (headless-verified
   8/8; 170 unit tests). The Forest Kingdom's wilds — a distinct zone reachable
   from the plains:
@@ -651,6 +673,11 @@ Notes for the remaining 2.4 boxes:
   (trainer — "Reset my skills" wipes spent points; "Give me a trial" starts a
   hunt) and **Stashkeeper Odd** (E opens a bag↔stash mover). Any trouble telling
   the service NPCs apart or knowing what each does?
+- **Thornhollow (m2.4)**: from the Reach, take the **north spur off the main
+  path** to the forest town. Smoke-verified all four services open and both gates
+  work — but **placement/feel want human eyes**: are the four service NPCs easy to
+  find under their buildings, and does the forest-floor town read as distinct from
+  Ashfall (not just a recolor)? Is the north-spur route to it obvious enough?
 - **The Verdant Reach (m2.4)**: take the **east path out of the plains** (past
   the town turn-off) to the forest gate. Smoke-verified it loads, transitions
   both ways, spawns enemies, and runs ~61 fps — but the **look and feel want

@@ -128,6 +128,50 @@ function genForest(rnd) {
   carveH(36, 1, 6);
   m[36][2] = TILE.DOOR;
   m[37][2] = TILE.DOOR;
+  // North spur off the main path to the forest hold (Thornhollow).
+  for (let y = 4; y < 21; y++) {
+    m[y][36] = TILE.PATH;
+    m[y][37] = TILE.PATH;
+  }
+  for (let y = 2; y < 6; y++) for (let x = 34; x < 40; x++) if (m[y][x] === TILE.PINE) m[y][x] = TILE.FOREST;
+  m[3][36] = TILE.DOOR;
+  m[3][37] = TILE.DOOR;
+  return m;
+}
+
+// Thornhollow (m2.4): the Forest Kingdom's town — a safe hold in the pines with
+// the full slate of services. Same 60×40 town template as Ashfall but on the
+// forest floor, ringed by pines, with four service buildings and a well.
+function genForestTown(rnd) {
+  const m = [];
+  for (let y = 0; y < MAPH; y++) {
+    const row = [];
+    for (let x = 0; x < MAPW; x++) {
+      let t = TILE.FOREST;
+      if (x === 0 || y === 0 || x === MAPW - 1 || y === MAPH - 1) t = TILE.PINE;
+      else if (rnd() < 0.025) t = TILE.MUSHROOM;
+      else if (rnd() < 0.02) t = TILE.FLOWERS;
+      row.push(t);
+    }
+    m.push(row);
+  }
+  for (let x = 6; x < 54; x++) {
+    m[20][x] = TILE.PATH;
+    m[21][x] = TILE.PATH;
+  }
+  for (let y = 6; y < 38; y++) {
+    m[y][29] = TILE.PATH;
+    m[y][30] = TILE.PATH;
+  }
+  // Four service buildings (vendor / blacksmith / stash / trainer), door on each front.
+  for (const [bx, by] of [[9, 8], [42, 8], [9, 27], [42, 27]]) {
+    for (let y = by; y < by + 4; y++) for (let x = bx; x < bx + 7; x++) m[y][x] = TILE.DWALL;
+    m[by + 3][bx + 3] = TILE.DOOR;
+  }
+  m[12][6] = TILE.WATER; // healing well
+  m[12][7] = TILE.WATER;
+  m[37][29] = TILE.DOOR; // gate back to the Reach
+  m[37][30] = TILE.DOOR;
   return m;
 }
 
@@ -364,6 +408,48 @@ const forest = tiledMap({
         prop('targetY', 'float', 30 * TS + 8),
       ],
     },
+    {
+      name: 'foresttown-gate',
+      type: 'transition',
+      x: 36 * TS,
+      y: 3 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'foresttown'),
+        prop('targetX', 'float', 29 * TS + 8),
+        prop('targetY', 'float', 34 * TS),
+      ],
+    },
+  ],
+});
+
+const foresttown = tiledMap({
+  grid: genForestTown(mulberry32(7777)),
+  spawnObjects: [{ name: 'player', type: 'player_spawn', point: true, x: 29 * TS + 8, y: 34 * TS }],
+  triggerObjects: [
+    {
+      name: 'reach-gate',
+      type: 'transition',
+      x: 29 * TS,
+      y: 37 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'forest'),
+        prop('targetX', 'float', 36 * TS + 8),
+        prop('targetY', 'float', 5 * TS),
+      ],
+    },
+    {
+      name: 'town-well',
+      type: 'heal',
+      x: 6 * TS - 16 + 8,
+      y: 12 * TS - 16 + 8,
+      width: 40,
+      height: 40,
+      properties: [prop('rate', 'float', 20)],
+    },
   ],
 });
 
@@ -454,7 +540,9 @@ writeFileSync(join(out, 'overworld.json'), JSON.stringify(overworld));
 writeFileSync(join(out, 'dungeon.json'), JSON.stringify(dungeon));
 writeFileSync(join(out, 'town.json'), JSON.stringify(town));
 writeFileSync(join(out, 'forest.json'), JSON.stringify(forest));
+writeFileSync(join(out, 'foresttown.json'), JSON.stringify(foresttown));
 console.log('wrote', join(out, 'overworld.json'));
 console.log('wrote', join(out, 'dungeon.json'));
 console.log('wrote', join(out, 'town.json'));
 console.log('wrote', join(out, 'forest.json'));
+console.log('wrote', join(out, 'foresttown.json'));
