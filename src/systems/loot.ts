@@ -28,6 +28,22 @@ export interface RollOpts {
   slot?: ItemSlot; // force a slot; otherwise a random slot that has bases
 }
 
+const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, epic: 30, legendary: 50 };
+
+/** Full durability a freshly-rolled item spawns with (sturdier when better). */
+export const durabilityFor = (base: number, rarity: string): number =>
+  Math.max(10, Math.round(30 + base * 4 + (RARITY_DURABILITY_BONUS[rarity] ?? 0)));
+
+/** Repair cost in gold to restore an item to full (1g per missing point). */
+export const repairCost = (item: ItemInstance): number => {
+  if (item.maxDurability === undefined || item.durability === undefined) return 0;
+  return Math.max(0, item.maxDurability - item.durability);
+};
+
+/** True when an item has a durability track and has worn down to broken (0). */
+export const isBroken = (item: ItemInstance): boolean =>
+  item.maxDurability !== undefined && item.durability !== undefined && item.maxDurability > 0 && item.durability <= 0;
+
 /**
  * Rolls one item instance. Legendary rarity with a matching legendary yields
  * that legendary (its forced affixes + power); otherwise a base of the slot
@@ -44,14 +60,16 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
       const leg = pick(forSlot, rng);
       const bases = items.bases[slot] ?? [];
       const base = bases.reduce((mx, b) => Math.max(mx, b.base), 0); // legendaries roll the best base
-      return { slot, name: leg.name, base, rarity: 'legendary', affixes: [...leg.forcedAffixes], power: leg.power };
+      const dur = durabilityFor(base, 'legendary');
+      return { slot, name: leg.name, base, rarity: 'legendary', affixes: [...leg.forcedAffixes], power: leg.power, durability: dur, maxDurability: dur };
     }
   }
 
   const bases = items.bases[slot] ?? [];
   const baseItem = pick(bases, rng);
   const rolled = rollAffixes(affixes, rarity.affixCount, rng);
-  return { slot, name: baseItem.name, base: baseItem.base, rarity: rarity.id, affixes: rolled };
+  const dur = durabilityFor(baseItem.base, rarity.id);
+  return { slot, name: baseItem.name, base: baseItem.base, rarity: rarity.id, affixes: rolled, durability: dur, maxDurability: dur };
 }
 
 /** Rolls `count` distinct affixes (flag affixes are value 1, others min..max). */
@@ -129,7 +147,7 @@ const emptyGearStats = (): GearStats => ({
 export function gearStats(gear: Partial<Record<ItemSlot, ItemInstance | null>>): GearStats {
   const out = emptyGearStats();
   for (const [slot, item] of Object.entries(gear) as [ItemSlot, ItemInstance | null][]) {
-    if (!item) continue;
+    if (!item || isBroken(item)) continue; // broken gear contributes nothing until repaired
     // Base value: a Weapon's base is flat damage; other slots contribute life×3.
     if (slot === 'Weapon') out.flatDamage += item.base;
     else out.maxHp += item.base * 3;

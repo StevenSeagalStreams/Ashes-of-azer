@@ -13,10 +13,11 @@ import { recordEvent, startAvailable, startQuest } from '../systems/quests.ts';
 import type { DialogueChoice, DialogueTreeData } from '../data/schemas/index.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
-import { gearStats, itemValue, rollItem, rollVendorStock, sellValue } from '../systems/loot.ts';
+import { gearStats, itemValue, repairCost, rollItem, rollVendorStock, sellValue } from '../systems/loot.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
 import { ShopUI } from '../ui/ShopUI.ts';
 import { StashUI } from '../ui/StashUI.ts';
+import { RepairUI, type RepairEntry } from '../ui/RepairUI.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -160,6 +161,8 @@ export class WorldScene extends Phaser.Scene {
   private inventoryUI!: InventoryUI;
   private shopUI!: ShopUI;
   private stashUI!: StashUI;
+  private repairUI!: RepairUI;
+  private attackWearCounter = 0; // gear wears every couple of swings
   // The current vendor's stock (in-memory; re-rolls on zone load + level-up).
   private vendorStock: ItemInstance[] = [];
   private dialogueUI!: DialogueUI;
@@ -350,6 +353,12 @@ export class WorldScene extends Phaser.Scene {
       toStash: (i) => this.moveToStash(i),
       toBag: (i) => this.moveToBag(i),
     });
+    this.repairUI = new RepairUI({
+      gold: () => this.player.gold,
+      repairables: () => this.repairables(),
+      repair: (key) => this.repairOne(key),
+      repairAll: () => this.repairAllGear(),
+    });
     // Left-click to basic-attack. pointerdown only fires for canvas clicks
     // (DOM skill-UI clicks target their own elements), so the UI is safe.
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -366,6 +375,7 @@ export class WorldScene extends Phaser.Scene {
       this.inventoryUI.destroy();
       this.shopUI.destroy();
       this.stashUI.destroy();
+      this.repairUI.destroy();
       this.projectiles.destroy();
       this.ground.destroy();
       this.traps.destroy();
@@ -435,7 +445,8 @@ export class WorldScene extends Phaser.Scene {
     }
     // Conversations / shops freeze the player's own controls (movement/attacks)
     // but leave the rest of the sim running.
-    const talking = this.dialogueUI.isOpen() || this.shopUI.isOpen() || this.stashUI.isOpen();
+    const talking =
+      this.dialogueUI.isOpen() || this.shopUI.isOpen() || this.stashUI.isOpen() || this.repairUI.isOpen();
     if (talking) this.player.setVelocity(0, 0);
     else this.player.update();
 
@@ -1076,6 +1087,7 @@ export class WorldScene extends Phaser.Scene {
     // E toggles an open service panel closed.
     if (this.shopUI.isOpen()) return this.shopUI.close();
     if (this.stashUI.isOpen()) return this.stashUI.close();
+    if (this.repairUI.isOpen()) return this.repairUI.close();
     if (this.dialogueUI.isOpen() || this.player.dead || this.transitioning) return;
     const npc = this.npcs.find((n) => n.inRange(this.player));
     if (!npc) return;
@@ -1083,6 +1095,7 @@ export class WorldScene extends Phaser.Scene {
     this.questEvent('talkTo', npc.def.id); // any interaction can satisfy a talkTo
     if (npc.def.service === 'vendor') return this.shopUI.openShop();
     if (npc.def.service === 'stash') return this.stashUI.openStash();
+    if (npc.def.service === 'blacksmith') return this.repairUI.openRepair();
     const tree = this.gameData.dialogue.find((t) => t.id === npc.def.dialogue);
     if (!tree) return;
     this.dialogueNpc = npc;
@@ -1136,6 +1149,73 @@ export class WorldScene extends Phaser.Scene {
     this.saveNow();
     this.stashUI.refresh();
     this.inventoryUI.refresh();
+  }
+
+  // ---------- blacksmith (repair) ----------
+
+  /** Worn equipped + bag items, keyed so a repair maps back to its location. */
+  private repairables(): RepairEntry[] {
+    const out: RepairEntry[] = [];
+    const worn = (item: ItemInstance): boolean =>
+      item.maxDurability !== undefined && item.durability !== undefined && item.durability < item.maxDurability;
+    const entry = (key: string, item: ItemInstance): RepairEntry => ({
+      key,
+      name: item.name,
+      rarity: item.rarity,
+      durability: item.durability ?? 0,
+      maxDurability: item.maxDurability ?? 0,
+      cost: repairCost(item),
+    });
+    for (const slot of Object.keys(this.saveData.gear) as ItemSlot[]) {
+      const item = this.saveData.gear[slot];
+      if (item && worn(item)) out.push(entry(`gear:${slot}`, item));
+    }
+    this.saveData.bag.forEach((item, i) => {
+      if (worn(item)) out.push(entry(`bag:${i}`, item));
+    });
+    return out;
+  }
+
+  private itemByKey(key: string): ItemInstance | null {
+    const [where, id] = key.split(':');
+    if (where === 'gear') return this.saveData.gear[id as ItemSlot] ?? null;
+    return this.saveData.bag[Number(id)] ?? null;
+  }
+
+  private repairOne(key: string): void {
+    const item = this.itemByKey(key);
+    if (!item || item.maxDurability === undefined) return;
+    const cost = repairCost(item);
+    if (this.player.gold < cost) return;
+    this.player.gold -= cost;
+    item.durability = item.maxDurability;
+    if (key.startsWith('gear:')) this.recomputeStats(); // un-break equipped gear
+    this.saveNow();
+    this.repairUI.refresh();
+    this.inventoryUI.refresh();
+  }
+
+  private repairAllGear(): void {
+    // Snapshot keys (repairing only restores durability, so indices stay valid).
+    for (const e of this.repairables()) this.repairOne(e.key);
+  }
+
+  /** Wear a point off equipped gear every couple of swings; re-derive on break. */
+  private wearGear(): void {
+    if (++this.attackWearCounter < 2) return;
+    this.attackWearCounter = 0;
+    let broke = false;
+    for (const slot of Object.keys(this.saveData.gear) as ItemSlot[]) {
+      const item = this.saveData.gear[slot];
+      if (!item || item.durability === undefined || item.durability <= 0) continue;
+      item.durability -= 1;
+      if (item.durability === 0) broke = true;
+    }
+    if (broke) {
+      this.recomputeStats();
+      this.numbers.spawn(this.player.x, this.player.y - 14, 'GEAR BROKE', '#d8503f');
+      this.saveNow();
+    }
   }
 
   private renderDialogueNode(): void {
@@ -1241,6 +1321,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.player.atkCd > 0) return;
     this.player.atkCd = attackCooldown(this.player.aspdPct + this.player.aspdBuffPct);
     this.player.lunge();
+    this.wearGear();
     const aim = this.aimDir();
     const ax = this.player.x + aim.x * ATTACK_REACH;
     const ay = this.player.y + aim.y * ATTACK_REACH;

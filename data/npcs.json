@@ -49,5 +49,17 @@
     "wander": false,
     "offersQuests": [],
     "service": "stash"
+  },
+  {
+    "id": "smith",
+    "name": "Smith Bralla",
+    "sprite": "vendor",
+    "zone": "town",
+    "x": 208,
+    "y": 480,
+    "dialogue": "smith",
+    "wander": false,
+    "offersQuests": [],
+    "service": "blacksmith"
   }
 ]

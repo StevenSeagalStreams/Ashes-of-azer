@@ -9,7 +9,7 @@ import { ClassSchema } from '../../data/schemas/skill.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 7; // v7 (m2.3): shared stash storage
+export const CURRENT_SAVE_VERSION = 8; // v8 (m2.3): item durability
 
 // Per-character quest progress (m2.1). `progress[questId]` is a parallel array
 // of per-objective counts; `tracked` is the pinned quest for the HUD tracker.
@@ -32,6 +32,9 @@ export const ItemInstanceSchema = z.object({
   rarity: z.string(),
   affixes: z.array(z.object({ key: z.string(), value: z.number() })),
   power: z.string().optional(), // legendary power key, if any
+  // Durability (since v8): both optional so pre-v8 items are simply indestructible.
+  durability: z.number().optional(),
+  maxDurability: z.number().optional(),
 });
 export type ItemInstance = z.infer<typeof ItemInstanceSchema>;
 

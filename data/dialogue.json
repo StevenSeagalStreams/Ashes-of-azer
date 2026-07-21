@@ -149,5 +149,20 @@
         ]
       }
     ]
+  },
+  {
+    "id": "smith",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Bring me your battered gear.",
+        "choices": [
+          {
+            "text": "Look it over."
+          }
+        ]
+      }
+    ]
   }
 ]

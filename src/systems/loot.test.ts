@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadGameData } from '../data/gameData.ts';
-import { gearStats, itemValue, rollItem, sellValue, type Rng } from './loot.ts';
+import { gearStats, isBroken, itemValue, repairCost, rollItem, sellValue, type Rng } from './loot.ts';
 import type { ItemInstance } from './save/schema.ts';
 
 const { items, affixes } = loadGameData();
@@ -98,5 +98,32 @@ describe('pricing', () => {
   it('sell value is a fraction of buy value and at least 1', () => {
     expect(sellValue(legendary)).toBe(Math.floor(itemValue(legendary) * 0.4));
     expect(sellValue(white)).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('durability', () => {
+  it('rolled items carry full durability', () => {
+    const item = rollItem(items, affixes, scriptRng([0.0, 0]), { slot: 'Weapon' });
+    expect(item.maxDurability).toBeGreaterThan(0);
+    expect(item.durability).toBe(item.maxDurability);
+    expect(isBroken(item)).toBe(false);
+  });
+
+  it('a worn item is broken at 0 durability and contributes no stats', () => {
+    const worn: ItemInstance = { slot: 'Weapon', name: 'Nub', base: 7, rarity: 'white', affixes: [{ key: 'dmg', value: 5 }], durability: 0, maxDurability: 40 };
+    expect(isBroken(worn)).toBe(true);
+    expect(gearStats({ Weapon: worn }).flatDamage).toBe(0); // broken → nothing
+  });
+
+  it('an item with durability left still works', () => {
+    const ok: ItemInstance = { slot: 'Weapon', name: 'Blade', base: 7, rarity: 'white', affixes: [{ key: 'dmg', value: 5 }], durability: 5, maxDurability: 40 };
+    expect(isBroken(ok)).toBe(false);
+    expect(gearStats({ Weapon: ok }).flatDamage).toBe(7 + 5);
+  });
+
+  it('repair cost is the missing durability (0 for pristine or undurable items)', () => {
+    expect(repairCost({ slot: 'Ring', name: 'x', base: 3, rarity: 'white', affixes: [], durability: 12, maxDurability: 40 })).toBe(28);
+    expect(repairCost({ slot: 'Ring', name: 'x', base: 3, rarity: 'white', affixes: [], durability: 40, maxDurability: 40 })).toBe(0);
+    expect(repairCost({ slot: 'Ring', name: 'old', base: 3, rarity: 'white', affixes: [] })).toBe(0);
   });
 });
