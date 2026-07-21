@@ -130,7 +130,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] **Blacksmith**: repair (durability system) + crafting (recipes in JSON, materials drop from enemies) — Smith Bralla: repair worn gear for gold; forge items from dropped materials (data/recipes.json)
 - [x] **Trainer**: respec + class quest giver — Master Vane (free respec + The Trainer's Trial); per-class quest variants are future content
 - [x] **Stash**: shared storage chest — Stashkeeper Odd (save v7 stash array, bag↔stash)
-- [ ] 5–8 quest NPCs forming the zone's quest chain
+- [x] 5–8 quest NPCs forming the zone's quest chain — the **Ashfall** chain: 5 NPC-given quests (Wellkeeper Sena → Warden Kessa → Scout Doran → Herbalist Mira → Priest Halden), each gated behind the last
 
 ### 2.4 Zone 2 — Forest Kingdom (full production, sets the template)
 - [ ] Tileset + map (~3× Starter Plains size)

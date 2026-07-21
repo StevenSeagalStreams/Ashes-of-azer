@@ -61,5 +61,70 @@
     "wander": false,
     "offersQuests": [],
     "service": "blacksmith"
+  },
+  {
+    "id": "wellkeeper",
+    "name": "Wellkeeper Sena",
+    "sprite": "vendor",
+    "zone": "town",
+    "x": 128,
+    "y": 200,
+    "dialogue": "wellkeeper",
+    "wander": false,
+    "offersQuests": [
+      "q_ash_greywater"
+    ]
+  },
+  {
+    "id": "warden",
+    "name": "Warden Kessa",
+    "sprite": "elder",
+    "zone": "town",
+    "x": 472,
+    "y": 560,
+    "dialogue": "warden",
+    "wander": false,
+    "offersQuests": [
+      "q_ash_watch"
+    ]
+  },
+  {
+    "id": "scout",
+    "name": "Scout Doran",
+    "sprite": "vendor",
+    "zone": "town",
+    "x": 600,
+    "y": 336,
+    "dialogue": "scout",
+    "wander": true,
+    "offersQuests": [
+      "q_ash_lostscout"
+    ]
+  },
+  {
+    "id": "herbalist",
+    "name": "Herbalist Mira",
+    "sprite": "elder",
+    "zone": "town",
+    "x": 360,
+    "y": 336,
+    "dialogue": "herbalist",
+    "wander": false,
+    "offersQuests": [
+      "q_ash_barrowroots"
+    ]
+  },
+  {
+    "id": "priest",
+    "name": "Priest Halden",
+    "sprite": "elder",
+    "zone": "town",
+    "x": 472,
+    "y": 272,
+    "dialogue": "priest",
+    "wander": false,
+    "offersQuests": [
+      "q_ash_cleanse"
+    ]
   }
 ]

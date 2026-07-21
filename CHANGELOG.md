@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **Ashfall Village has a story now.** Five townsfolk give a linked quest chain:
+  **Wellkeeper Sena** (the well runs grey), **Warden Kessa** (bats on the
+  palisade), **Scout Doran** (a comrade lost in the Barrow), **Herbalist Mira**
+  (the dead feed the corruption), and **Priest Halden** (end the master beneath
+  it). Each quest unlocks the next, and every giver points you to who's next — a
+  **!** over their head means a quest to take, a **?** one you're on. Walk up and
+  press **E** to talk.
 - **The Blacksmith is open.** Gear now has **durability** and wears down as you
   swing — a broken item gives you none of its stats until you fix it. **Smith
   Bralla** in Ashfall Village repairs your gear for gold (one piece at a time or

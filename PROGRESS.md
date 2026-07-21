@@ -1,21 +1,29 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.3 IN PROGRESS** — 5 of 6 boxes done (town map, Vendor, Stash,
-Trainer, **Blacksmith**). Remaining: **5–8 quest NPCs** (content). Still open
-from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
+**MILESTONE 2.3 COMPLETE** — all 6 boxes done (town map, Vendor, Stash, Trainer,
+Blacksmith, **quest-NPC chain**). **Next up: Milestone 2.4 — Zone 2, Forest
+Kingdom** (the big one: new tileset+map ~3× town size, town w/ all services, 4–5
+new enemy types, dungeon+mini-boss, world boss, faction/rep track, 8–12 quest
+chain, 2–3 secrets, and *write down the hours it took*). Still open from earlier:
+1.6 class sprite sheets (art decision) and 2.1 objective markers (needs a
+minimap). Milestone 2 as a whole finishes when a new player can play Starter
+Plains → Forest Kingdom carried by quests.
 
-Notes for that session:
-- **5–8 quest NPCs** (the last 2.3 box): content, no new systems needed. Add
-  NPCs (npcs.json) + dialogue trees (dialogue.json) + quests (quests.json)
-  forming a small Ashfall chain. Currently the town has Vendor (Pell)/Trainer
-  (Vane)/Stash (Odd)/Blacksmith (Bralla) + the plains Elder (Maru). Need ~4–5
-  more quest-givers with a linked story. Everything to add one exists: place an
-  NPC with `offersQuests`, give it a dialogue tree whose choices `startsQuest`,
-  and chain quests via `prereqs`/`chain`. Autoffer:false quests are NPC-given.
-- The three+ item UIs (Inventory/Shop/Stash) duplicate a tooltip + rarity
-  palette; RepairUI now has its own `RARITY_HEX` too — extract a shared
-  `itemTooltip(item, affixes)` + RARITY_HEX helper (backlog).
+Notes for 2.4 / next session:
+- 2.4 is a *production* milestone, not a systems one — most pieces reuse existing
+  systems (data-driven enemies/zones/quests/NPCs/dialogue/loot/crafting all
+  exist). New engine work likely needed: **faction/reputation track** (new save
+  field + vendor unlock gates), **world boss** (respawn timer + announced spawn),
+  and a bigger authored map. Consider splitting 2.4 into sub-checkboxes first
+  (per CLAUDE.md) — it's too big for one session.
+- The three+ item UIs (Inventory/Shop/Stash) + RepairUI duplicate a tooltip +
+  `RARITY_HEX` palette — extract a shared `itemTooltip(item, affixes)` +
+  RARITY_HEX helper (backlog) before the Forest town adds more item UI.
+- Content graph is now integrity-tested (loader.test.ts): quest prereqs, kill/
+  reach targets, NPC dialogue+offersQuests links, and every dialogue
+  nextNodeId/startsQuest/quest-condition must resolve. New content that dangles a
+  reference fails the test — a safety net for 2.4's larger content load.
 - Service NPCs: `NpcSchema.service` ('vendor'|'blacksmith'|'stash'|'trainer');
   `tryTalk` opens the matching UI (vendor + stash + blacksmith wired; trainer is
   a dialogue NPC using the `respec` action, not a service UI).
@@ -26,6 +34,22 @@ Notes for that session:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.3 quest-NPC chain (6th box → milestone content complete)**
+  (headless-verified 9/9; 166 unit tests). The **Ashfall** chain: 5 NPC-given
+  quests, each gated behind the previous, each from a different townsperson who
+  points you to the next:
+  - Wellkeeper Sena → `q_ash_greywater` (kill 5 slime) → Warden Kessa →
+    `q_ash_watch` (kill 6 bat) → Scout Doran → `q_ash_lostscout` (reach dungeon)
+    → Herbalist Mira → `q_ash_barrowroots` (kill 8 skel) → Priest Halden →
+    `q_ash_cleanse` (kill boss). All `chain:"ashfall"`, all `autoOffer:false`.
+  - Pure content: 5 NPCs (npcs.json), 5 dialogue trees (dialogue.json, each with
+    greet/lore/accept/inprogress/thanks nodes gated by questAvailable/Active/
+    Completed conditions), 5 quests (quests.json). No new systems — reuses the
+    m2.1/2.2 quest+dialogue engines. NPCs placed on walkable town coords
+    (verified in-browser: all spawn, all open dialogue on E, accepts start the
+    right quest, prereq gating hides accept choices until unlocked).
+  - **Content-integrity tests** added to loader.test.ts (guards the whole
+    quest/dialogue/NPC reference graph + asserts the ashfall chain shape).
 - **Milestone 2.3 Blacksmith (5th box): repair + crafting** (headless-verified
   17/17; 164 unit tests):
   - **Repair (save v8)**: items roll with `durability`/`maxDurability` (sturdier
@@ -592,6 +616,13 @@ Notes for that session:
   (trainer — "Reset my skills" wipes spent points; "Give me a trial" starts a
   hunt) and **Stashkeeper Odd** (E opens a bag↔stash mover). Any trouble telling
   the service NPCs apart or knowing what each does?
+- **Ashfall quest chain (m2.3)**: five new townsfolk carry a story — start at
+  **Wellkeeper Sena** (by the well, NW) and follow the **!/?** markers to Kessa
+  (by the south gate), Doran (east path), Mira (west path), Halden (north path).
+  Smoke-verified they all spawn and their dialogue/accepts work, but **placement
+  and pacing want human eyes**: are the NPCs easy to find and spaced well (not
+  overlapping buildings/each other)? Does the chain's kill-count pacing feel
+  right, and do the hand-offs ("go see Kessa next") read clearly?
 - **Blacksmith (m2.3)**: **Smith Bralla** stands at the west building; press **E**
   to open the forge. Fight for a while first — gear loses **durability** as you
   swing (a broken piece stops giving stats; you'll see "GEAR BROKE"). At the

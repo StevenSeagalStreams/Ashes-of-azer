@@ -164,5 +164,405 @@
         ]
       }
     ]
+  },
+  {
+    "id": "wellkeeper",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The well runs grey at the bottom. Something seeps in from the plains.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll thin the slimes at the seep. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_greywater"
+            },
+            "action": {
+              "startsQuest": "q_ash_greywater"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "Still working on it.",
+            "condition": {
+              "questActive": "q_ash_greywater"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The water clears yet?",
+            "condition": {
+              "questCompleted": "q_ash_greywater"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Sena. I've drawn Ashfall's water thirty years — never has it tasted of ash till now.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Five should stem the ooze. The well will thank you.",
+        "choices": [
+          {
+            "text": "Consider it done."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "Still the water darkens. The slimes yet gather.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "The water clears already — bless you. Warden Kessa should hear of this; she keeps the gate.",
+        "choices": [
+          {
+            "text": "I'll find her."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "warden",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Halt— ah, a fighting sort. Good. Dusk brings wings to my palisade.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll cut the bats down. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_watch"
+            },
+            "action": {
+              "startsQuest": "q_ash_watch"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The watch goes on.",
+            "condition": {
+              "questActive": "q_ash_watch"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The palisade is quiet now.",
+            "condition": {
+              "questCompleted": "q_ash_watch"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Kessa, Warden of Ashfall's gate. The Barrow's rot pushes its vermin our way, night on night.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Six of the winged things should ease the dusk. Watch your eyes.",
+        "choices": [
+          {
+            "text": "I will."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The wings still circle. Finish the count.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "The night's quieter — my thanks. But Doran, my scout, went to the Barrow and hasn't returned. Speak with him; he made it back at last.",
+        "choices": [
+          {
+            "text": "I'll seek him out."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "scout",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "You're the one Kessa sent? I crawled out of that Barrow — barely. My partner didn't.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll search the Barrow for her. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_lostscout"
+            },
+            "action": {
+              "startsQuest": "q_ash_lostscout"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "Not yet gone down.",
+            "condition": {
+              "questActive": "q_ash_lostscout"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "I walked the Barrow.",
+            "condition": {
+              "questCompleted": "q_ash_lostscout"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Doran. I scout the plains for the Warden. I've never seen the dark move the way it does down there.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Take the gate east, then down into the barrow. Any sign of her — I have to know.",
+        "choices": [
+          {
+            "text": "I'll go."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The Barrow mouth is east of the plains. Steel yourself before you enter.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "You walked the dark and came back. That's more than she did... thank you. Mira the herbalist studies what festers below — she'll want your help.",
+        "choices": [
+          {
+            "text": "I'll speak with her."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "herbalist",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The Barrow's roots drink the corruption and spread it. I would cut it at the source.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll put the dead down. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_barrowroots"
+            },
+            "action": {
+              "startsQuest": "q_ash_barrowroots"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The dead still walk.",
+            "condition": {
+              "questActive": "q_ash_barrowroots"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The roots have quieted.",
+            "condition": {
+              "questCompleted": "q_ash_barrowroots"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Mira. I read the soil the way Halden reads the ash. Both tell the same tale: the Barrow is bleeding into Ashfall.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Eight of the walking dead. Their unrest is what the roots feed on — still them.",
+        "choices": [
+          {
+            "text": "It will be done."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The soil still crawls. More of the dead must fall.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "The soil steadies at last. Only the thing that raised them remains. Priest Halden means to end it — he'll need a blade like yours.",
+        "choices": [
+          {
+            "text": "I'll find Halden."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "priest",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Azer's ash falls thickest over the Barrow's heart. A master stirs there — the root of all this rot.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll slay the master. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_cleanse"
+            },
+            "action": {
+              "startsQuest": "q_ash_cleanse"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The master yet lives.",
+            "condition": {
+              "questActive": "q_ash_cleanse"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The Barrow is cleansed.",
+            "condition": {
+              "questCompleted": "q_ash_cleanse"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Halden, last priest of the Ash. I have watched the corruption creep to our very well — but no longer, if you are willing.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Slay it in the deep of the Barrow, and Ashfall may breathe again. Go with the light.",
+        "choices": [
+          {
+            "text": "I will end it."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The heart of the Barrow still beats black. Return when it is silenced.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "It is done. Ashfall stands because you stood. Go with the light, Ashbreaker — you will always have a hearth here.",
+        "choices": [
+          {
+            "text": "Farewell, Halden."
+          }
+        ]
+      }
+    ]
   }
 ]

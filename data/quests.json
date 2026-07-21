@@ -120,5 +120,108 @@
     "prerequisites": [],
     "chain": "trainer",
     "autoOffer": false
+  },
+  {
+    "id": "q_ash_greywater",
+    "name": "Grey Water",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "slime",
+        "count": 5
+      }
+    ],
+    "rewards": {
+      "xp": 70,
+      "gold": 15,
+      "itemIds": []
+    },
+    "prerequisites": [],
+    "chain": "ashfall",
+    "autoOffer": false
+  },
+  {
+    "id": "q_ash_watch",
+    "name": "The Ash Watch",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "bat",
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "xp": 110,
+      "gold": 30,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_ash_greywater"
+    ],
+    "chain": "ashfall",
+    "autoOffer": false
+  },
+  {
+    "id": "q_ash_lostscout",
+    "name": "The Lost Scout",
+    "objectives": [
+      {
+        "type": "reach",
+        "target": "dungeon",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 140,
+      "gold": 40,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_ash_watch"
+    ],
+    "chain": "ashfall",
+    "autoOffer": false
+  },
+  {
+    "id": "q_ash_barrowroots",
+    "name": "Barrow Roots",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "skel",
+        "count": 8
+      }
+    ],
+    "rewards": {
+      "xp": 180,
+      "gold": 55,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_ash_lostscout"
+    ],
+    "chain": "ashfall",
+    "autoOffer": false
+  },
+  {
+    "id": "q_ash_cleanse",
+    "name": "Cleanse the Ash",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "boss",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 260,
+      "gold": 120,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_ash_barrowroots"
+    ],
+    "chain": "ashfall",
+    "autoOffer": false
   }
 ]
