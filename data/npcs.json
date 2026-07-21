@@ -174,5 +174,60 @@
     "dialogue": "foresttrainer",
     "wander": false,
     "offersQuests": []
+  },
+  {
+    "id": "aldric",
+    "name": "Warden-Captain Aldric",
+    "sprite": "elder",
+    "zone": "foresttown",
+    "x": 472,
+    "y": 336,
+    "dialogue": "aldric",
+    "wander": false,
+    "offersQuests": ["q_wt_cull", "q_wt_warden"]
+  },
+  {
+    "id": "brenna",
+    "name": "Quartermaster Brenna",
+    "sprite": "vendor",
+    "zone": "foresttown",
+    "x": 360,
+    "y": 336,
+    "dialogue": "brenna",
+    "wander": false,
+    "offersQuests": ["q_wt_spitters", "q_wt_wolves"]
+  },
+  {
+    "id": "fen",
+    "name": "Loremaster Fen",
+    "sprite": "elder",
+    "zone": "foresttown",
+    "x": 584,
+    "y": 336,
+    "dialogue": "fen",
+    "wander": false,
+    "offersQuests": ["q_wt_grovewardens"]
+  },
+  {
+    "id": "silt",
+    "name": "Ranger Silt",
+    "sprite": "vendor",
+    "zone": "forest",
+    "x": 1280,
+    "y": 896,
+    "dialogue": "silt",
+    "wander": true,
+    "offersQuests": ["q_wt_scout", "q_wt_restless", "q_wt_mossmaw"]
+  },
+  {
+    "id": "tamsin",
+    "name": "Warden Ranger Tamsin",
+    "sprite": "elder",
+    "zone": "forest",
+    "x": 800,
+    "y": 480,
+    "dialogue": "tamsin",
+    "wander": false,
+    "offersQuests": ["q_wt_greathorn"]
   }
 ]

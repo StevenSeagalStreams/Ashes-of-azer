@@ -600,5 +600,116 @@
         ]
       }
     ]
+  },
+  {
+    "id": "aldric",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Welcome to Thornhollow, recruit. The Reach tests everyone who'd wear the Warden's green.",
+        "choices": [
+          { "text": "Who commands here?", "nextNodeId": "lore" },
+          { "text": "I'll cull the spore-beasts. (Accept)", "condition": { "questAvailable": "q_wt_cull" }, "action": { "startsQuest": "q_wt_cull" }, "nextNodeId": "a_cull" },
+          { "text": "The cull continues.", "condition": { "questActive": "q_wt_cull" }, "nextNodeId": "p_cull" },
+          { "text": "I'm ready for the final trial. (Accept)", "condition": { "questAvailable": "q_wt_warden" }, "action": { "startsQuest": "q_wt_warden" }, "nextNodeId": "a_warden" },
+          { "text": "It is finished.", "condition": { "questCompleted": "q_wt_warden" }, "nextNodeId": "done_warden" },
+          { "text": "Farewell." }
+        ]
+      },
+      { "id": "lore", "text": "I am Aldric, Captain of the Wardens of the Reach. Prove yourself against the wilds, the Barrow, and the Stag, and you'll rise through our ranks.", "choices": [{ "text": "I see.", "nextNodeId": "greet" }] },
+      { "id": "a_cull", "text": "Start with the sporelings fouling the glades — six should steady the Reach. Standing with the Wardens follows.", "choices": [{ "text": "Consider it done." }] },
+      { "id": "p_cull", "text": "The spore-beasts still burst underfoot. Keep at it.", "choices": [{ "text": "Soon." }] },
+      { "id": "a_warden", "text": "You've earned the right to the last trial: bring down Greathorn, then return to me. Do this and you are a Warden true.", "choices": [{ "text": "I will return." }] },
+      { "id": "done_warden", "text": "Rise, Warden of the Reach. The green is yours by right — and the Reach is safer for it. Well done.", "choices": [{ "text": "For the Wardens." }] }
+    ]
+  },
+  {
+    "id": "brenna",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Supplies run thin with the wilds so restless. Lend the Wardens your blade?",
+        "choices": [
+          { "text": "Who are you?", "nextNodeId": "lore" },
+          { "text": "I'll silence the spitters. (Accept)", "condition": { "questAvailable": "q_wt_spitters" }, "action": { "startsQuest": "q_wt_spitters" }, "nextNodeId": "a_spit" },
+          { "text": "The spitters still spit.", "condition": { "questActive": "q_wt_spitters" }, "nextNodeId": "p_spit" },
+          { "text": "I'll thin the wolves. (Accept)", "condition": { "questAvailable": "q_wt_wolves" }, "action": { "startsQuest": "q_wt_wolves" }, "nextNodeId": "a_wolf" },
+          { "text": "The pack still runs.", "condition": { "questActive": "q_wt_wolves" }, "nextNodeId": "p_wolf" },
+          { "text": "Farewell." }
+        ]
+      },
+      { "id": "lore", "text": "Brenna, quartermaster of the Wardens. I keep us fed and armed — when the beasts let me.", "choices": [{ "text": "I see.", "nextNodeId": "greet" }] },
+      { "id": "a_spit", "text": "Five fungal spitters harry my foragers from the treeline. Put them down.", "choices": [{ "text": "Done." }] },
+      { "id": "p_spit", "text": "My foragers still take spores to the back. Hurry.", "choices": [{ "text": "Soon." }] },
+      { "id": "a_wolf", "text": "Six thornwolves prowl the paths. Break the pack and the roads open again.", "choices": [{ "text": "I'll break them." }] },
+      { "id": "p_wolf", "text": "The wolves still circle. The roads stay shut.", "choices": [{ "text": "Soon." }] }
+    ]
+  },
+  {
+    "id": "fen",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The grovewardens raise the dead and their roots drink deep. Someone must break them.",
+        "choices": [
+          { "text": "Who are you?", "nextNodeId": "lore" },
+          { "text": "I'll fell the grovewardens. (Accept)", "condition": { "questAvailable": "q_wt_grovewardens" }, "action": { "startsQuest": "q_wt_grovewardens" }, "nextNodeId": "a_grove" },
+          { "text": "The wardens still stand.", "condition": { "questActive": "q_wt_grovewardens" }, "nextNodeId": "p_grove" },
+          { "text": "Farewell." }
+        ]
+      },
+      { "id": "lore", "text": "Loremaster Fen. I read the Reach's sickness in its very wood — and the grovewardens are its worst symptom.", "choices": [{ "text": "I see.", "nextNodeId": "greet" }] },
+      { "id": "a_grove", "text": "Three grovewardens tend the corruption's roots. End them, and the spore-swarms thin with them.", "choices": [{ "text": "It will be done." }] },
+      { "id": "p_grove", "text": "The roots still spread. More grovewardens must fall.", "choices": [{ "text": "Soon." }] }
+    ]
+  },
+  {
+    "id": "silt",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "A Warden recruit, out here? Good. The Barrow's mouth is close, and it's hungry.",
+        "choices": [
+          { "text": "Who are you?", "nextNodeId": "lore" },
+          { "text": "I'll scout the Barrow. (Accept)", "condition": { "questAvailable": "q_wt_scout" }, "action": { "startsQuest": "q_wt_scout" }, "nextNodeId": "a_scout" },
+          { "text": "Not gone down yet.", "condition": { "questActive": "q_wt_scout" }, "nextNodeId": "p_scout" },
+          { "text": "I'll put the dead down. (Accept)", "condition": { "questAvailable": "q_wt_restless" }, "action": { "startsQuest": "q_wt_restless" }, "nextNodeId": "a_rest" },
+          { "text": "The dead still rise.", "condition": { "questActive": "q_wt_restless" }, "nextNodeId": "p_rest" },
+          { "text": "I'll face the Elder Bramble. (Accept)", "condition": { "questAvailable": "q_wt_mossmaw" }, "action": { "startsQuest": "q_wt_mossmaw" }, "nextNodeId": "a_moss" },
+          { "text": "Mossmaw still lives.", "condition": { "questActive": "q_wt_mossmaw" }, "nextNodeId": "p_moss" },
+          { "text": "Farewell." }
+        ]
+      },
+      { "id": "lore", "text": "Ranger Silt. I watch the deep wilds so Thornhollow can sleep. Lately I sleep little myself.", "choices": [{ "text": "I see.", "nextNodeId": "greet" }] },
+      { "id": "a_scout", "text": "Take the cave mouth east and walk the Barrow's halls. Learn what stirs down there.", "choices": [{ "text": "I'll go." }] },
+      { "id": "p_scout", "text": "The Barrow's mouth is east, past the pines. Steel yourself first.", "choices": [{ "text": "Soon." }] },
+      { "id": "a_rest", "text": "The dead crowd the Barrow thicker each day. Put eight of the sporelings back in the ground.", "choices": [{ "text": "It's done." }] },
+      { "id": "p_rest", "text": "Still they shamble in the dark. Keep at it.", "choices": [{ "text": "Soon." }] },
+      { "id": "a_moss", "text": "At the Barrow's heart sits Mossmaw, the Elder Bramble. Fell it, and the Warren dies with it.", "choices": [{ "text": "I'll end it." }] },
+      { "id": "p_moss", "text": "The Elder Bramble still breathes. The Warren still spreads.", "choices": [{ "text": "Soon." }] }
+    ]
+  },
+  {
+    "id": "tamsin",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "You hear that? The Hollow Stag walks the glade. Few who've seen it lived to say so.",
+        "choices": [
+          { "text": "Who are you?", "nextNodeId": "lore" },
+          { "text": "I'll bring the Stag down. (Accept)", "condition": { "questAvailable": "q_wt_greathorn" }, "action": { "startsQuest": "q_wt_greathorn" }, "nextNodeId": "a_great" },
+          { "text": "The Stag still runs.", "condition": { "questActive": "q_wt_greathorn" }, "nextNodeId": "p_great" },
+          { "text": "Farewell." }
+        ]
+      },
+      { "id": "lore", "text": "Warden Ranger Tamsin. I've tracked Greathorn three seasons across the Reach. It's time the Hollow Stag fell.", "choices": [{ "text": "I see.", "nextNodeId": "greet" }] },
+      { "id": "a_great", "text": "It roams the central glade and charges like a landslide. Watch its horns, and end it. Aldric will want to hear of it.", "choices": [{ "text": "I'll hunt it." }] },
+      { "id": "p_great", "text": "The Stag still stamps the glade. Mind its charge.", "choices": [{ "text": "Soon." }] }
+    ]
   }
 ]

@@ -1,19 +1,17 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 6 of 9 boxes done (Tileset+map; Town; new enemy
-types; Dungeon+mini-boss+relic; World boss; **Faction+reputation**). **Next box
-(top-to-bottom): "Quest chain (8–12 quests) with a zone story"** — the Forest
-Kingdom's own quest chain, given by NPCs (reuse the m2.1/2.2/2.3 systems, exactly
-like the Ashfall chain). Quests can now grant Warden **rep** (rewards.faction +
-rep — already wired, unused). **This box needs your input on the zone story** —
-what's happening in the Verdant Reach (the corruption? the Wardens' struggle?),
-who gives the quests, and the beats — CLAUDE.md says story specifics are a
-stop-and-ask. Place quest NPCs in Thornhollow + the Reach; tie objectives to the
-new foes/mini-boss/world-boss and the dungeon. Then: 2–3 secrets, *write down the
-hours*. Still open from earlier: 1.6 class sprite sheets (art) and 2.1 objective
-markers (minimap). Milestone 2 finishes when a new player can play Starter Plains
-→ Forest Kingdom carried by quests.
+**MILESTONE 2.4 IN PROGRESS** — 7 of 9 boxes done (Tileset+map; Town; new enemy
+types; Dungeon+mini-boss+relic; World boss; Faction+reputation; **Quest chain**).
+**Next box (top-to-bottom): "2–3 secrets (hidden areas, optional boss, lore
+items)"** — hidden content in the Reach/Bramblewarren. Ideas: a hidden grove
+behind a false pine wall (a lore item / relic), an optional mini-boss in a sealed
+Barrow room, a secret path to a chest. New engine: maybe a "secret" reveal
+mechanic or a lore-item pickup (could reuse the relic system or a new save flag).
+Then the LAST 2.4 box: *write down the hours this zone took*. Still open from
+earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
+Milestone 2 finishes when a new player can play Starter Plains → Forest Kingdom
+carried by quests (— this is now essentially TRUE end-to-end).
 
 Faction system note: `data/factions.json` (id/name/zones/killRep/bossRep/tiers
 with vendorBonus). `systems/factions.ts` is pure (repTier / factionForZone /
@@ -76,6 +74,23 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 Quest chain (7th box): The Warden's Trials** (headless-verified
+  7/7; 193 unit tests). A 9-quest chain (chain `warden_trials`), the Forest
+  Kingdom's zone story — you earn Warden rank by proving yourself:
+  - **Arc**: cull sporelings → silence spitters → thin thornwolves (town trials)
+    → scout the Bramblewarren → clear its dead → fell grovewardens → slay Mossmaw
+    (mini-boss) → hunt Greathorn (world boss) → return to Aldric to be named a
+    Warden. Every quest is NPC-given (autoOffer false), gated behind the last, and
+    grants **Warden rep** (rewards.faction/rep — the faction box's hook, now used).
+  - **5 quest-givers**: Warden-Captain Aldric (first + capstone), Quartermaster
+    Brenna (spitters/wolves), Loremaster Fen (grovewardens) in Thornhollow; Ranger
+    Silt (scout/restless/mossmaw) and Warden Ranger Tamsin (greathorn) out in the
+    Reach. Multi-quest dialogue trees (accept/in-progress branches gated by
+    questAvailable/Active/Completed). Pure content — reuses the m2.1/2.2 engines.
+  - Verified in-browser: Aldric offers trial 1 (capstone gated), Brenna gated
+    behind it, Silt in the Reach offers the dungeon quest after the town trials,
+    completing a trial awards its rep (+25). Content test asserts the chain is
+    8–12 quests, gated, all grant Warden rep, one giver each.
 - **Milestone 2.4 Faction + reputation (6th box): Wardens of the Reach**
   (headless-verified 6/6; 192 unit tests):
   - **`data/factions.json`** (new `FactionsFileSchema`): id/name/zones/killRep/
@@ -773,6 +788,12 @@ Notes for the remaining 2.4 boxes:
   work — but **placement/feel want human eyes**: are the four service NPCs easy to
   find under their buildings, and does the forest-floor town read as distinct from
   Ashfall (not just a recolor)? Is the north-spur route to it obvious enough?
+- **The Warden's Trials (m2.4)**: in Thornhollow, follow the **!** over
+  Warden-Captain Aldric to start the chain; it runs through Brenna, Fen, and the
+  Reach rangers Silt & Tamsin, ending back at Aldric. Smoke-verified the accepts +
+  gating + rep — but **wants human eyes**: does the chain pace well across
+  town↔Reach↔dungeon, are the givers easy to find (esp. the two rangers out in the
+  wilds among enemies), and does earning Warden rank *feel* earned by the end?
 - **Greathorn world boss (m2.4)**: enter the Verdant Reach and head to the **big
   central glade** — the Hollow Stag spawns there with a banner. Smoke-verified
   spawn/announce/kill/relic — but **wants human eyes**: is the banner readable and

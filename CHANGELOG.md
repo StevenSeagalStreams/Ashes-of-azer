@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- **The Warden's Trials — a story for the Reach.** A nine-quest chain now carries
+  you through the Forest Kingdom. **Warden-Captain Aldric** in Thornhollow sets you
+  your first trial; **Quartermaster Brenna** and **Loremaster Fen** send you
+  against the spitters, wolves and grovewardens; and out in the wilds, **Ranger
+  Silt** points you into the Bramblewarren to end Mossmaw while **Warden Ranger
+  Tamsin** sets you on the Hollow Stag. Each trial raises your Warden standing —
+  finish them all and Aldric names you a Warden of the Reach. Follow the **!**
+  markers to begin.
 - **Earn your place among the Wardens.** Every foe you fell in the Verdant Reach
   and the Bramblewarren (and the bosses most of all) builds your **reputation**
   with the **Wardens of the Reach**. Climb the ranks — Outsider → Recruit → Warden

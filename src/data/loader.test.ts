@@ -123,6 +123,24 @@ describe('the real /data/*.json content', () => {
     }
   });
 
+  it('the Warden trials form an 8–12 quest chain that builds Warden rep', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const chain = data.quests.filter((q) => q.chain === 'warden_trials');
+    expect(chain.length).toBeGreaterThanOrEqual(8);
+    expect(chain.length).toBeLessThanOrEqual(12);
+    // Every trial but the first is gated behind another, and each awards Warden rep.
+    const ids = new Set(chain.map((q) => q.id));
+    const gated = chain.filter((q) => q.prerequisites.some((p) => ids.has(p)));
+    expect(gated.length).toBe(chain.length - 1);
+    for (const q of chain) {
+      expect(q.autoOffer).toBe(false);
+      expect(q.rewards.faction).toBe('wardens');
+      expect(q.rewards.rep).toBeGreaterThan(0);
+      expect(data.npcs.filter((n) => n.offersQuests.includes(q.id)).length, `${q.id} givers`).toBe(1);
+    }
+  });
+
   it('the Bramblewarren mini-boss grants a relic fragment', async () => {
     const { loadGameData } = await import('./gameData.ts');
     const data = loadGameData();
