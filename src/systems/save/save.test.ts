@@ -108,10 +108,11 @@ describe('migrateAndValidate (real chain)', () => {
     expect(out.skillRanks).toEqual(v1.skillRanks);
     expect(out.world.killedBosses).toEqual(['boss']);
     expect(out.world.corruption).toBe(25);
-    // Pre-2.1 saves gain an empty quest log; pre-2.3 saves an empty stash + materials.
+    // Pre-2.1 saves gain an empty quest log; pre-2.3 stash+materials; pre-2.4 relics.
     expect(out.quests).toEqual({ active: [], completed: [], progress: {}, tracked: null });
     expect(out.stash).toEqual([]);
     expect(out.materials).toEqual({});
+    expect(out.relics).toEqual([]);
   });
 
   it('adds an empty material stock when upgrading a v8 save (v8 → v9)', () => {
@@ -120,6 +121,14 @@ describe('migrateAndValidate (real chain)', () => {
     const out = migrateAndValidate(v8);
     expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
     expect(out.materials).toEqual({});
+  });
+
+  it('adds an empty relic list when upgrading a v9 save (v9 → v10)', () => {
+    const v9 = { ...defaultSave(), saveVersion: 9 } as Record<string, unknown>;
+    delete v9['relics'];
+    const out = migrateAndValidate(v9);
+    expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(out.relics).toEqual([]);
   });
 
   it('adds an empty quest log when upgrading a v5 save (v5 → v6)', () => {

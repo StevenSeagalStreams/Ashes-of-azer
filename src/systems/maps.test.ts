@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import forestMap from '../../assets/maps/forest.json' assert { type: 'json' };
 import forestTownMap from '../../assets/maps/foresttown.json' assert { type: 'json' };
+import forestDungeonMap from '../../assets/maps/forestdungeon.json' assert { type: 'json' };
 import plains from '../../assets/maps/overworld.json' assert { type: 'json' };
 import { TILE } from './mapgen.ts';
 
@@ -95,6 +96,32 @@ describe('Thornhollow (forest town) map', () => {
 
     const toForest = transitions(town).find((t) => t.props['target'] === 'forest');
     expect(toForest, 'town has a reach gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(forest, toForest!.props['targetX'] as number, toForest!.props['targetY'] as number))).toBe(false);
+  });
+});
+
+describe('Bramblewarren (forest dungeon) map', () => {
+  const forest = forestMap as unknown as TiledMap;
+  const dungeon = forestDungeonMap as unknown as TiledMap;
+
+  const enemyPools = (map: TiledMap): string[] =>
+    (map.layers.find((l) => l.name === 'spawns')!.objects as { type: string; properties?: { name: string; value: unknown }[] }[])
+      .filter((o) => o.type === 'enemy_spawn')
+      .flatMap((o) => String((o.properties ?? []).find((p) => p.name === 'pool')?.value ?? '').split(','));
+
+  it('spawns the player on a walkable tile with the mini-boss placed', () => {
+    const s = playerSpawn(dungeon);
+    expect(SOLID_GIDS.has(groundGid(dungeon, s.x, s.y))).toBe(false);
+    expect(enemyPools(dungeon)).toContain('mossmaw'); // the mini-boss chamber
+  });
+
+  it('is reachable from the Reach and exits back, landing both ways walkable', () => {
+    const toDungeon = transitions(forest).find((t) => t.props['target'] === 'forestdungeon');
+    expect(toDungeon, 'forest has a barrow gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(dungeon, toDungeon!.props['targetX'] as number, toDungeon!.props['targetY'] as number))).toBe(false);
+
+    const toForest = transitions(dungeon).find((t) => t.props['target'] === 'forest');
+    expect(toForest, 'dungeon has an exit portal').toBeTruthy();
     expect(SOLID_GIDS.has(groundGid(forest, toForest!.props['targetX'] as number, toForest!.props['targetY'] as number))).toBe(false);
   });
 });

@@ -1,17 +1,22 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 3 of 9 boxes done (Tileset+map; Town; **new enemy
-types**). **Next box (top-to-bottom): "Dungeon with mini-boss + relic fragment"**
-— a forest dungeon map (genForestDungeon, dark) reachable from the Reach, with a
-mini-boss and a "relic fragment" reward. The mini-boss can reuse the slam pattern
-or one of the new m2.4 patterns; "relic fragment" is a new reward concept — decide
-if it's an item, a quest flag, or a new save field (likely a quest/flag for now,
-since the loot system rolls procedurally and has no fixed item ids). Then: world
-boss, faction/rep track, 8–12 quest chain, 2–3 secrets, *write down the hours*.
-Still open from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers
-(minimap). Milestone 2 finishes when a new player can play Starter Plains →
-Forest Kingdom carried by quests.
+**MILESTONE 2.4 IN PROGRESS** — 4 of 9 boxes done (Tileset+map; Town; new enemy
+types; **Dungeon + mini-boss + relic**). **Next box (top-to-bottom): "World boss
+(open-world, respawns, announced spawn)"** — a big open-world boss in the Reach
+that respawns on a timer and announces its spawn (a banner/toast). New engine
+work: a respawn scheduler + spawn announcement; the boss itself can reuse the
+boss/slam/summon patterns. Decide where it spawns (a fixed arena in the forest
+map) and its respawn cadence. Then: faction/rep track, 8–12 quest chain, 2–3
+secrets, *write down the hours*. Still open from earlier: 1.6 class sprite sheets
+(art) and 2.1 objective markers (minimap). Milestone 2 finishes when a new player
+can play Starter Plains → Forest Kingdom carried by quests.
+
+Relic system note: relics are a save field (`relics: string[]`, v10) awarded by an
+enemy's `relic`/`relicName` fields on death (one-time, in onEnemyDied). There's no
+relic UI or effect yet — they're collected + toasted + persisted. A future box can
+give relics meaning (a collection screen, set bonuses, or gating). The world boss
+(next) is a natural second relic source.
 
 Notes for the remaining 2.4 boxes:
 - 2.4 is a *production* milestone — most boxes reuse existing systems
@@ -52,6 +57,23 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 Dungeon + mini-boss + relic (4th box): the Bramblewarren**
+  (headless-verified 9/9; 183 unit tests):
+  - **`genForestDungeon` map** (60×40, dark): DWALL barrow carved into DFLOOR
+    rooms + corridors with mossy patches, a mini-boss chamber, and an exit portal.
+    Reached via a **cave mouth** carved into the east end of the Reach's path
+    (barrow-gate → forestdungeon; exit-portal → forest). zones.json
+    (Bramblewarren, dark:true), BootScene.MAP_ZONES. Enemy spawn points seed the
+    new forest foes; a dedicated point spawns the mini-boss.
+  - **Mini-boss Mossmaw** (data/enemies.json, boss:true): reuses slam + summon
+    (calls sporelings), 300 hp, its own name banner.
+  - **Relic fragments** (save v10): `relics: string[]` (v9→v10 migration → []).
+    An enemy's optional `relic`/`relicName` fields grant a one-time collectible in
+    `onEnemyDied` (dedup via includes, toast, saved). Mossmaw drops the Verdant
+    Heart. No relic UI/effect yet (collected + persisted only).
+  - Verified in-browser: barrow gate in, mini-boss present, bleed-kill awards the
+    relic once (recorded as a defeated boss), portal out, relic persists. Map +
+    content + migration tests guard the wiring / v10 / mini-boss-grants-relic.
 - **Milestone 2.4 new enemy types (3rd box): 4 distinct attack patterns**
   (headless-verified 9/9; 179 unit tests). The Reach's roster, each a genuinely
   different fight — all data-driven via optional `EnemySchema` configs:
@@ -698,6 +720,11 @@ Notes for the remaining 2.4 boxes:
   work — but **placement/feel want human eyes**: are the four service NPCs easy to
   find under their buildings, and does the forest-floor town read as distinct from
   Ashfall (not just a recolor)? Is the north-spur route to it obvious enough?
+- **Bramblewarren dungeon (m2.4)**: at the **far east end of the Reach's path**, a
+  cave mouth drops into the dark barrow; fight through to Mossmaw's chamber and the
+  Verdant Heart relic. Smoke-verified the gates/kill/relic — but **feel wants human
+  eyes**: is the barrow entrance findable, the dungeon layout fun to clear, and the
+  mini-boss fight (slam + spore-summons in a dark room) fair and readable?
 - **Reach enemy patterns (m2.4)**: fight in the Verdant Reach and read the four
   new foes — thornwolf (yellow flash → dash), sporeling (red flash + ring →
   explodes), spitter (shoots from range, backs away), grovewarden (hangs back,

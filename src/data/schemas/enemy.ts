@@ -15,6 +15,10 @@ export const EnemySchema = z.object({
   height: z.number().positive(),
   boss: z.boolean().optional(),
   name: z.string().optional(), // display name shown over boss health bars
+  // Relic fragment (m2.4): a one-time collectible this enemy grants on death,
+  // recorded in the save. `relicName` is what the pickup toast reads.
+  relic: z.string().optional(),
+  relicName: z.string().optional(),
   // Periodic AoE ground slam (prototype: Rotfang, every 4.5s, 22 dmg, 64px).
   slam: z
     .object({

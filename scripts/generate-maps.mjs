@@ -136,6 +136,55 @@ function genForest(rnd) {
   for (let y = 2; y < 6; y++) for (let x = 34; x < 40; x++) if (m[y][x] === TILE.PINE) m[y][x] = TILE.FOREST;
   m[3][36] = TILE.DOOR;
   m[3][37] = TILE.DOOR;
+  // Barrow entrance (2.4 dungeon): extend the east path to a cave mouth.
+  for (let x = 90; x < 96; x++) {
+    m[56][x] = TILE.PATH;
+    m[57][x] = TILE.PATH;
+  }
+  for (let y = 54; y < 60; y++) for (let x = 93; x < 98; x++) if (m[y][x] === TILE.PINE) m[y][x] = TILE.FOREST;
+  m[56][95] = TILE.DOOR;
+  m[57][95] = TILE.DOOR;
+  return m;
+}
+
+// Bramblewarren (m2.4 dungeon): a dark forest barrow — DWALL fill carved into
+// DFLOOR rooms + corridors, with a mini-boss chamber. Mirrors genDungeon's
+// structure with a different layout.
+function genForestDungeon() {
+  const m = [];
+  for (let y = 0; y < MAPH; y++) m.push(new Array(MAPW).fill(TILE.DWALL));
+  const rooms = [
+    [4, 30, 12, 8], // entry (player spawn + exit portal)
+    [22, 30, 10, 8],
+    [40, 30, 14, 8],
+    [42, 14, 14, 10],
+    [22, 12, 16, 12], // mini-boss chamber
+    [4, 12, 12, 10],
+  ];
+  for (const [rx, ry, rw, rh] of rooms)
+    for (let y = ry; y < ry + rh; y++) for (let x = rx; x < rx + rw; x++) m[y][x] = TILE.DFLOOR;
+  const cor = (x1, y1, x2, y2) => {
+    for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      m[y1][x] = TILE.DFLOOR;
+      m[y1 + 1][x] = TILE.DFLOOR;
+    }
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      m[y][x2] = TILE.DFLOOR;
+      m[y][x2 + 1] = TILE.DFLOOR;
+    }
+  };
+  cor(10, 33, 24, 33);
+  cor(28, 33, 44, 33);
+  cor(46, 32, 48, 20);
+  cor(46, 18, 38, 18);
+  cor(30, 30, 30, 22);
+  cor(20, 17, 10, 17);
+  // Mossy patches on the barrow floor for a forest-crypt look.
+  m[16][28] = TILE.FOREST;
+  m[18][31] = TILE.FOREST;
+  m[34][8] = TILE.FOREST;
+  m[33][6] = TILE.PORTAL; // exit portal in the entry room, back to the Reach
+  m[33][7] = TILE.PORTAL;
   return m;
 }
 
@@ -421,6 +470,63 @@ const forest = tiledMap({
         prop('targetY', 'float', 34 * TS),
       ],
     },
+    {
+      name: 'barrow-gate',
+      type: 'transition',
+      x: 95 * TS,
+      y: 56 * TS,
+      width: TS,
+      height: 2 * TS,
+      properties: [
+        prop('target', 'string', 'forestdungeon'),
+        prop('targetX', 'float', 8 * TS + 8),
+        prop('targetY', 'float', 34 * TS),
+      ],
+    },
+  ],
+});
+
+const FOREST_DUNGEON_SPOTS = [
+  [24, 33], [30, 33], [44, 33], [50, 33],
+  [46, 20], [42, 18], [50, 16],
+  [10, 16], [8, 20], [14, 14],
+];
+
+const forestdungeon = tiledMap({
+  grid: genForestDungeon(),
+  spawnObjects: [
+    { name: 'player', type: 'player_spawn', point: true, x: 8 * TS + 8, y: 34 * TS },
+    ...FOREST_DUNGEON_SPOTS.map(([x, y], i) => ({
+      name: `mob-${i + 1}`,
+      type: 'enemy_spawn',
+      point: true,
+      x: x * TS,
+      y: y * TS,
+      properties: [prop('pool', 'string', 'thornwolf,spitter,sporeling')],
+    })),
+    {
+      name: 'mossmaw',
+      type: 'enemy_spawn',
+      point: true,
+      x: 30 * TS,
+      y: 17 * TS,
+      properties: [prop('pool', 'string', 'mossmaw')],
+    },
+  ],
+  triggerObjects: [
+    {
+      name: 'exit-portal',
+      type: 'transition',
+      x: 6 * TS,
+      y: 33 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'forest'),
+        prop('targetX', 'float', 93 * TS + 8),
+        prop('targetY', 'float', 56 * TS + 8),
+      ],
+    },
   ],
 });
 
@@ -541,8 +647,10 @@ writeFileSync(join(out, 'dungeon.json'), JSON.stringify(dungeon));
 writeFileSync(join(out, 'town.json'), JSON.stringify(town));
 writeFileSync(join(out, 'forest.json'), JSON.stringify(forest));
 writeFileSync(join(out, 'foresttown.json'), JSON.stringify(foresttown));
+writeFileSync(join(out, 'forestdungeon.json'), JSON.stringify(forestdungeon));
 console.log('wrote', join(out, 'overworld.json'));
 console.log('wrote', join(out, 'dungeon.json'));
 console.log('wrote', join(out, 'town.json'));
 console.log('wrote', join(out, 'forest.json'));
 console.log('wrote', join(out, 'foresttown.json'));
+console.log('wrote', join(out, 'forestdungeon.json'));

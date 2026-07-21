@@ -65,5 +65,22 @@
     "height": 12,
     "keepDistance": 130,
     "summon": { "minion": "sporeling", "count": 2, "interval": 6, "max": 4 }
+  },
+  {
+    "id": "mossmaw",
+    "sprite": "grovewarden",
+    "hp": 300,
+    "dmg": 14,
+    "spd": 24,
+    "xp": 260,
+    "aggro": 999,
+    "width": 18,
+    "height": 14,
+    "boss": true,
+    "name": "MOSSMAW, THE ELDER BRAMBLE",
+    "slam": { "interval": 5, "damage": 20, "radius": 58 },
+    "summon": { "minion": "sporeling", "count": 2, "interval": 7, "max": 3 },
+    "relic": "relic_verdant_heart",
+    "relicName": "Verdant Heart"
   }
 ]

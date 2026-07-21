@@ -61,7 +61,7 @@ describe('the real /data/*.json content', () => {
     expect(data.enemies.length).toBeGreaterThanOrEqual(4); // slime, bat, skel, boss
     expect(data.items.legendaries.length).toBeGreaterThanOrEqual(3);
     expect(data.skills.length).toBeGreaterThanOrEqual(5);
-    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest', 'foresttown']);
+    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest', 'foresttown', 'forestdungeon']);
   });
 
   // Cross-references are plain string ids; zod checks their shape, not that they
@@ -82,6 +82,9 @@ describe('the real /data/*.json content', () => {
     // A summoner's minion must be a real enemy id.
     for (const e of data.enemies)
       if (e.summon) expect(enemyIds, `${e.id} summon minion`).toContain(e.summon.minion);
+
+    // Any relic-granting enemy carries a display name for its pickup toast.
+    for (const e of data.enemies) if (e.relic) expect(e.relicName, `${e.id} relicName`).toBeTruthy();
 
     for (const q of data.quests) {
       for (const pre of q.prerequisites) expect(questIds, `${q.id} prereq`).toContain(pre);
@@ -110,6 +113,16 @@ describe('the real /data/*.json content', () => {
         }
       }
     }
+  });
+
+  it('the Bramblewarren mini-boss grants a relic fragment', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const mossmaw = data.enemies.find((e) => e.id === 'mossmaw');
+    expect(mossmaw?.boss).toBe(true);
+    expect(mossmaw?.relic).toBeTruthy();
+    // The dungeon's enemyTypes include the mini-boss so the zone knows it.
+    expect(data.zones.find((z) => z.id === 'forestdungeon')?.enemyTypes).toContain('mossmaw');
   });
 
   it('the Ashfall town chain links each quest to the next (5 quests, 5 NPCs)', async () => {

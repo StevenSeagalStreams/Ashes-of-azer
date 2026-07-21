@@ -41,5 +41,16 @@
     "name": "Thornhollow",
     "dark": false,
     "enemyTypes": []
+  },
+  {
+    "id": "forestdungeon",
+    "name": "Bramblewarren",
+    "dark": true,
+    "enemyTypes": [
+      "thornwolf",
+      "spitter",
+      "sporeling",
+      "mossmaw"
+    ]
   }
 ]

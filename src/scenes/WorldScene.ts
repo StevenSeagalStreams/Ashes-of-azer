@@ -1044,6 +1044,12 @@ export class WorldScene extends Phaser.Scene {
       this.saveData.world.killedBosses.push(def.id);
       this.saveNow();
     }
+    // Relic fragment: a one-time collectible awarded on the enemy's death.
+    if (def.relic && !this.saveData.relics.includes(def.relic)) {
+      this.saveData.relics.push(def.relic);
+      this.numbers.spawn(x, y - 20, `✦ RELIC: ${def.relicName ?? def.relic}`, '#6ee0d8');
+      this.saveNow();
+    }
     this.gainXp(def.xp);
     this.questEvent('kill', def.id);
   }

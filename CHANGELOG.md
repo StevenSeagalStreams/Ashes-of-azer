@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Into the Bramblewarren — a dungeon and its master.** At the far east end of
+  the Reach's path, a **cave mouth** leads down into a dark forest barrow crawling
+  with thornwolves, spitters and sporelings. Deep inside waits **Mossmaw, the
+  Elder Bramble** — a mini-boss that ground-slams and summons spore-minions. Fell
+  it to claim the **Verdant Heart**, the first **relic fragment**, kept forever in
+  your save. A portal by the entrance takes you back to the surface.
 - **The Reach fights back — four new foes, four ways to die.** The Verdant Reach
   now hunts you with enemies that don't just walk into your sword:
   **thornwolves** rear back and **charge** in a fast telegraphed lunge;
