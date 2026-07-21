@@ -22,6 +22,8 @@ export const QuestSchema = z.object({
     xp: z.number().nonnegative().default(0),
     gold: z.number().nonnegative().default(0),
     itemIds: z.array(z.string()).default([]),
+    faction: z.string().optional(), // faction to award rep to on completion (m2.4)
+    rep: z.number().nonnegative().default(0),
   }),
   prerequisites: z.array(z.string()).default([]), // quest ids that must be completed first
   chain: z.string().optional(), // groups quests into a story chain

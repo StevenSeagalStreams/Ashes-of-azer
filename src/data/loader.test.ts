@@ -16,6 +16,7 @@ const validRaw = {
   dialogue: [],
   npcs: [],
   recipes: { materials: [], recipes: [] },
+  factions: [],
 };
 
 describe('validateGameData', () => {
@@ -85,6 +86,13 @@ describe('the real /data/*.json content', () => {
 
     // Any relic-granting enemy carries a display name for its pickup toast.
     for (const e of data.enemies) if (e.relic) expect(e.relicName, `${e.id} relicName`).toBeTruthy();
+
+    // Faction zones + a vendor's faction + a quest's rep-reward faction all resolve.
+    const factionIds = new Set(data.factions.map((f) => f.id));
+    for (const f of data.factions)
+      for (const z of f.zones) expect(zoneIds, `${f.id} zone`).toContain(z);
+    for (const npc of data.npcs) if (npc.faction) expect(factionIds, `${npc.id} faction`).toContain(npc.faction);
+    for (const q of data.quests) if (q.rewards.faction) expect(factionIds, `${q.id} reward faction`).toContain(q.rewards.faction);
 
     for (const q of data.quests) {
       for (const pre of q.prerequisites) expect(questIds, `${q.id} prereq`).toContain(pre);

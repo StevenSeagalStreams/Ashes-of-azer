@@ -137,7 +137,8 @@
     "dialogue": "vendor",
     "wander": false,
     "offersQuests": [],
-    "service": "vendor"
+    "service": "vendor",
+    "faction": "wardens"
   },
   {
     "id": "ft_smith",

@@ -140,7 +140,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
   - [x] 4–5 forest enemy types using them, wired into the Verdant Reach — thornwolf (charge), sporeling (explode), spitter (ranged+kite), grovewarden (summon)
 - [x] Dungeon with mini-boss + relic fragment — **Bramblewarren**: dark forest barrow off the Reach; **Mossmaw the Elder Bramble** (slam + summon) drops the **Verdant Heart** relic (save v10 `relics[]`)
 - [x] World boss (open-world, respawns, announced spawn) — **Greathorn, the Hollow Stag**: roams the Reach's central glade, banner-announced, charges + slams, drops the Hollow Antler relic, respawns ~120s after death
-- [ ] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers)
+- [x] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers) — **Wardens of the Reach**: rep from Reach/Bramblewarren kills (bosses more) + quest `rep` rewards; save v11; Thornhollow's vendor stocks more per rep tier + shows your standing
 - [ ] Quest chain (8–12 quests) with a zone story
 - [ ] 2–3 secrets (hidden areas, optional boss, lore items)
 - [ ] **Write down the hours this zone took — it calibrates the rest of the plan**

@@ -7,3 +7,4 @@ export * from './quest.ts';
 export * from './dialogue.ts';
 export * from './npc.ts';
 export * from './recipe.ts';
+export * from './faction.ts';

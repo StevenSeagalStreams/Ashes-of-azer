@@ -113,6 +113,7 @@ describe('migrateAndValidate (real chain)', () => {
     expect(out.stash).toEqual([]);
     expect(out.materials).toEqual({});
     expect(out.relics).toEqual([]);
+    expect(out.reputation).toEqual({});
   });
 
   it('adds an empty material stock when upgrading a v8 save (v8 → v9)', () => {
@@ -129,6 +130,14 @@ describe('migrateAndValidate (real chain)', () => {
     const out = migrateAndValidate(v9);
     expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
     expect(out.relics).toEqual([]);
+  });
+
+  it('adds empty reputation when upgrading a v10 save (v10 → v11)', () => {
+    const v10 = { ...defaultSave(), saveVersion: 10 } as Record<string, unknown>;
+    delete v10['reputation'];
+    const out = migrateAndValidate(v10);
+    expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(out.reputation).toEqual({});
   });
 
   it('adds an empty quest log when upgrading a v5 save (v5 → v6)', () => {

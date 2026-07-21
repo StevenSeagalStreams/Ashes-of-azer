@@ -15,6 +15,7 @@ export const NpcSchema = z.object({
   wander: z.boolean().default(false), // idle wander around the spawn point
   offersQuests: z.array(z.string()).default([]), // quest ids for the ! / ? marker
   service: z.enum(['vendor', 'blacksmith', 'stash', 'trainer']).optional(), // opens a service UI on interact
+  faction: z.string().optional(), // a vendor's faction: its stock unlocks with your rep (m2.4)
 });
 export type NpcData = z.infer<typeof NpcSchema>;
 

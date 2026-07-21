@@ -48,6 +48,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   8: (raw) => ({ ...raw, materials: (raw['materials'] ?? {}) as Record<string, unknown> }),
   // v9 → v10 (m2.4): collected relic fragments; older saves start with none.
   9: (raw) => ({ ...raw, relics: Array.isArray(raw['relics']) ? raw['relics'] : [] }),
+  // v10 → v11 (m2.4): faction reputation; older saves start at zero everywhere.
+  10: (raw) => ({ ...raw, reputation: (raw['reputation'] ?? {}) as Record<string, unknown> }),
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

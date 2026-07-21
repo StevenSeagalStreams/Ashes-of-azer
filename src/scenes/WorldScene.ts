@@ -20,6 +20,7 @@ import { ShopUI } from '../ui/ShopUI.ts';
 import { StashUI } from '../ui/StashUI.ts';
 import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from '../ui/RepairUI.ts';
 import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
+import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -176,6 +177,8 @@ export class WorldScene extends Phaser.Scene {
   private attackWearCounter = 0; // gear wears every couple of swings
   // The current vendor's stock (in-memory; re-rolls on zone load + level-up).
   private vendorStock: ItemInstance[] = [];
+  // Faction of the vendor currently being talked to (drives stock size + rep note).
+  private activeVendorFaction: string | null = null;
   private dialogueUI!: DialogueUI;
   private dialogueTree: DialogueTreeData | null = null;
   private dialogueNpc: Npc | null = null;
@@ -370,6 +373,7 @@ export class WorldScene extends Phaser.Scene {
       sellPrice: (item) => sellValue(item),
       buy: (i) => this.buyFromVendor(i),
       sell: (i) => this.sellToVendor(i),
+      repNote: () => this.vendorRepNote(),
     });
     this.stashUI = new StashUI({
       affixes: this.gameData.affixes,
@@ -1101,6 +1105,9 @@ export class WorldScene extends Phaser.Scene {
       this.numbers.spawn(x, y - 20, `✦ RELIC: ${def.relicName ?? def.relic}`, '#6ee0d8');
       this.saveNow();
     }
+    // Faction reputation: kills in a faction's zones build standing with it.
+    const faction = factionForZone(this.gameData.factions, this.zoneId);
+    if (faction) this.awardRep(faction.id, def.boss ? faction.bossRep : faction.killRep);
     this.gainXp(def.xp);
     this.questEvent('kill', def.id);
   }
@@ -1222,7 +1229,7 @@ export class WorldScene extends Phaser.Scene {
     if (!npc) return;
     this.player.setVelocity(0, 0);
     this.questEvent('talkTo', npc.def.id); // any interaction can satisfy a talkTo
-    if (npc.def.service === 'vendor') return this.shopUI.openShop();
+    if (npc.def.service === 'vendor') return this.openVendor(npc.def.faction ?? null);
     if (npc.def.service === 'stash') return this.stashUI.openStash();
     if (npc.def.service === 'blacksmith') return this.repairUI.openRepair();
     const tree = this.gameData.dialogue.find((t) => t.id === npc.def.dialogue);
@@ -1234,6 +1241,41 @@ export class WorldScene extends Phaser.Scene {
   }
 
   // ---------- vendor ----------
+
+  /** Opens a vendor. A faction vendor stocks more the higher your standing. */
+  private openVendor(factionId: string | null): void {
+    this.activeVendorFaction = factionId;
+    const faction = factionId ? this.gameData.factions.find((f) => f.id === factionId) : undefined;
+    if (faction) {
+      const bonus = repTier(faction, this.saveData.reputation[faction.id] ?? 0).vendorBonus;
+      this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random, 8 + bonus);
+    }
+    this.shopUI.openShop();
+  }
+
+  /** The standing line shown in a faction vendor's shop header (null otherwise). */
+  private vendorRepNote(): string | null {
+    const faction = this.activeVendorFaction ? this.gameData.factions.find((f) => f.id === this.activeVendorFaction) : undefined;
+    if (!faction) return null;
+    const { tier, next, toNext } = repProgress(faction, this.saveData.reputation[faction.id] ?? 0);
+    return next ? `${faction.name}: ${tier.name} — ${toNext} rep to ${next.name}` : `${faction.name}: ${tier.name} (max)`;
+  }
+
+  /** Adds faction rep, toasting on a tier-up. Pure math lives in factions.ts. */
+  private awardRep(factionId: string, amount: number): void {
+    if (amount <= 0) return;
+    const faction = this.gameData.factions.find((f) => f.id === factionId);
+    if (!faction) return;
+    const before = this.saveData.reputation[factionId] ?? 0;
+    this.saveData.reputation = addRep(this.saveData.reputation, factionId, amount);
+    const after = before + amount;
+    const beforeTier = repTier(faction, before);
+    const afterTier = repTier(faction, after);
+    if (afterTier.threshold > beforeTier.threshold) {
+      this.numbers.spawn(this.player.x, this.player.y - 26, `✦ ${faction.name}: ${afterTier.name}`, '#9bd44a');
+    }
+    this.saveNow();
+  }
 
   private buyFromVendor(stockIndex: number): void {
     const item = this.vendorStock[stockIndex];
@@ -1470,6 +1512,7 @@ export class WorldScene extends Phaser.Scene {
     this.player.gold += quest.rewards.gold;
     this.numbers.spawn(this.player.x, this.player.y - 22, `✓ ${quest.name}`, '#ffd84a');
     if (quest.rewards.gold) this.numbers.spawn(this.player.x + 18, this.player.y - 12, `+${quest.rewards.gold}g`, '#e8c86a');
+    if (quest.rewards.faction && quest.rewards.rep) this.awardRep(quest.rewards.faction, quest.rewards.rep);
     if (quest.rewards.xp) this.gainXp(quest.rewards.xp); // item rewards wait on the loot system
   }
 

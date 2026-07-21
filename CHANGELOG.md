@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Earn your place among the Wardens.** Every foe you fell in the Verdant Reach
+  and the Bramblewarren (and the bosses most of all) builds your **reputation**
+  with the **Wardens of the Reach**. Climb the ranks — Outsider → Recruit → Warden
+  → Warden-Captain — and **Trader Fennwick in Thornhollow stocks more wares** the
+  higher you stand; his counter shows your standing and how far to the next rank.
+  (Quests can grant Warden rep too, ready for the Reach's own quest chain.)
 - **A world boss stalks the Reach.** **Greathorn, the Hollow Stag** roams the
   Verdant Reach's central glade — a huge open-world beast that **charges** and
   **ground-slams**. Its arrival is heralded by a banner across the top of the

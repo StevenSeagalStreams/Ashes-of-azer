@@ -1,18 +1,28 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 5 of 9 boxes done (Tileset+map; Town; new enemy
-types; Dungeon+mini-boss+relic; **World boss**). **Next box (top-to-bottom):
-"Faction + reputation track (rep from quests/kills, vendor unlocks at rep
-tiers)"** — a new save field for reputation per faction, rep gained from
-quests/kills, and vendor stock/services gated behind rep tiers. New engine work:
-a rep save field (v11) + a rep-award hook (on kill/quest-complete) + a small rep
-HUD + vendor gating. **This box needs your input on faction identity** — what
-faction(s) exist in the Forest Kingdom, what earns/loses rep, and what unlocks at
-each tier. Then: 8–12 quest chain, 2–3 secrets, *write down the hours*. Still open
-from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
-Milestone 2 finishes when a new player can play Starter Plains → Forest Kingdom
-carried by quests.
+**MILESTONE 2.4 IN PROGRESS** — 6 of 9 boxes done (Tileset+map; Town; new enemy
+types; Dungeon+mini-boss+relic; World boss; **Faction+reputation**). **Next box
+(top-to-bottom): "Quest chain (8–12 quests) with a zone story"** — the Forest
+Kingdom's own quest chain, given by NPCs (reuse the m2.1/2.2/2.3 systems, exactly
+like the Ashfall chain). Quests can now grant Warden **rep** (rewards.faction +
+rep — already wired, unused). **This box needs your input on the zone story** —
+what's happening in the Verdant Reach (the corruption? the Wardens' struggle?),
+who gives the quests, and the beats — CLAUDE.md says story specifics are a
+stop-and-ask. Place quest NPCs in Thornhollow + the Reach; tie objectives to the
+new foes/mini-boss/world-boss and the dungeon. Then: 2–3 secrets, *write down the
+hours*. Still open from earlier: 1.6 class sprite sheets (art) and 2.1 objective
+markers (minimap). Milestone 2 finishes when a new player can play Starter Plains
+→ Forest Kingdom carried by quests.
+
+Faction system note: `data/factions.json` (id/name/zones/killRep/bossRep/tiers
+with vendorBonus). `systems/factions.ts` is pure (repTier / factionForZone /
+addRep / repProgress, tested). Rep lives in the save (`reputation: {}`, v11).
+WorldScene: `awardRep` (toasts on tier-up) is called on kills in a faction's
+zones (`factionForZone`) and on quest completion (rewards.faction+rep). A vendor
+with an NPC `faction` re-rolls its stock to 8 + tier.vendorBonus on open and shows
+a standing line (ShopUI.repNote). Currently only the Wardens exist (forest +
+forestdungeon); Thornhollow's Fennwick is their vendor.
 
 World-boss system note: `world_boss` is a Tiled spawn-object type (triggers.ts:
 pool/respawn/announce). WorldScene spawns it on zone load, announces via a
@@ -66,6 +76,25 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 Faction + reputation (6th box): Wardens of the Reach**
+  (headless-verified 6/6; 192 unit tests):
+  - **`data/factions.json`** (new `FactionsFileSchema`): id/name/zones/killRep/
+    bossRep + tiers (name/threshold/vendorBonus). One faction so far — the Wardens
+    (forest + forestdungeon).
+  - **Pure `systems/factions.ts`** (repTier / factionForZone / addRep /
+    repProgress, 8 tests). Rep lives in the save (`reputation: {}`, v10→v11
+    migration).
+  - **Rep sources**: kills in a faction's zones (`factionForZone` in onEnemyDied;
+    bosses grant bossRep, others killRep) and quest completion (new optional
+    `rewards.faction` + `rewards.rep`, granted in grantQuestReward — wired, unused
+    until the Reach quest chain). `awardRep` toasts on a tier-up.
+  - **Vendor gating**: an NPC's optional `faction` (Fennwick = wardens) makes its
+    shop re-roll to `8 + tier.vendorBonus` items on open and show a standing line
+    (ShopUI gained an optional `repNote`). Non-faction vendors are unchanged.
+  - Verified in-browser: boss kill +50, normal kills +killRep, vendor stock 8→10
+    at Recruit with the standing line, non-faction vendor shows none. Content test
+    guards faction zones / vendor faction / quest reward faction resolve; migration
+    test covers v11.
 - **Milestone 2.4 World boss (5th box): Greathorn, the Hollow Stag**
   (headless-verified 6/6; 186 unit tests):
   - **`world_boss` map-object type** (triggers.ts, parsed + tested): a spawn

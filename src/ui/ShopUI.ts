@@ -14,6 +14,7 @@ export interface ShopUIHost {
   sellPrice: (item: ItemInstance) => number;
   buy: (stockIndex: number) => void;
   sell: (bagIndex: number) => void;
+  repNote?: () => string | null; // faction/standing line for a faction vendor (m2.4)
 }
 
 const RARITY_HEX: Record<string, string> = {
@@ -31,6 +32,7 @@ const CSS = `
     box-shadow:0 6px 0 rgba(0,0,0,.4);font-family:"Courier New",monospace;color:#2b2033;}
   #azer-shop h3{font-size:13px;border-bottom:2px solid #8a6d3b;margin:0 0 2px;letter-spacing:1px;}
   #azer-shop .gold{font-size:11px;color:#8a6d3b;font-weight:bold;margin-bottom:6px;}
+  #azer-shop .rep{font-size:10px;color:#3a6a30;font-weight:bold;margin:-4px 0 6px;}
   #azer-shop .cols{display:flex;gap:10px;}
   #azer-shop .col{flex:1;min-width:0;}
   #azer-shop h5{font-size:10px;color:#7a6a4a;margin:0 0 4px;text-transform:uppercase;letter-spacing:1px;}
@@ -113,7 +115,9 @@ export class ShopUI {
           .join('')
       : '<div class="empty">Nothing to sell.</div>';
 
-    this.panel.innerHTML = `<h3>MERCHANT</h3><div class="gold">Gold: ${gold}</div><div class="cols"><div class="col"><h5>Buy</h5>${buyRows}</div><div class="col"><h5>Sell</h5>${sellRows}</div></div>`;
+    const repNote = this.host.repNote?.();
+    const repLine = repNote ? `<div class="rep">${repNote}</div>` : '';
+    this.panel.innerHTML = `<h3>MERCHANT</h3><div class="gold">Gold: ${gold}</div>${repLine}<div class="cols"><div class="col"><h5>Buy</h5>${buyRows}</div><div class="col"><h5>Sell</h5>${sellRows}</div></div>`;
 
     this.panel.querySelectorAll<HTMLElement>('[data-buy]').forEach((el) => {
       const i = Number(el.dataset['buy']);
