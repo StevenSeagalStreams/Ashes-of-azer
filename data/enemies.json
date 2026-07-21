@@ -82,5 +82,22 @@
     "summon": { "minion": "sporeling", "count": 2, "interval": 7, "max": 3 },
     "relic": "relic_verdant_heart",
     "relicName": "Verdant Heart"
+  },
+  {
+    "id": "greathorn",
+    "sprite": "thornwolf",
+    "hp": 620,
+    "dmg": 18,
+    "spd": 30,
+    "xp": 500,
+    "aggro": 999,
+    "width": 20,
+    "height": 14,
+    "boss": true,
+    "name": "GREATHORN, THE HOLLOW STAG",
+    "charge": { "range": 220, "windup": 0.6, "speed": 300, "duration": 0.55, "cooldown": 4 },
+    "slam": { "interval": 6, "damage": 24, "radius": 66 },
+    "relic": "relic_hollow_antler",
+    "relicName": "Hollow Antler"
   }
 ]

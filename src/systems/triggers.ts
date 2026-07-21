@@ -32,6 +32,13 @@ export interface EnemyRegion {
   respawnCap: number;
   respawnInterval: number;
 }
+export interface WorldBossSpawn {
+  x: number;
+  y: number;
+  pool: string[]; // enemy id(s) to spawn as the boss
+  respawn: number; // seconds to respawn after death (in-zone)
+  announce: string; // banner text shown when it (re)spawns
+}
 export interface TransitionTrigger {
   kind: 'transition';
   rect: Rect;
@@ -55,6 +62,7 @@ export interface MapObjects {
   playerSpawn: PlayerSpawn;
   enemySpawnPoints: EnemySpawnPoint[];
   enemyRegions: EnemyRegion[];
+  worldBosses: WorldBossSpawn[];
   triggers: Trigger[];
 }
 
@@ -136,7 +144,7 @@ function pointOf(obj: TiledObject, what: string): { x: number; y: number } {
 }
 
 export function parseMapObjects(spawnObjects: unknown[], triggerObjects: unknown[]): MapObjects {
-  const out: MapObjects = { playerSpawn: { x: 0, y: 0 }, enemySpawnPoints: [], enemyRegions: [], triggers: [] };
+  const out: MapObjects = { playerSpawn: { x: 0, y: 0 }, enemySpawnPoints: [], enemyRegions: [], worldBosses: [], triggers: [] };
   let sawPlayer = false;
 
   for (const rawObj of spawnObjects) {
@@ -162,6 +170,12 @@ export function parseMapObjects(spawnObjects: unknown[], triggerObjects: unknown
           respawnInterval: num(p, 'respawnInterval', 4),
         });
         break;
+      case 'world_boss': {
+        const pool = poolOf(p);
+        if (!pool) throw new MapParseError('world_boss requires a "pool"');
+        out.worldBosses.push({ ...pointOf(obj, 'world_boss'), pool, respawn: num(p, 'respawn', 120), announce: str(p, 'announce') });
+        break;
+      }
       default:
         throw new MapParseError(`unknown spawns object type "${obj.type ?? ''}" (${obj.name ?? 'unnamed'})`);
     }

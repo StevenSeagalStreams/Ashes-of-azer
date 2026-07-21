@@ -139,7 +139,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
   - [x] Attack-pattern engine: data-driven charge / ranged / explode / summon behaviors in Enemy.ts + enemy-projectile pool
   - [x] 4–5 forest enemy types using them, wired into the Verdant Reach — thornwolf (charge), sporeling (explode), spitter (ranged+kite), grovewarden (summon)
 - [x] Dungeon with mini-boss + relic fragment — **Bramblewarren**: dark forest barrow off the Reach; **Mossmaw the Elder Bramble** (slam + summon) drops the **Verdant Heart** relic (save v10 `relics[]`)
-- [ ] World boss (open-world, respawns, announced spawn)
+- [x] World boss (open-world, respawns, announced spawn) — **Greathorn, the Hollow Stag**: roams the Reach's central glade, banner-announced, charges + slams, drops the Hollow Antler relic, respawns ~120s after death
 - [ ] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers)
 - [ ] Quest chain (8–12 quests) with a zone story
 - [ ] 2–3 secrets (hidden areas, optional boss, lore items)

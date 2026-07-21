@@ -442,6 +442,20 @@ const forest = tiledMap({
         prop('respawnInterval', 'float', 4),
       ],
     },
+    {
+      // Open-world boss: roams the central glade, announces its (re)spawn, and
+      // returns on a timer after it falls.
+      name: 'greathorn',
+      type: 'world_boss',
+      point: true,
+      x: 70 * TS,
+      y: 30 * TS,
+      properties: [
+        prop('pool', 'string', 'greathorn'),
+        prop('respawn', 'float', 120),
+        prop('announce', 'string', 'GREATHORN, THE HOLLOW STAG, STIRS IN THE REACH'),
+      ],
+    },
   ],
   triggerObjects: [
     {

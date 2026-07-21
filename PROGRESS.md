@@ -1,16 +1,25 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 4 of 9 boxes done (Tileset+map; Town; new enemy
-types; **Dungeon + mini-boss + relic**). **Next box (top-to-bottom): "World boss
-(open-world, respawns, announced spawn)"** — a big open-world boss in the Reach
-that respawns on a timer and announces its spawn (a banner/toast). New engine
-work: a respawn scheduler + spawn announcement; the boss itself can reuse the
-boss/slam/summon patterns. Decide where it spawns (a fixed arena in the forest
-map) and its respawn cadence. Then: faction/rep track, 8–12 quest chain, 2–3
-secrets, *write down the hours*. Still open from earlier: 1.6 class sprite sheets
-(art) and 2.1 objective markers (minimap). Milestone 2 finishes when a new player
-can play Starter Plains → Forest Kingdom carried by quests.
+**MILESTONE 2.4 IN PROGRESS** — 5 of 9 boxes done (Tileset+map; Town; new enemy
+types; Dungeon+mini-boss+relic; **World boss**). **Next box (top-to-bottom):
+"Faction + reputation track (rep from quests/kills, vendor unlocks at rep
+tiers)"** — a new save field for reputation per faction, rep gained from
+quests/kills, and vendor stock/services gated behind rep tiers. New engine work:
+a rep save field (v11) + a rep-award hook (on kill/quest-complete) + a small rep
+HUD + vendor gating. **This box needs your input on faction identity** — what
+faction(s) exist in the Forest Kingdom, what earns/loses rep, and what unlocks at
+each tier. Then: 8–12 quest chain, 2–3 secrets, *write down the hours*. Still open
+from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
+Milestone 2 finishes when a new player can play Starter Plains → Forest Kingdom
+carried by quests.
+
+World-boss system note: `world_boss` is a Tiled spawn-object type (triggers.ts:
+pool/respawn/announce). WorldScene spawns it on zone load, announces via a
+screen-fixed banner (`announceBoss`), and respawns it `respawn`s after death
+*while you stay in the zone* (in-scene timer, not persisted across reloads — a
+persistent wall-clock timer is a future refinement if wanted). Greathorn is the
+Reach's; it drops the Hollow Antler relic (second relic source, as planned).
 
 Relic system note: relics are a save field (`relics: string[]`, v10) awarded by an
 enemy's `relic`/`relicName` fields on death (one-time, in onEnemyDied). There's no
@@ -57,6 +66,21 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 World boss (5th box): Greathorn, the Hollow Stag**
+  (headless-verified 6/6; 186 unit tests):
+  - **`world_boss` map-object type** (triggers.ts, parsed + tested): a spawn
+    object with `pool` / `respawn` (seconds) / `announce` (banner text). Fails
+    loudly without a pool or announce.
+  - **WorldScene world-boss system**: spawns each `world_boss` on zone load,
+    heralds it with a screen-fixed fading **banner** (`announceBoss`), and — via
+    `tickWorldBosses` — respawns it `respawn`s after death while you stay in the
+    zone (in-scene timer; not persisted across reloads).
+  - **Greathorn** (data/enemies.json, boss): 620 hp, charges + slams, roams the
+    Reach's central glade (world_boss object in forest.json at the glade). Drops
+    the **Hollow Antler** relic (relic system's second source).
+  - Verified in-browser: spawns on load, banner shown, kill awards the relic and
+    removes it, no instant respawn (timer path). maps.test guards its placement
+    on walkable ground; triggers.test guards world_boss parsing.
 - **Milestone 2.4 Dungeon + mini-boss + relic (4th box): the Bramblewarren**
   (headless-verified 9/9; 183 unit tests):
   - **`genForestDungeon` map** (60×40, dark): DWALL barrow carved into DFLOOR
@@ -720,6 +744,12 @@ Notes for the remaining 2.4 boxes:
   work — but **placement/feel want human eyes**: are the four service NPCs easy to
   find under their buildings, and does the forest-floor town read as distinct from
   Ashfall (not just a recolor)? Is the north-spur route to it obvious enough?
+- **Greathorn world boss (m2.4)**: enter the Verdant Reach and head to the **big
+  central glade** — the Hollow Stag spawns there with a banner. Smoke-verified
+  spawn/announce/kill/relic — but **wants human eyes**: is the banner readable and
+  well-timed? Is the charge+slam fight in the open glade fun and fair? Does the
+  ~120s respawn feel right (and is respawning only while you're in-zone acceptable,
+  or should it be a persistent wall-clock timer)?
 - **Bramblewarren dungeon (m2.4)**: at the **far east end of the Reach's path**, a
   cave mouth drops into the dark barrow; fight through to Mossmaw's chamber and the
   Verdant Heart relic. Smoke-verified the gates/kill/relic — but **feel wants human

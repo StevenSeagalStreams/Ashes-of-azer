@@ -82,6 +82,33 @@ describe('parseMapObjects', () => {
     });
   });
 
+  it('parses a world_boss spawn (pool, respawn, announce)', () => {
+    const spawns = [
+      player,
+      {
+        name: 'greathorn',
+        type: 'world_boss',
+        point: true,
+        x: 200,
+        y: 300,
+        properties: [
+          { name: 'pool', value: 'greathorn' },
+          { name: 'respawn', value: 90 },
+          { name: 'announce', value: 'The Greathorn stirs!' },
+        ],
+      },
+    ];
+    const out = parseMapObjects(spawns, []);
+    expect(out.worldBosses).toEqual([{ x: 200, y: 300, pool: ['greathorn'], respawn: 90, announce: 'The Greathorn stirs!' }]);
+  });
+
+  it('a world_boss needs a pool and an announce string', () => {
+    const noPool = [player, { type: 'world_boss', x: 1, y: 1, properties: [{ name: 'announce', value: 'x' }] }];
+    expect(() => parseMapObjects(noPool, [])).toThrow(MapParseError);
+    const noAnnounce = [player, { type: 'world_boss', x: 1, y: 1, properties: [{ name: 'pool', value: 'greathorn' }] }];
+    expect(() => parseMapObjects(noAnnounce, [])).toThrow(MapParseError);
+  });
+
   it('accepts record-style properties (as Phaser sometimes converts them)', () => {
     const spawns = [player, { type: 'enemy_spawn', point: true, x: 1, y: 2, properties: { pool: 'slime' } }];
     const out = parseMapObjects(spawns, []);

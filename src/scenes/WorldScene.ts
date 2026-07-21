@@ -52,7 +52,7 @@ import {
   skillsForClass,
   xpToNext,
 } from '../systems/skills.ts';
-import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects } from '../systems/triggers.ts';
+import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects, type WorldBossSpawn } from '../systems/triggers.ts';
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 import { SkillUI } from '../ui/SkillUI.ts';
 import { QuestUI } from '../ui/QuestUI.ts';
@@ -154,6 +154,9 @@ export class WorldScene extends Phaser.Scene {
   private solidMask!: boolean[][];
   private objects!: MapObjects;
   private regionStates: RegionState[] = [];
+  // Open-world bosses (m2.4): each spawns on zone load and, once slain, returns
+  // after its `respawn` seconds while you remain in the zone.
+  private worldBossStates: { spawn: WorldBossSpawn; eid: number | null; timer: number }[] = [];
   private saveStore!: SaveStore;
   private saveData: SaveData = defaultSave();
   private entry: ZoneInit = {};
@@ -195,6 +198,7 @@ export class WorldScene extends Phaser.Scene {
     this.entry = data;
     this.transitioning = false;
     this.regionStates = [];
+    this.worldBossStates = [];
   }
 
   create(): void {
@@ -261,6 +265,10 @@ export class WorldScene extends Phaser.Scene {
     for (const region of this.objects.enemyRegions) {
       for (let i = 0; i < region.count; i++) this.spawnInRegion(region, 90);
       if (region.respawn) this.regionStates.push({ region, timer: region.respawnInterval });
+    }
+    for (const spawn of this.objects.worldBosses) {
+      const eid = this.spawnWorldBoss(spawn);
+      this.worldBossStates.push({ spawn, eid, timer: spawn.respawn });
     }
 
     // NPCs standing in this zone (placed data-first in npcs.json).
@@ -506,6 +514,7 @@ export class WorldScene extends Phaser.Scene {
       if (e.active) e.updateEnemy(dt, this.player, this.numbers);
     }
     this.tickRegionRespawns(dt);
+    this.tickWorldBosses(dt);
     this.publishHud();
     this.skillUI.refresh();
     this.projectiles.update(dt);
@@ -568,6 +577,48 @@ export class WorldScene extends Phaser.Scene {
       const alive = (this.enemies.getChildren() as Enemy[]).filter((e) => e.active).length;
       if (alive < state.region.respawnCap) this.spawnInRegion(state.region, 120);
     }
+  }
+
+  /** Spawns an open-world boss and announces it; returns its instance id. */
+  private spawnWorldBoss(spawn: WorldBossSpawn): number {
+    const boss = new Enemy(this, this.pickFromPool(spawn.pool), spawn.x, spawn.y, this.player.level);
+    this.enemies.add(boss);
+    this.announceBoss(spawn.announce);
+    return boss.eid;
+  }
+
+  /** After a world boss dies, count down and bring it back (while in-zone). */
+  private tickWorldBosses(dt: number): void {
+    const living = new Set((this.enemies.getChildren() as Enemy[]).filter((e) => e.active).map((e) => e.eid));
+    for (const state of this.worldBossStates) {
+      if (state.eid !== null && living.has(state.eid)) {
+        state.timer = state.spawn.respawn; // still alive — hold the timer full
+        continue;
+      }
+      state.eid = null; // it's down
+      state.timer -= dt;
+      if (state.timer <= 0) state.eid = this.spawnWorldBoss(state.spawn);
+    }
+  }
+
+  /** A brief screen-fixed banner heralding a world boss's (re)spawn. */
+  private announceBoss(text: string): void {
+    const cam = this.cameras.main;
+    const banner = this.add
+      .text(cam.width / 2, 40, text, {
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        color: '#ffd84a',
+        fontStyle: 'bold',
+        align: 'center',
+        stroke: '#2b2033',
+        strokeThickness: 4,
+        wordWrap: { width: cam.width - 24 },
+      })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(40);
+    this.tweens.add({ targets: banner, alpha: 0, y: 30, delay: 2600, duration: 900, onComplete: () => banner.destroy() });
   }
 
   /** A summoner's call: spawn up to `count` minions near it, capped by `max`

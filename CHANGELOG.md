@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **A world boss stalks the Reach.** **Greathorn, the Hollow Stag** roams the
+  Verdant Reach's central glade — a huge open-world beast that **charges** and
+  **ground-slams**. Its arrival is heralded by a banner across the top of the
+  screen, and if you fell it you claim the **Hollow Antler** relic. Leave it too
+  long and it returns: the Stag **respawns** a couple of minutes after death.
 - **Into the Bramblewarren — a dungeon and its master.** At the far east end of
   the Reach's path, a **cave mouth** leads down into a dark forest barrow crawling
   with thornwolves, spitters and sporelings. Deep inside waits **Mossmaw, the

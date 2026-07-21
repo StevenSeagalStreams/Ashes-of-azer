@@ -69,6 +69,15 @@ describe('Verdant Reach (forest) map', () => {
     expect(data).toContain(TILE.FOREST + 1);
     expect(data).toContain(TILE.PINE + 1);
   });
+
+  it('places the open-world boss (greathorn) on walkable ground', () => {
+    const wb = (forest.layers.find((l) => l.name === 'spawns')!.objects as { type: string; x: number; y: number; properties?: { name: string; value: unknown }[] }[])
+      .find((o) => o.type === 'world_boss');
+    expect(wb, 'forest has a world_boss object').toBeTruthy();
+    const pool = String((wb!.properties ?? []).find((p) => p.name === 'pool')?.value ?? '');
+    expect(pool).toContain('greathorn');
+    expect(SOLID_GIDS.has(groundGid(forest, wb!.x, wb!.y))).toBe(false);
+  });
 });
 
 describe('Thornhollow (forest town) map', () => {
