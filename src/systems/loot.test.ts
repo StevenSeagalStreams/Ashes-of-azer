@@ -43,6 +43,14 @@ describe('rollItem', () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
+  it('honours a forced rarity (crafting) regardless of the rarity roll value', () => {
+    // First rng value would roll white by dropChance; opts.rarity overrides it.
+    const item = rollItem(items, affixes, scriptRng([0.0, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Weapon', rarity: 'rare' });
+    expect(item.rarity).toBe('rare');
+    const rare = items.rarities.find((r) => r.id === 'rare')!;
+    expect(item.affixes.length).toBe(rare.affixCount);
+  });
+
   it('a legendary roll for a slot with a legendary yields it (power + forced affixes)', () => {
     // Force the highest rarity roll (~0.99 → legendary). Ring has legendaries.
     const item = rollItem(items, affixes, scriptRng([0.99, 0]), { slot: 'Ring' });

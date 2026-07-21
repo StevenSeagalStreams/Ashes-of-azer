@@ -6,6 +6,7 @@ import {
   ItemsFileSchema,
   NpcsFileSchema,
   QuestsFileSchema,
+  RecipesFileSchema,
   SkillsFileSchema,
   ZonesFileSchema,
   type AffixesFile,
@@ -14,6 +15,7 @@ import {
   type ItemsFile,
   type NpcsFile,
   type QuestsFile,
+  type RecipesFile,
   type SkillsFile,
   type ZonesFile,
 } from './schemas/index.ts';
@@ -27,6 +29,7 @@ export interface GameData {
   quests: QuestsFile;
   dialogue: DialogueFile;
   npcs: NpcsFile;
+  recipes: RecipesFile;
 }
 
 /**
@@ -66,6 +69,7 @@ export function validateGameData(raw: {
   quests: unknown;
   dialogue: unknown;
   npcs: unknown;
+  recipes: unknown;
 }): GameData {
   const issues: string[] = [];
   const enemies = parseFile('enemies.json', EnemiesFileSchema, raw.enemies, issues);
@@ -76,9 +80,10 @@ export function validateGameData(raw: {
   const quests = parseFile('quests.json', QuestsFileSchema, raw.quests, issues);
   const dialogue = parseFile('dialogue.json', DialogueFileSchema, raw.dialogue, issues);
   const npcs = parseFile('npcs.json', NpcsFileSchema, raw.npcs, issues);
+  const recipes = parseFile('recipes.json', RecipesFileSchema, raw.recipes, issues);
 
   if (issues.length > 0) throw new DataValidationError(issues);
 
   // Non-null by construction: issues is empty only when every parseFile call succeeded.
-  return { enemies, affixes, items, skills, zones, quests, dialogue, npcs } as GameData;
+  return { enemies, affixes, items, skills, zones, quests, dialogue, npcs, recipes } as GameData;
 }

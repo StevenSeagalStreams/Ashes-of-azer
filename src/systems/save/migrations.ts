@@ -44,6 +44,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   // v7 → v8 (m2.3): items gained optional durability; existing items lack it and
   // stay indestructible, so nothing to fill — just bump the version.
   7: (raw) => ({ ...raw }),
+  // v8 → v9 (m2.3): crafting materials join the save; older saves start empty.
+  8: (raw) => ({ ...raw, materials: (raw['materials'] ?? {}) as Record<string, unknown> }),
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

@@ -108,9 +108,18 @@ describe('migrateAndValidate (real chain)', () => {
     expect(out.skillRanks).toEqual(v1.skillRanks);
     expect(out.world.killedBosses).toEqual(['boss']);
     expect(out.world.corruption).toBe(25);
-    // Pre-2.1 saves gain an empty quest log; pre-2.3 saves an empty stash.
+    // Pre-2.1 saves gain an empty quest log; pre-2.3 saves an empty stash + materials.
     expect(out.quests).toEqual({ active: [], completed: [], progress: {}, tracked: null });
     expect(out.stash).toEqual([]);
+    expect(out.materials).toEqual({});
+  });
+
+  it('adds an empty material stock when upgrading a v8 save (v8 → v9)', () => {
+    const v8 = { ...defaultSave(), saveVersion: 8 } as Record<string, unknown>;
+    delete v8['materials'];
+    const out = migrateAndValidate(v8);
+    expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(out.materials).toEqual({});
   });
 
   it('adds an empty quest log when upgrading a v5 save (v5 → v6)', () => {

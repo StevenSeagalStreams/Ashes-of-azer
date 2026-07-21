@@ -26,6 +26,7 @@ const slotsWithBases = (items: ItemsFile): ItemSlot[] =>
 
 export interface RollOpts {
   slot?: ItemSlot; // force a slot; otherwise a random slot that has bases
+  rarity?: string; // force a rarity id (crafting); otherwise rolled by dropChance
 }
 
 const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, epic: 30, legendary: 50 };
@@ -52,7 +53,9 @@ export const isBroken = (item: ItemInstance): boolean =>
 export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts: RollOpts = {}): ItemInstance {
   const eligible = slotsWithBases(items);
   const slot = opts.slot ?? pick(eligible, rng);
-  const rarity = rollRarity(items, rng);
+  const rarity = opts.rarity
+    ? items.rarities.find((r) => r.id === opts.rarity) ?? rollRarity(items, rng)
+    : rollRarity(items, rng);
 
   if (rarity.id === 'legendary') {
     const forSlot = items.legendaries.filter((l) => l.slot === slot);

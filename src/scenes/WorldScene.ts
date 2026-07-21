@@ -17,7 +17,8 @@ import { gearStats, itemValue, repairCost, rollItem, rollVendorStock, sellValue 
 import type { ItemInstance } from '../systems/save/schema.ts';
 import { ShopUI } from '../ui/ShopUI.ts';
 import { StashUI } from '../ui/StashUI.ts';
-import { RepairUI, type RepairEntry } from '../ui/RepairUI.ts';
+import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from '../ui/RepairUI.ts';
+import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -91,12 +92,15 @@ const RARITY_COLOR: Record<string, number> = {
   legendary: 0xe07830,
 };
 const NORMAL_DROP_CHANCE = 0.4;
+// Crafting materials drop independently of gear (m2.3), a bit less often.
+const MATERIAL_DROP_CHANCE = 0.3;
 const PICKUP_RANGE = 16;
 
-interface Drop {
-  item: ItemInstance;
-  gfx: Phaser.GameObjects.Rectangle;
-}
+// A pickup lying on the ground: either a gear item (→ bag) or a stack of one
+// crafting material (→ materials). `gfx` is the bobbing marker for both.
+type Drop =
+  | { kind: 'item'; item: ItemInstance; gfx: Phaser.GameObjects.Rectangle }
+  | { kind: 'material'; material: string; name: string; color: number; gfx: Phaser.GameObjects.Rectangle };
 
 interface ZoneInit {
   zone?: string;
@@ -358,6 +362,9 @@ export class WorldScene extends Phaser.Scene {
       repairables: () => this.repairables(),
       repair: (key) => this.repairOne(key),
       repairAll: () => this.repairAllGear(),
+      recipes: () => this.craftEntries(),
+      materials: () => this.materialStock(),
+      craft: (id) => this.craftRecipe(id),
     });
     // Left-click to basic-attack. pointerdown only fires for canvas clicks
     // (DOM skill-UI clicks target their own elements), so the UI is safe.
@@ -1019,30 +1026,52 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- loot ----------
 
-  /** Bosses always drop; normal enemies roll a chance. Drops a ground gem. */
+  /** Bosses always drop gear; normal enemies roll a chance. Both may drop a material. */
   private maybeDropLoot(def: EnemyData, x: number, y: number): void {
-    if (!def.boss && Math.random() >= NORMAL_DROP_CHANCE) return;
-    const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random);
-    this.spawnDrop(x, y, item);
+    if (def.boss || Math.random() < NORMAL_DROP_CHANCE) {
+      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random);
+      this.spawnItemDrop(x, y, item);
+    }
+    if (Math.random() < MATERIAL_DROP_CHANCE) {
+      const mat = pickMaterial(this.gameData.recipes.materials, Math.random);
+      // Nudge a co-dropped material aside so it doesn't stack under the gem.
+      if (mat) this.spawnMaterialDrop(x + 8, y, mat.id, mat.name, Number.parseInt(mat.color.replace('#', ''), 16));
+    }
   }
 
-  private spawnDrop(x: number, y: number, item: ItemInstance): void {
+  private bob(gfx: Phaser.GameObjects.Rectangle, y: number): void {
+    this.tweens.add({ targets: gfx, y: y - 3, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' });
+  }
+
+  private spawnItemDrop(x: number, y: number, item: ItemInstance): void {
     const gem = this.add
       .rectangle(x, y, 6, 6, RARITY_COLOR[item.rarity] ?? 0xffffff)
       .setStrokeStyle(1, 0x000000, 0.7)
       .setAngle(45)
       .setDepth(3);
-    this.tweens.add({ targets: gem, y: y - 3, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' });
-    this.drops.push({ item, gfx: gem });
+    this.bob(gem, y);
+    this.drops.push({ kind: 'item', item, gfx: gem });
   }
 
-  /** Collect any drop the player is standing on into the bag. */
+  private spawnMaterialDrop(x: number, y: number, material: string, name: string, color: number): void {
+    const chip = this.add.rectangle(x, y, 5, 5, color).setStrokeStyle(1, 0x000000, 0.7).setDepth(3);
+    this.bob(chip, y);
+    this.drops.push({ kind: 'material', material, name, color, gfx: chip });
+  }
+
+  /** Collect any drop the player is standing on (item → bag, material → stock). */
   private collectDrops(): void {
     for (let i = this.drops.length - 1; i >= 0; i--) {
       const d = this.drops[i]!;
       if (Phaser.Math.Distance.Between(d.gfx.x, d.gfx.y, this.player.x, this.player.y) > PICKUP_RANGE) continue;
-      this.saveData.bag.push(d.item);
-      this.numbers.spawn(this.player.x, this.player.y - 14, d.item.name, `#${(RARITY_COLOR[d.item.rarity] ?? 0xffffff).toString(16).padStart(6, '0')}`);
+      if (d.kind === 'item') {
+        this.saveData.bag.push(d.item);
+        this.numbers.spawn(this.player.x, this.player.y - 14, d.item.name, `#${(RARITY_COLOR[d.item.rarity] ?? 0xffffff).toString(16).padStart(6, '0')}`);
+      } else {
+        this.saveData.materials[d.material] = (this.saveData.materials[d.material] ?? 0) + 1;
+        this.numbers.spawn(this.player.x, this.player.y - 14, `+${d.name}`, `#${d.color.toString(16).padStart(6, '0')}`);
+        if (this.repairUI.isOpen()) this.repairUI.refresh();
+      }
       d.gfx.destroy();
       this.drops.splice(i, 1);
       this.saveNow();
@@ -1198,6 +1227,47 @@ export class WorldScene extends Phaser.Scene {
   private repairAllGear(): void {
     // Snapshot keys (repairing only restores durability, so indices stay valid).
     for (const e of this.repairables()) this.repairOne(e.key);
+  }
+
+  // ---------- blacksmith (crafting) ----------
+
+  /** The player's material stock as UI rows (materials they hold ≥1 of). */
+  private materialStock(): MaterialStock[] {
+    return this.gameData.recipes.materials
+      .map((m) => ({ name: m.name, color: m.color, count: this.saveData.materials[m.id] ?? 0 }))
+      .filter((m) => m.count > 0);
+  }
+
+  /** Recipes resolved against the current stock/gold for the blacksmith panel. */
+  private craftEntries(): CraftEntry[] {
+    const mats = this.gameData.recipes.materials;
+    const matName = (id: string): { name: string; color: string } => {
+      const m = mats.find((x) => x.id === id);
+      return { name: m?.name ?? id, color: m?.color ?? '#b7b0a0' };
+    };
+    return this.gameData.recipes.recipes.map((r) => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      inputs: r.inputs.map((i) => ({ ...matName(i.material), have: this.saveData.materials[i.material] ?? 0, need: i.count })),
+      gold: r.gold,
+      resultLabel: `${r.result.rarity} ${r.result.slot}`,
+      resultRarity: r.result.rarity,
+      can: canCraft(r, this.saveData.materials, this.player.gold),
+    }));
+  }
+
+  private craftRecipe(recipeId: string): void {
+    const recipe = this.gameData.recipes.recipes.find((r) => r.id === recipeId);
+    if (!recipe || !canCraft(recipe, this.saveData.materials, this.player.gold)) return;
+    this.saveData.materials = spendInputs(recipe, this.saveData.materials);
+    this.player.gold -= recipe.gold;
+    const item = craftItem(recipe, this.gameData.items, this.gameData.affixes, Math.random);
+    this.saveData.bag.push(item);
+    this.numbers.spawn(this.player.x, this.player.y - 14, `Forged ${item.name}`, `#${(RARITY_COLOR[item.rarity] ?? 0xffffff).toString(16).padStart(6, '0')}`);
+    this.saveNow();
+    this.repairUI.refresh();
+    this.inventoryUI.refresh();
   }
 
   /** Wear a point off equipped gear every couple of swings; re-derive on break. */

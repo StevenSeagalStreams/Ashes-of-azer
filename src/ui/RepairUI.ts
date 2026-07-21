@@ -12,11 +12,33 @@ export interface RepairEntry {
   cost: number;
 }
 
+// A craftable recipe, resolved against the player's current stock (m2.3).
+export interface CraftEntry {
+  id: string;
+  name: string;
+  description: string;
+  inputs: { name: string; color: string; have: number; need: number }[];
+  gold: number;
+  resultLabel: string; // e.g. "rare Chest"
+  resultRarity: string;
+  can: boolean; // player has every input + the gold
+}
+
+// The player's material stock, one row per material they hold any of.
+export interface MaterialStock {
+  name: string;
+  color: string;
+  count: number;
+}
+
 export interface RepairUIHost {
   gold: () => number;
   repairables: () => RepairEntry[];
   repair: (key: string) => void;
   repairAll: () => void;
+  recipes: () => CraftEntry[];
+  materials: () => MaterialStock[];
+  craft: (recipeId: string) => void;
 }
 
 const RARITY_HEX: Record<string, string> = {
@@ -44,6 +66,20 @@ const CSS = `
   #azer-repair .all{width:100%;margin-top:6px;font-family:inherit;font-size:11px;font-weight:bold;color:#2b2033;
     background:#e8b64c;border:2px solid #8a6d3b;border-radius:5px;padding:5px;cursor:pointer;}
   #azer-repair .all:disabled{opacity:.5;cursor:not-allowed;}
+  #azer-repair h4{font-size:12px;border-bottom:2px solid #8a6d3b;margin:10px 0 4px;letter-spacing:1px;}
+  #azer-repair .mats{font-size:9px;color:#5a4a30;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px 8px;}
+  #azer-repair .mats .none{font-style:italic;color:#7a6a4a;}
+  #azer-repair .mats .m .sw{display:inline-block;width:7px;height:7px;border:1px solid #000;vertical-align:middle;margin-right:2px;}
+  #azer-repair .recipe{border:2px solid #8a6d3b;border-radius:4px;padding:5px 6px;margin-bottom:5px;background:rgba(255,255,255,.5);}
+  #azer-repair .recipe.cant{opacity:.55;}
+  #azer-repair .recipe .rn{font-size:11px;font-weight:bold;display:flex;justify-content:space-between;gap:6px;}
+  #azer-repair .recipe .rd{font-size:9px;color:#5a4a30;font-style:italic;margin:1px 0 3px;}
+  #azer-repair .recipe .ing{font-size:9px;margin-bottom:4px;}
+  #azer-repair .recipe .ing .lack{color:#b23b2e;}
+  #azer-repair .recipe .ing .ok{color:#3a6a30;}
+  #azer-repair .recipe button{width:100%;font-family:inherit;font-size:10px;font-weight:bold;color:#2b2033;
+    background:#9bd08a;border:2px solid #8a6d3b;border-radius:4px;padding:4px;cursor:pointer;}
+  #azer-repair .recipe button:disabled{opacity:.5;cursor:not-allowed;background:#cfc7b0;}
 `;
 
 export class RepairUI {
@@ -100,13 +136,43 @@ export class RepairUI {
     const allDisabled = items.length === 0 || gold < total;
     this.panel.innerHTML = `<h3>BLACKSMITH</h3><div class="gold">Gold: ${gold}</div>${rows}${
       items.length ? `<button class="all"${allDisabled ? ' disabled' : ''}>Repair All (${total}g)</button>` : ''
-    }`;
+    }${this.craftSection()}`;
 
     this.panel.querySelectorAll<HTMLElement>('[data-key]').forEach((el) => {
       if (!el.classList.contains('cant')) el.addEventListener('click', () => this.host.repair(el.dataset['key'] as string));
     });
     const allBtn = this.panel.querySelector<HTMLButtonElement>('.all');
     if (allBtn && !allDisabled) allBtn.addEventListener('click', () => this.host.repairAll());
+    this.panel.querySelectorAll<HTMLButtonElement>('[data-craft]').forEach((btn) => {
+      if (!btn.disabled) btn.addEventListener('click', () => this.host.craft(btn.dataset['craft'] as string));
+    });
+  }
+
+  private craftSection(): string {
+    const stock = this.host.materials();
+    const matsLine = stock.length
+      ? stock
+          .map((m) => `<span class="m"><span class="sw" style="background:${m.color}"></span>${m.name} ×${m.count}</span>`)
+          .join('')
+      : '<span class="none">No materials yet — slay foes to gather them.</span>';
+
+    const recipes = this.host
+      .recipes()
+      .map((r) => {
+        const ing = r.inputs
+          .map(
+            (i) =>
+              `<span class="${i.have >= i.need ? 'ok' : 'lack'}"><span class="sw" style="background:${i.color};display:inline-block;width:7px;height:7px;border:1px solid #000;vertical-align:middle;margin-right:1px;"></span>${i.name} ${i.have}/${i.need}</span>`,
+          )
+          .join(' · ');
+        const goldLabel = r.gold > 0 ? ` · ${r.gold}g` : '';
+        return `<div class="recipe${r.can ? '' : ' cant'}"><div class="rn"><span style="color:${RARITY_HEX[r.resultRarity] ?? '#2b2033'}">${r.name}</span></div>${
+          r.description ? `<div class="rd">${r.description}</div>` : ''
+        }<div class="ing">${ing}${goldLabel}</div><button data-craft="${r.id}"${r.can ? '' : ' disabled'}>Forge ${r.resultLabel}</button></div>`;
+      })
+      .join('');
+
+    return `<h4>CRAFT</h4><div class="mats">${matsLine}</div>${recipes}`;
   }
 
   destroy(): void {

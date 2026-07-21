@@ -15,6 +15,7 @@ const validRaw = {
   quests: [],
   dialogue: [],
   npcs: [],
+  recipes: { materials: [], recipes: [] },
 };
 
 describe('validateGameData', () => {

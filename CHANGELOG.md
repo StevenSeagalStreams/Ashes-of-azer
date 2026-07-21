@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **The Blacksmith is open.** Gear now has **durability** and wears down as you
+  swing — a broken item gives you none of its stats until you fix it. **Smith
+  Bralla** in Ashfall Village repairs your gear for gold (one piece at a time or
+  Repair All), and **crafts**: enemies drop **materials** (Iron Scrap, Bone Dust,
+  Ember Shard, Azure Sigil), and you spend them plus gold to **forge** new items
+  — a fine weapon, a warplate, an ember ring. Recipes and materials live in data,
+  so more can be added without a patch.
 - **More village services.** **Stashkeeper Odd** keeps a shared **stash** — press
   E to move items between your bag and storage (saved with your character).
   **Master Vane** the trainer will **reset your skills for free** and hand you a

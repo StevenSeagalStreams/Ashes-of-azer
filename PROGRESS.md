@@ -1,29 +1,24 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.3 IN PROGRESS** — 4 of 6 boxes done (town map, Vendor, Stash,
-Trainer). Remaining: **Blacksmith** (repair/durability + crafting — the
-heaviest box) and **5–8 quest NPCs** (content). Still open from earlier: 1.6
-class sprite sheets (art) and 2.1 objective markers (minimap).
+**MILESTONE 2.3 IN PROGRESS** — 5 of 6 boxes done (town map, Vendor, Stash,
+Trainer, **Blacksmith**). Remaining: **5–8 quest NPCs** (content). Still open
+from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
 
 Notes for that session:
-- **Blacksmith** (`service: 'blacksmith'` — routing pattern exists in
-  `tryTalk`): needs a `durability`/`maxDurability` on ItemInstance (save v8 +
-  migration; decide how gear wears — e.g. lose 1 durability per hit the player
-  takes, per equipped item), a repair UI (gold → restore durability), and a
-  crafting recipe schema (`data/recipes.json` + materials that drop — add a
-  materials array to the save + a `material` drop kind, or reuse items). Repair
-  is the smaller half; crafting + materials is the bigger half.
-- **5–8 quest NPCs**: content. Add NPCs (npcs.json) + dialogue trees + quests
-  forming a small Ashfall chain. Currently the town has Vendor/Trainer/Keeper +
-  the plains Elder; need ~4–5 more quest-givers with a linked story. NPCs are
-  trivial to add now.
+- **5–8 quest NPCs** (the last 2.3 box): content, no new systems needed. Add
+  NPCs (npcs.json) + dialogue trees (dialogue.json) + quests (quests.json)
+  forming a small Ashfall chain. Currently the town has Vendor (Pell)/Trainer
+  (Vane)/Stash (Odd)/Blacksmith (Bralla) + the plains Elder (Maru). Need ~4–5
+  more quest-givers with a linked story. Everything to add one exists: place an
+  NPC with `offersQuests`, give it a dialogue tree whose choices `startsQuest`,
+  and chain quests via `prereqs`/`chain`. Autoffer:false quests are NPC-given.
 - The three+ item UIs (Inventory/Shop/Stash) duplicate a tooltip + rarity
-  palette — extract a shared `itemTooltip(item, affixes)` + RARITY_HEX helper
-  before adding the Blacksmith/repair UI.
+  palette; RepairUI now has its own `RARITY_HEX` too — extract a shared
+  `itemTooltip(item, affixes)` + RARITY_HEX helper (backlog).
 - Service NPCs: `NpcSchema.service` ('vendor'|'blacksmith'|'stash'|'trainer');
-  `tryTalk` opens the matching UI (vendor + stash wired; trainer is a dialogue
-  NPC using the new `respec` action, not a service UI).
+  `tryTalk` opens the matching UI (vendor + stash + blacksmith wired; trainer is
+  a dialogue NPC using the `respec` action, not a service UI).
 - ⚠️ **Build-cache gotcha:** `npm run build` can serve a STALE bundle from
   Vite's cache. If a smoke contradicts a passing unit test, `rm -rf
   node_modules/.vite` (and `dist`) then rebuild. Build in the FOREGROUND then
@@ -31,6 +26,27 @@ Notes for that session:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.3 Blacksmith (5th box): repair + crafting** (headless-verified
+  17/17; 164 unit tests):
+  - **Repair (save v8)**: items roll with `durability`/`maxDurability` (sturdier
+    when better/higher base). Gear wears a point every couple of swings
+    (`wearGear`); a broken item (durability 0) contributes **no stats** until
+    fixed (`gearStats` skips `isBroken`). **Smith Bralla** (`service:'blacksmith'`)
+    opens the blacksmith panel: pay gold (1g per missing point) to restore an
+    item — per-item click or **Repair All**. `repairCost`/`isBroken`/`durabilityFor`
+    in `loot.ts`; `RepairUI.ts`.
+  - **Crafting (save v9)**: `data/recipes.json` (new `RecipesFileSchema`) holds
+    **materials** (id/name/color/weight) and **recipes** (inputs: material→count,
+    gold, result: slot+rarity). Enemies drop materials
+    (`MATERIAL_DROP_CHANCE 0.3`, weighted `pickMaterial`) as a small colored chip
+    you walk over → banked into `saveData.materials` (v8→v9 migration → `{}`).
+    The blacksmith panel's **CRAFT** section shows your material stock + each
+    recipe (greyed when you can't afford it); forging spends materials + gold and
+    drops a rolled item of the recipe's slot/rarity into your bag. Pure logic in
+    `src/systems/crafting.ts` (`canCraft`/`spendInputs`/`craftItem`/`pickMaterial`,
+    6 tests); `rollItem` gained an `opts.rarity` to force a rarity (1 test).
+  - Everything data-driven: adding a material or recipe is JSON-only. 3 starter
+    recipes (fine weapon / warplate / ember ring), 4 materials.
 - **Milestone 2.3 (4/6 boxes): town + Vendor + Stash + Trainer** (headless-
   verified: town+vendor 10/10, stash+trainer 7/7; 153 unit tests):
   - **Stash** (save **v7**): a `stash: ItemInstance[]` array (v6→v7 migration).
@@ -576,6 +592,14 @@ Notes for that session:
   (trainer — "Reset my skills" wipes spent points; "Give me a trial" starts a
   hunt) and **Stashkeeper Odd** (E opens a bag↔stash mover). Any trouble telling
   the service NPCs apart or knowing what each does?
+- **Blacksmith (m2.3)**: **Smith Bralla** stands at the west building; press **E**
+  to open the forge. Fight for a while first — gear loses **durability** as you
+  swing (a broken piece stops giving stats; you'll see "GEAR BROKE"). At the
+  smith, the top **repair** rows show worn gear with a gold cost (click one, or
+  "Repair All"); below, a **CRAFT** section lists your **materials** (dropped by
+  enemies as little colored chips) and recipes you can forge for materials +
+  gold. Does wear feel too fast/slow? Are repair costs and craft recipes worth
+  it? Do materials drop often enough to actually craft?
 - **Loot loop (m1.7)**: kill things and watch for **gems** to pop out (bosses
   always drop) — walk over one to bank it (a rarity-colored name toast floats
   up). Press **I**: equip a bag item (does your damage/HP number in the HUD

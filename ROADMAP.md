@@ -127,7 +127,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 ### 2.3 First real town (Starter Plains)
 - [x] Town map in Tiled: 6–10 buildings, enterable interiors or facades — Ashfall Village (6 building facades, gate from the plains, well)
 - [x] **Vendor**: buy/sell UI, gold economy, stock refreshes on level-up
-- [ ] **Blacksmith**: repair (durability system) + crafting (recipes in JSON, materials drop from enemies)
+- [x] **Blacksmith**: repair (durability system) + crafting (recipes in JSON, materials drop from enemies) — Smith Bralla: repair worn gear for gold; forge items from dropped materials (data/recipes.json)
 - [x] **Trainer**: respec + class quest giver — Master Vane (free respec + The Trainer's Trial); per-class quest variants are future content
 - [x] **Stash**: shared storage chest — Stashkeeper Odd (save v7 stash array, bag↔stash)
 - [ ] 5–8 quest NPCs forming the zone's quest chain
