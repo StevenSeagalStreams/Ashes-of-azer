@@ -184,10 +184,15 @@ export function addSlashTexture(scene: Phaser.Scene, key: string): void {
 }
 
 // One 16px tile per tile id (0-8), laid out left to right in a single strip.
+// Tiles drawn into the shared tileset strip, in TILE-id order. Keep in sync with
+// the TILE enum (mapgen.ts) and the tileset `tilecount`/`imagewidth` that
+// scripts/generate-maps.mjs writes into each map JSON.
+export const TILE_COUNT = 12;
+
 export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   if (scene.textures.exists(key)) return;
   const c = document.createElement('canvas');
-  c.width = 9 * TS;
+  c.width = TILE_COUNT * TS;
   c.height = TS;
   const g = c.getContext('2d');
   if (!g) throw new Error('2d canvas context unavailable');
@@ -249,6 +254,46 @@ export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   g.fillRect(TILE.FLOWERS * TS + 6, 6, 3, 3);
   g.fillStyle = '#7cc25c';
   g.fillRect(TILE.FLOWERS * TS + 7, 9, 1, 4);
+
+  // ---- Forest Kingdom tiles (m2.4) ----
+  // Forest floor: a darker, mossier grass so the whole zone reads distinctly.
+  base(TILE.FOREST, '#4f9d54');
+  g.fillStyle = '#468e4b';
+  g.fillRect(TILE.FOREST * TS + 3, 5, 2, 2);
+  g.fillRect(TILE.FOREST * TS + 11, 10, 2, 2);
+  g.fillStyle = '#57a85c';
+  g.fillRect(TILE.FOREST * TS + 8, 3, 1, 2);
+
+  // Pine: a tall dark conifer over forest floor (solid).
+  base(TILE.PINE, '#4f9d54');
+  g.fillStyle = '#4a3320';
+  g.fillRect(TILE.PINE * TS + 7, 12, 2, 4); // trunk
+  g.fillStyle = '#1f5b30';
+  g.beginPath();
+  g.moveTo(TILE.PINE * TS + 8, 0);
+  g.lineTo(TILE.PINE * TS + 14, 13);
+  g.lineTo(TILE.PINE * TS + 2, 13);
+  g.closePath();
+  g.fill();
+  g.fillStyle = '#2c7a41';
+  g.beginPath();
+  g.moveTo(TILE.PINE * TS + 8, 2);
+  g.lineTo(TILE.PINE * TS + 12, 9);
+  g.lineTo(TILE.PINE * TS + 4, 9);
+  g.closePath();
+  g.fill();
+
+  // Mushroom decor on the forest floor (walkable).
+  base(TILE.MUSHROOM, '#4f9d54');
+  g.fillStyle = '#e8e0c8';
+  g.fillRect(TILE.MUSHROOM * TS + 7, 9, 2, 4); // stalk
+  g.fillStyle = '#c8402f';
+  g.beginPath();
+  g.arc(TILE.MUSHROOM * TS + 8, 8, 4, Math.PI, 0);
+  g.fill();
+  g.fillStyle = '#f2d0c0';
+  g.fillRect(TILE.MUSHROOM * TS + 6, 7, 1, 1);
+  g.fillRect(TILE.MUSHROOM * TS + 9, 6, 1, 1);
 
   scene.textures.addCanvas(key, c);
 }

@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **A whole new zone: the Verdant Reach.** Take the **east path out of the
+  plains** (past where you'd turn off for town) to a gate into the Forest
+  Kingdom's wilds — a forest roughly **three times the size** of the Starter
+  Plains, with a darker mossy floor, dense pines, mushroom groves, glades and a
+  woodland pond. It's crawling with foes; the gate at the west edge takes you
+  back to the plains. (This is the first slice of Zone 2 — its town, dungeon,
+  boss and quests are still to come.)
 - **Ashfall Village has a story now.** Five townsfolk give a linked quest chain:
   **Wellkeeper Sena** (the well runs grey), **Warden Kessa** (bats on the
   palisade), **Scout Doran** (a comrade lost in the Barrow), **Herbalist Mira**

@@ -9,8 +9,13 @@ import { fileURLToPath } from 'node:url';
 const TS = 16;
 const MAPW = 60;
 const MAPH = 40;
-const TILE = { GRASS: 0, TREE: 1, WATER: 2, PATH: 3, DOOR: 4, DFLOOR: 5, DWALL: 6, PORTAL: 7, FLOWERS: 8 };
-const SOLID = [TILE.TREE, TILE.WATER, TILE.DWALL];
+// prettier-ignore
+const TILE = {
+  GRASS: 0, TREE: 1, WATER: 2, PATH: 3, DOOR: 4, DFLOOR: 5, DWALL: 6, PORTAL: 7, FLOWERS: 8,
+  FOREST: 9, PINE: 10, MUSHROOM: 11,
+};
+const TILE_COUNT = 12; // keep in sync with pixelart.ts TILE_COUNT + mapgen.ts TILE
+const SOLID = [TILE.TREE, TILE.WATER, TILE.DWALL, TILE.PINE];
 
 function mulberry32(seed) {
   return function () {
@@ -56,6 +61,73 @@ function genOverworld(rnd) {
   for (let y = 24; y < 28; y++) for (let x = 8; x < 13; x++) if (m[y][x] === TILE.TREE) m[y][x] = TILE.GRASS;
   m[26][10] = TILE.DOOR;
   m[26][11] = TILE.DOOR;
+  // Forest gate (m2.4): extend the east path to a doorway into the Verdant Reach.
+  for (let x = 50; x < 58; x++) {
+    m[30][x] = TILE.PATH;
+    m[31][x] = TILE.PATH;
+  }
+  for (let y = 28; y < 34; y++) for (let x = 55; x < 59; x++) if (m[y][x] === TILE.TREE) m[y][x] = TILE.GRASS;
+  m[30][57] = TILE.DOOR;
+  m[31][57] = TILE.DOOR;
+  return m;
+}
+
+// The Verdant Reach (m2.4): the Forest Kingdom's wilds — a dark mossy floor,
+// dense pines, glades, a pond, and a winding path from the plains gate. ~3× the
+// Starter Plains (100×72 = 7200 tiles vs. 60×40 = 2400). Deterministic (seeded).
+const FORESTW = 100;
+const FORESTH = 72;
+function genForest(rnd) {
+  const W = FORESTW;
+  const H = FORESTH;
+  const m = [];
+  for (let y = 0; y < H; y++) {
+    const row = [];
+    for (let x = 0; x < W; x++) {
+      let t = TILE.FOREST;
+      if (x === 0 || y === 0 || x === W - 1 || y === H - 1) t = TILE.PINE;
+      else if (rnd() < 0.14) t = TILE.PINE;
+      else if (rnd() < 0.035) t = TILE.MUSHROOM;
+      else if (rnd() < 0.025) t = TILE.FLOWERS;
+      row.push(t);
+    }
+    m.push(row);
+  }
+  // Open glades (grass clearings) break up the canopy.
+  const glade = (cx, cy, r) => {
+    for (let y = cy - r; y <= cy + r; y++)
+      for (let x = cx - r; x <= cx + r; x++)
+        if (y > 0 && x > 0 && y < H - 1 && x < W - 1 && Math.hypot(x - cx, y - cy) < r) m[y][x] = TILE.GRASS;
+  };
+  glade(20, 20, 6);
+  glade(70, 30, 7);
+  glade(50, 56, 6);
+  glade(86, 58, 5);
+  // A woodland pond.
+  for (let y = 10; y < 21; y++) for (let x = 60; x < 75; x++) if (Math.hypot(x - 67, y - 15) < 5) m[y][x] = TILE.WATER;
+  // Winding 2-wide main path from the west gate across the Reach.
+  const carveH = (y, x1, x2) => {
+    for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      m[y][x] = TILE.PATH;
+      m[y + 1][x] = TILE.PATH;
+    }
+  };
+  const carveV = (x, y1, y2) => {
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      m[y][x] = TILE.PATH;
+      m[y][x + 1] = TILE.PATH;
+    }
+  };
+  carveH(36, 2, 24);
+  carveV(24, 20, 37);
+  carveH(20, 24, 50);
+  carveV(50, 20, 56);
+  carveH(56, 50, 90);
+  // West entry pocket + gate back to the plains.
+  for (let y = 34; y < 40; y++) for (let x = 1; x < 6; x++) m[y][x] = TILE.FOREST;
+  carveH(36, 1, 6);
+  m[36][2] = TILE.DOOR;
+  m[37][2] = TILE.DOOR;
   return m;
 }
 
@@ -130,6 +202,10 @@ function genDungeon() {
 const prop = (name, type, value) => ({ name, type, value });
 
 function tiledMap({ grid, spawnObjects, triggerObjects }) {
+  // Dimensions come from the grid itself, so a zone can be any size (the Forest
+  // Kingdom is ~3× the plains) without touching the shared MAPW/MAPH.
+  const height = grid.length;
+  const width = grid[0].length;
   let nextObjectId = 1;
   const withIds = (objs) => objs.map((o) => ({ visible: true, rotation: 0, ...o, id: nextObjectId++ }));
   const spawns = withIds(spawnObjects);
@@ -141,8 +217,8 @@ function tiledMap({ grid, spawnObjects, triggerObjects }) {
     orientation: 'orthogonal',
     renderorder: 'right-down',
     infinite: false,
-    width: MAPW,
-    height: MAPH,
+    width,
+    height,
     tilewidth: TS,
     tileheight: TS,
     nextlayerid: 4,
@@ -152,8 +228,8 @@ function tiledMap({ grid, spawnObjects, triggerObjects }) {
         id: 1,
         name: 'ground',
         type: 'tilelayer',
-        width: MAPW,
-        height: MAPH,
+        width,
+        height,
         x: 0,
         y: 0,
         opacity: 1,
@@ -168,12 +244,12 @@ function tiledMap({ grid, spawnObjects, triggerObjects }) {
         firstgid: 1,
         name: 'tiles',
         image: 'tiles.png',
-        imagewidth: 9 * TS,
+        imagewidth: TILE_COUNT * TS,
         imageheight: TS,
         tilewidth: TS,
         tileheight: TS,
-        tilecount: 9,
-        columns: 9,
+        tilecount: TILE_COUNT,
+        columns: TILE_COUNT,
         margin: 0,
         spacing: 0,
         tiles: SOLID.map((id) => ({ id, properties: [prop('solid', 'bool', true)] })),
@@ -235,6 +311,57 @@ const overworld = tiledMap({
         prop('target', 'string', 'town'),
         prop('targetX', 'float', 29 * TS + 8),
         prop('targetY', 'float', 34 * TS),
+      ],
+    },
+    {
+      name: 'forest-gate',
+      type: 'transition',
+      x: 57 * TS,
+      y: 30 * TS,
+      width: TS,
+      height: 2 * TS,
+      properties: [
+        prop('target', 'string', 'forest'),
+        prop('targetX', 'float', 4 * TS + 8),
+        prop('targetY', 'float', 36 * TS),
+      ],
+    },
+  ],
+});
+
+const forest = tiledMap({
+  grid: genForest(mulberry32(9001)),
+  spawnObjects: [
+    { name: 'player', type: 'player_spawn', point: true, x: 4 * TS + 8, y: 36 * TS },
+    {
+      // Open wilds: one region scatters enemies (from the zone's enemyTypes), as
+      // the plains does. Sized up for the ~3× map. No `pool` → zone default.
+      name: 'wilds',
+      type: 'enemy_region',
+      x: TS,
+      y: TS,
+      width: (FORESTW - 2) * TS,
+      height: (FORESTH - 2) * TS,
+      properties: [
+        prop('count', 'int', 30),
+        prop('respawn', 'bool', true),
+        prop('respawnCap', 'int', 22),
+        prop('respawnInterval', 'float', 4),
+      ],
+    },
+  ],
+  triggerObjects: [
+    {
+      name: 'plains-gate',
+      type: 'transition',
+      x: 2 * TS,
+      y: 36 * TS,
+      width: TS,
+      height: 2 * TS,
+      properties: [
+        prop('target', 'string', 'overworld'),
+        prop('targetX', 'float', 55 * TS + 8),
+        prop('targetY', 'float', 30 * TS + 8),
       ],
     },
   ],
@@ -326,6 +453,8 @@ const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'maps'
 writeFileSync(join(out, 'overworld.json'), JSON.stringify(overworld));
 writeFileSync(join(out, 'dungeon.json'), JSON.stringify(dungeon));
 writeFileSync(join(out, 'town.json'), JSON.stringify(town));
+writeFileSync(join(out, 'forest.json'), JSON.stringify(forest));
 console.log('wrote', join(out, 'overworld.json'));
 console.log('wrote', join(out, 'dungeon.json'));
 console.log('wrote', join(out, 'town.json'));
+console.log('wrote', join(out, 'forest.json'));

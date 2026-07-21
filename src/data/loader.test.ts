@@ -61,7 +61,7 @@ describe('the real /data/*.json content', () => {
     expect(data.enemies.length).toBeGreaterThanOrEqual(4); // slime, bat, skel, boss
     expect(data.items.legendaries.length).toBeGreaterThanOrEqual(3);
     expect(data.skills.length).toBeGreaterThanOrEqual(5);
-    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town']);
+    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest']);
   });
 
   // Cross-references are plain string ids; zod checks their shape, not that they
@@ -75,6 +75,9 @@ describe('the real /data/*.json content', () => {
     const enemyIds = new Set(data.enemies.map((e) => e.id));
     const zoneIds = new Set(data.zones.map((z) => z.id));
     const treeIds = new Set(data.dialogue.map((t) => t.id));
+
+    for (const z of data.zones)
+      for (const et of z.enemyTypes) expect(enemyIds, `${z.id} enemyType`).toContain(et);
 
     for (const q of data.quests) {
       for (const pre of q.prerequisites) expect(questIds, `${q.id} prereq`).toContain(pre);

@@ -1,22 +1,37 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.3 COMPLETE** — all 6 boxes done (town map, Vendor, Stash, Trainer,
-Blacksmith, **quest-NPC chain**). **Next up: Milestone 2.4 — Zone 2, Forest
-Kingdom** (the big one: new tileset+map ~3× town size, town w/ all services, 4–5
-new enemy types, dungeon+mini-boss, world boss, faction/rep track, 8–12 quest
-chain, 2–3 secrets, and *write down the hours it took*). Still open from earlier:
-1.6 class sprite sheets (art decision) and 2.1 objective markers (needs a
-minimap). Milestone 2 as a whole finishes when a new player can play Starter
-Plains → Forest Kingdom carried by quests.
+**MILESTONE 2.4 IN PROGRESS** — 1 of 9 boxes done (**Tileset + map**: the Verdant
+Reach). **Next box (top-to-bottom): "Town with all services"** — a Forest-Kingdom
+town map + service NPCs (vendor/blacksmith/stash/trainer), same pattern as
+Ashfall. Then: 4–5 new enemy types, dungeon+mini-boss+relic, world boss,
+faction/rep track, 8–12 quest chain, 2–3 secrets, *write down the hours*. Still
+open from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers
+(minimap). Milestone 2 finishes when a new player can play Starter Plains →
+Forest Kingdom carried by quests.
 
-Notes for 2.4 / next session:
-- 2.4 is a *production* milestone, not a systems one — most pieces reuse existing
-  systems (data-driven enemies/zones/quests/NPCs/dialogue/loot/crafting all
-  exist). New engine work likely needed: **faction/reputation track** (new save
-  field + vendor unlock gates), **world boss** (respawn timer + announced spawn),
-  and a bigger authored map. Consider splitting 2.4 into sub-checkboxes first
-  (per CLAUDE.md) — it's too big for one session.
+Notes for the remaining 2.4 boxes:
+- 2.4 is a *production* milestone — most boxes reuse existing systems
+  (data-driven enemies/zones/quests/NPCs/dialogue/loot/crafting). Genuinely NEW
+  engine work still ahead: **faction/reputation track** (new save field + vendor
+  unlock gates + a v10 migration), **world boss** (open-world respawn timer +
+  announced spawn). Each remaining box is roughly one session.
+- **Forest town + dungeon**: the Verdant Reach map (`genForest`) has open glades
+  and a main path but no town/dungeon gates yet (only the west return-to-plains
+  gate) — I deliberately did NOT add transitions to maps that don't exist. When
+  building the forest town/dungeon, add their maps first, then wire the gates
+  into `genForest` (carve a DOOR + a transition trigger) and regenerate.
+- **Map/tileset pipeline** (established this box): `scripts/generate-maps.mjs` now
+  derives each map's width/height from its grid (any size), and the shared
+  tileset is TILE_COUNT=12 tiles (added FOREST/PINE/MUSHROOM). To add a zone:
+  write a `genX(rnd)`, add a `tiledMap({grid, spawnObjects, triggerObjects})` +
+  `writeFileSync`, add the id to `BootScene.MAP_ZONES` + `data/zones.json`, and a
+  transition from a neighbouring map. `TILE` lives in 3 places that must stay in
+  sync: mapgen.ts (runtime), pixelart.ts (TILE_COUNT + drawing), generate-maps.mjs.
+- Regenerating maps rewrites ALL of assets/maps/*.json (the tileset block widened
+  to 12 tiles everywhere) — that's expected; ground layouts are unchanged.
+- `assets/maps/tiles.png` is legacy/unused at runtime (the tileset is drawn
+  procedurally by `addTilesetTexture`); BootScene never loads it. Left as-is.
 - The three+ item UIs (Inventory/Shop/Stash) + RepairUI duplicate a tooltip +
   `RARITY_HEX` palette — extract a shared `itemTooltip(item, affixes)` +
   RARITY_HEX helper (backlog) before the Forest town adds more item UI.
@@ -34,6 +49,26 @@ Notes for 2.4 / next session:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 Tileset + map (1st box): the Verdant Reach** (headless-verified
+  8/8; 170 unit tests). The Forest Kingdom's wilds — a distinct zone reachable
+  from the plains:
+  - **New forest tiles** on the shared procedural tileset (pixelart.ts,
+    TILE_COUNT 9→12): `FOREST` (dark mossy floor), `PINE` (solid conifer),
+    `MUSHROOM` (decor). TILE enum extended in mapgen.ts to match.
+  - **`genForest` map** (`scripts/generate-maps.mjs`): 100×72 = 7200 tiles =
+    exactly 3× the 60×40 plains. Dark forest floor, dense pines, 4 grass glades,
+    a woodland pond, a winding 2-wide main path, a west entry pocket. Seeded
+    (mulberry32(9001)), deterministic. `tiledMap` now derives width/height from
+    the grid so a zone can be any size.
+  - **Wired into the world**: `data/zones.json` (Verdant Reach, enemyTypes
+    slime/bat/skel), `BootScene.MAP_ZONES`, an **east gate** carved into the
+    overworld path (→ forest) and a **west gate** back (→ plains). A single
+    `enemy_region` scatters 30 foes (respawnCap 22), like the plains.
+  - **Verified in-browser**: transition both ways works, 30 enemies spawn, the
+    player lands walkable and moves freely, and it holds **~61 fps** on the 3×
+    map (perf target intact). `src/systems/maps.test.ts` guards map size, layers,
+    tileset count, walkable spawn/landing tiles, and the plains↔forest gate wiring.
+  - Content-integrity test now also checks every zone's `enemyTypes` resolves.
 - **Milestone 2.3 quest-NPC chain (6th box → milestone content complete)**
   (headless-verified 9/9; 166 unit tests). The **Ashfall** chain: 5 NPC-given
   quests, each gated behind the previous, each from a different townsperson who
@@ -616,6 +651,12 @@ Notes for 2.4 / next session:
   (trainer — "Reset my skills" wipes spent points; "Give me a trial" starts a
   hunt) and **Stashkeeper Odd** (E opens a bag↔stash mover). Any trouble telling
   the service NPCs apart or knowing what each does?
+- **The Verdant Reach (m2.4)**: take the **east path out of the plains** (past
+  the town turn-off) to the forest gate. Smoke-verified it loads, transitions
+  both ways, spawns enemies, and runs ~61 fps — but the **look and feel want
+  human eyes**: do the new forest tiles (dark floor, pines, mushrooms) read as a
+  distinct, appealing zone? Is the 3× map fun to traverse or does it feel empty
+  between glades? Is the winding path legible, and enemy density (30) right?
 - **Ashfall quest chain (m2.3)**: five new townsfolk carry a story — start at
   **Wellkeeper Sena** (by the well, NW) and follow the **!/?** markers to Kessa
   (by the south gate), Doran (east path), Mira (west path), Halden (north path).

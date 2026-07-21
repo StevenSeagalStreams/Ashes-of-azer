@@ -15,6 +15,10 @@ export const TILE = {
   DWALL: 6,
   PORTAL: 7,
   FLOWERS: 8,
+  // Forest Kingdom set (m2.4): darker floor, solid conifers, mushroom decor.
+  FOREST: 9, // dark forest floor (walkable)
+  PINE: 10, // tall conifer (solid)
+  MUSHROOM: 11, // decor on the forest floor (walkable)
 } as const;
 
 /**

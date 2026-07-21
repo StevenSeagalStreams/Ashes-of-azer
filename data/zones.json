@@ -23,5 +23,15 @@
     "name": "Ashfall Village",
     "dark": false,
     "enemyTypes": []
+  },
+  {
+    "id": "forest",
+    "name": "Verdant Reach",
+    "dark": false,
+    "enemyTypes": [
+      "slime",
+      "bat",
+      "skel"
+    ]
   }
 ]
