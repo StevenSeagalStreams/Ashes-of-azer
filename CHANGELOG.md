@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Secrets in the wood.** The Reach keeps things hidden. Some "pine walls" and
+  "barrow walls" aren't walls at all — push into them. A **hidden grove**
+  tucked in the northwest pines holds a long-lost Warden cache, and deep in the
+  Bramblewarren a **sealed vault** hides the optional boss **Oakheart, the Sealed
+  Warden**, guarding a hoard. Each secret yields gold, a lore line, and a relic
+  fragment — and once found, it stays found.
 - **The Warden's Trials — a story for the Reach.** A nine-quest chain now carries
   you through the Forest Kingdom. **Warden-Captain Aldric** in Thornhollow sets you
   your first trial; **Quartermaster Brenna** and **Loremaster Fen** send you

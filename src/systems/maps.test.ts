@@ -44,7 +44,7 @@ describe('Verdant Reach (forest) map', () => {
   it('is ~3× the Starter Plains and carries the standard layers + tileset', () => {
     expect(forest.width * forest.height).toBe(7200); // 100×72 = 3 × (60×40)
     expect(forest.layers.map((l) => l.name)).toEqual(['ground', 'spawns', 'triggers']);
-    expect(forest.tilesets[0]?.tilecount).toBe(12); // includes the new forest tiles
+    expect(forest.tilesets[0]?.tilecount).toBe(14); // forest tiles + secret false walls
   });
 
   it('spawns the player on a walkable tile', () => {
@@ -77,6 +77,18 @@ describe('Verdant Reach (forest) map', () => {
     const pool = String((wb!.properties ?? []).find((p) => p.name === 'pool')?.value ?? '');
     expect(pool).toContain('greathorn');
     expect(SOLID_GIDS.has(groundGid(forest, wb!.x, wb!.y))).toBe(false);
+  });
+
+  it('hides a secret grove behind a walkable FALSEPINE wall', () => {
+    // The cache pickup sits on walkable ground, reachable through the false wall.
+    const secret = (forest.layers.find((l) => l.name === 'triggers')!.objects as { type: string; x: number; y: number; width: number; height: number }[])
+      .find((o) => o.type === 'secret');
+    expect(secret, 'forest has a secret').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(forest, secret!.x + secret!.width / 2, secret!.y + secret!.height / 2))).toBe(false);
+    // A FALSEPINE (id 12 → gid 13) is walkable even though it looks like a pine.
+    const data = forest.layers.find((l) => l.name === 'ground')!.data as number[];
+    expect(data).toContain(TILE.FALSEPINE + 1);
+    expect(SOLID_GIDS.has(TILE.FALSEPINE + 1)).toBe(false);
   });
 });
 
@@ -132,5 +144,16 @@ describe('Bramblewarren (forest dungeon) map', () => {
     const toForest = transitions(dungeon).find((t) => t.props['target'] === 'forest');
     expect(toForest, 'dungeon has an exit portal').toBeTruthy();
     expect(SOLID_GIDS.has(groundGid(forest, toForest!.props['targetX'] as number, toForest!.props['targetY'] as number))).toBe(false);
+  });
+
+  it('seals an optional-boss vault behind a FALSEWALL', () => {
+    const spawns = dungeon.layers.find((l) => l.name === 'spawns')!.objects as { type: string; properties?: { name: string; value: unknown }[] }[];
+    const pools = spawns.filter((o) => o.type === 'enemy_spawn').flatMap((o) => String((o.properties ?? []).find((p) => p.name === 'pool')?.value ?? '').split(','));
+    expect(pools).toContain('oakheart'); // the optional boss
+    const secret = (dungeon.layers.find((l) => l.name === 'triggers')!.objects as { type: string; x: number; y: number; width: number; height: number }[]).find((o) => o.type === 'secret');
+    expect(secret, 'dungeon has a sealed chest').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(dungeon, secret!.x + secret!.width / 2, secret!.y + secret!.height / 2))).toBe(false);
+    const data = dungeon.layers.find((l) => l.name === 'ground')!.data as number[];
+    expect(data).toContain(TILE.FALSEWALL + 1); // the walkable false wall exists
   });
 });

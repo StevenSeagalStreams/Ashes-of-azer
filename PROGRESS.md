@@ -1,17 +1,18 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 7 of 9 boxes done (Tileset+map; Town; new enemy
-types; Dungeon+mini-boss+relic; World boss; Faction+reputation; **Quest chain**).
-**Next box (top-to-bottom): "2–3 secrets (hidden areas, optional boss, lore
-items)"** — hidden content in the Reach/Bramblewarren. Ideas: a hidden grove
-behind a false pine wall (a lore item / relic), an optional mini-boss in a sealed
-Barrow room, a secret path to a chest. New engine: maybe a "secret" reveal
-mechanic or a lore-item pickup (could reuse the relic system or a new save flag).
-Then the LAST 2.4 box: *write down the hours this zone took*. Still open from
-earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
-Milestone 2 finishes when a new player can play Starter Plains → Forest Kingdom
-carried by quests (— this is now essentially TRUE end-to-end).
+**MILESTONE 2.4 IN PROGRESS** — 8 of 9 boxes done (Tileset+map; Town; new enemy
+types; Dungeon+mini-boss+relic; World boss; Faction+reputation; Quest chain;
+**Secrets**). **Next box (top-to-bottom, the LAST of 2.4): "Write down the hours
+this zone took — it calibrates the rest of the plan"** — this is a reflective
+DOC entry, not code. Since sessions are AI-paced (no wall-clock hours), record it
+in terms of **sessions/boxes**: Zone 2 (2.4) took ~8 build boxes across the
+continue-sessions in this branch, each ≈ one focused session (map, town, enemies,
+dungeon, world boss, faction, quest chain, secrets), reusing the m2.1–2.3 engines
+heavily so only enemies/faction/secrets/world-boss needed new systems. Write a
+short retro in PROGRESS (and/or a note in ROADMAP under 2.4) and tick the box.
+Then **Milestone 2 is complete** → 2.5 (zone template + debug tools). Still open
+from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
 
 Faction system note: `data/factions.json` (id/name/zones/killRep/bossRep/tiers
 with vendorBonus). `systems/factions.ts` is pure (repTier / factionForZone /
@@ -74,6 +75,26 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.4 Secrets (8th box): the hidden grove + sealed vault**
+  (headless-verified 8/8; 198 unit tests):
+  - **False-wall tiles**: `FALSEPINE` (12) and `FALSEWALL` (13) render
+    pixel-identical to PINE / DWALL (pixelart draws them the same) but are absent
+    from SOLID, so the player pushes straight through. TILE_COUNT 12→14 (mapgen +
+    pixelart + generate-maps all bumped).
+  - **`secret` trigger type** (triggers.ts, parsed + tested): rect + secretId +
+    lore + gold + optional relic/relicName. WorldScene collects it on overlap
+    once (`discoverSecret`): records in the save, toasts the lore, grants gold +
+    relic. A cyan glimmer star marks each undiscovered secret (removed on pickup).
+  - **Save v12**: `secrets: string[]` (v11→v12 migration) prevents re-farming.
+  - **Two secrets**: (1) a pine-walled **hidden grove** in the Reach's NW
+    (`genForest`) with a Warden cache (120g + Heart of the Grove relic); (2) a
+    **sealed vault** in the Bramblewarren (`genForestDungeon`) behind a FALSEWALL,
+    holding the optional boss **Oakheart** (data enemy, boss, slam+summon) and a
+    chest (220g + Sealed Oakheart relic).
+  - Verified in-browser: walk through both false walls, collect both secrets,
+    one-time (no double gold), rewards land, optional boss present. Map + trigger
+    + migration tests guard the tiles / parsing / v12 / placement on walkable
+    ground.
 - **Milestone 2.4 Quest chain (7th box): The Warden's Trials** (headless-verified
   7/7; 193 unit tests). A 9-quest chain (chain `warden_trials`), the Forest
   Kingdom's zone story — you earn Warden rank by proving yourself:
@@ -788,6 +809,12 @@ Notes for the remaining 2.4 boxes:
   work — but **placement/feel want human eyes**: are the four service NPCs easy to
   find under their buildings, and does the forest-floor town read as distinct from
   Ashfall (not just a recolor)? Is the north-spur route to it obvious enough?
+- **Reach secrets (m2.4)**: two hidden things want human eyes on discoverability —
+  a **hidden grove** in the NW pines of the Verdant Reach (push up through the
+  pine wall around tile 12,15) and a **sealed vault** in the Bramblewarren (push up
+  through the barrow wall from the NE room, ~tile 49,13) with the optional boss
+  Oakheart. Smoke-verified the false walls + pickups work — but are the false walls
+  findable-but-not-obvious, and does stumbling on them feel rewarding?
 - **The Warden's Trials (m2.4)**: in Thornhollow, follow the **!** over
   Warden-Captain Aldric to start the chain; it runs through Brenna, Fen, and the
   Reach rangers Silt & Tamsin, ending back at Aldric. Smoke-verified the accepts +

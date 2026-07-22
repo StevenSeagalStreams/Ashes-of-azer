@@ -50,6 +50,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   9: (raw) => ({ ...raw, relics: Array.isArray(raw['relics']) ? raw['relics'] : [] }),
   // v10 → v11 (m2.4): faction reputation; older saves start at zero everywhere.
   10: (raw) => ({ ...raw, reputation: (raw['reputation'] ?? {}) as Record<string, unknown> }),
+  // v11 → v12 (m2.4): discovered secrets; older saves have found none.
+  11: (raw) => ({ ...raw, secrets: Array.isArray(raw['secrets']) ? raw['secrets'] : [] }),
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

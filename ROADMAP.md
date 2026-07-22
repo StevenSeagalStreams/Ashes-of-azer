@@ -142,7 +142,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] World boss (open-world, respawns, announced spawn) — **Greathorn, the Hollow Stag**: roams the Reach's central glade, banner-announced, charges + slams, drops the Hollow Antler relic, respawns ~120s after death
 - [x] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers) — **Wardens of the Reach**: rep from Reach/Bramblewarren kills (bosses more) + quest `rep` rewards; save v11; Thornhollow's vendor stocks more per rep tier + shows your standing
 - [x] Quest chain (8–12 quests) with a zone story — **The Warden's Trials**: 9 linked quests (Aldric/Brenna/Fen in Thornhollow, Rangers Silt/Tamsin in the Reach) escalating cull → Barrow → Mossmaw → Greathorn, each granting Warden rep
-- [ ] 2–3 secrets (hidden areas, optional boss, lore items)
+- [x] 2–3 secrets (hidden areas, optional boss, lore items) — a **hidden grove** behind a false-pine wall (Reach) with a lore cache, and a **sealed vault** behind a false-wall (Bramblewarren) with the optional boss **Oakheart** guarding a lore chest; both grant a relic (save v12 `secrets[]`)
 - [ ] **Write down the hours this zone took — it calibrates the rest of the plan**
 
 ### 2.5 Zone template & tooling

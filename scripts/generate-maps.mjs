@@ -12,9 +12,10 @@ const MAPH = 40;
 // prettier-ignore
 const TILE = {
   GRASS: 0, TREE: 1, WATER: 2, PATH: 3, DOOR: 4, DFLOOR: 5, DWALL: 6, PORTAL: 7, FLOWERS: 8,
-  FOREST: 9, PINE: 10, MUSHROOM: 11,
+  FOREST: 9, PINE: 10, MUSHROOM: 11, FALSEPINE: 12, FALSEWALL: 13,
 };
-const TILE_COUNT = 12; // keep in sync with pixelart.ts TILE_COUNT + mapgen.ts TILE
+const TILE_COUNT = 14; // keep in sync with pixelart.ts TILE_COUNT + mapgen.ts TILE
+// FALSEPINE / FALSEWALL look like PINE / DWALL but are deliberately walkable (secrets).
 const SOLID = [TILE.TREE, TILE.WATER, TILE.DWALL, TILE.PINE];
 
 function mulberry32(seed) {
@@ -144,6 +145,12 @@ function genForest(rnd) {
   for (let y = 54; y < 60; y++) for (let x = 93; x < 98; x++) if (m[y][x] === TILE.PINE) m[y][x] = TILE.FOREST;
   m[56][95] = TILE.DOOR;
   m[57][95] = TILE.DOOR;
+  // Hidden grove (secret 1): a pine-walled pocket you enter through a FALSEPINE
+  // that looks just like the surrounding trees. A cache glimmers inside.
+  for (let y = 9; y <= 15; y++)
+    for (let x = 9; x <= 15; x++) m[y][x] = y === 9 || y === 15 || x === 9 || x === 15 ? TILE.PINE : TILE.FOREST;
+  m[12][12] = TILE.MUSHROOM;
+  m[15][12] = TILE.FALSEPINE; // push through here
   return m;
 }
 
@@ -183,6 +190,10 @@ function genForestDungeon() {
   m[16][28] = TILE.FOREST;
   m[18][31] = TILE.FOREST;
   m[34][8] = TILE.FOREST;
+  // Sealed vault (secret 2): a hidden chamber above the NE room, entered through a
+  // FALSEWALL. An optional boss guards a chest inside.
+  for (let y = 8; y <= 12; y++) for (let x = 46; x <= 53; x++) m[y][x] = TILE.DFLOOR;
+  m[13][49] = TILE.FALSEWALL; // push up through the wall from the NE room
   m[33][6] = TILE.PORTAL; // exit portal in the entry room, back to the Reach
   m[33][7] = TILE.PORTAL;
   return m;
@@ -497,6 +508,21 @@ const forest = tiledMap({
         prop('targetY', 'float', 34 * TS),
       ],
     },
+    {
+      name: 'grove-cache',
+      type: 'secret',
+      x: 12 * TS - 8,
+      y: 12 * TS - 8,
+      width: 32,
+      height: 32,
+      properties: [
+        prop('secretId', 'string', 'secret_grove'),
+        prop('lore', 'string', "A Warden's cache, hidden when the Reach still stood green."),
+        prop('gold', 'int', 120),
+        prop('relic', 'string', 'relic_grove_heart'),
+        prop('relicName', 'string', 'Heart of the Grove'),
+      ],
+    },
   ],
 });
 
@@ -526,6 +552,14 @@ const forestdungeon = tiledMap({
       y: 17 * TS,
       properties: [prop('pool', 'string', 'mossmaw')],
     },
+    {
+      name: 'oakheart',
+      type: 'enemy_spawn',
+      point: true,
+      x: 48 * TS,
+      y: 10 * TS,
+      properties: [prop('pool', 'string', 'oakheart')],
+    },
   ],
   triggerObjects: [
     {
@@ -539,6 +573,21 @@ const forestdungeon = tiledMap({
         prop('target', 'string', 'forest'),
         prop('targetX', 'float', 93 * TS + 8),
         prop('targetY', 'float', 56 * TS + 8),
+      ],
+    },
+    {
+      name: 'sealed-chest',
+      type: 'secret',
+      x: 52 * TS - 8,
+      y: 9 * TS - 8,
+      width: 32,
+      height: 32,
+      properties: [
+        prop('secretId', 'string', 'secret_vault'),
+        prop('lore', 'string', "The Sealed Warden's hoard, kept from the corruption."),
+        prop('gold', 'int', 220),
+        prop('relic', 'string', 'relic_sealed_oak'),
+        prop('relicName', 'string', 'Sealed Oakheart'),
       ],
     },
   ],

@@ -19,6 +19,10 @@ export const TILE = {
   FOREST: 9, // dark forest floor (walkable)
   PINE: 10, // tall conifer (solid)
   MUSHROOM: 11, // decor on the forest floor (walkable)
+  // Secret false walls (m2.4): drawn identically to PINE / DWALL but walkable,
+  // so a hidden grove or vault entrance reads as solid until you push into it.
+  FALSEPINE: 12,
+  FALSEWALL: 13,
 } as const;
 
 /**

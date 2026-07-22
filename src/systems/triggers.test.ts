@@ -82,6 +82,41 @@ describe('parseMapObjects', () => {
     });
   });
 
+  it('parses a secret trigger (id, lore, gold, optional relic)', () => {
+    const t = [
+      {
+        type: 'secret',
+        x: 10,
+        y: 10,
+        width: 16,
+        height: 16,
+        properties: [
+          { name: 'secretId', value: 'secret_grove' },
+          { name: 'lore', value: 'A cache.' },
+          { name: 'gold', value: 100 },
+          { name: 'relic', value: 'relic_x' },
+          { name: 'relicName', value: 'Relic X' },
+        ],
+      },
+    ];
+    const out = parseMapObjects([player], t);
+    expect(out.triggers[0]).toEqual({
+      kind: 'secret',
+      rect: { x: 10, y: 10, width: 16, height: 16 },
+      secretId: 'secret_grove',
+      lore: 'A cache.',
+      gold: 100,
+      relic: 'relic_x',
+      relicName: 'Relic X',
+    });
+  });
+
+  it('a secret without a relic omits the relic fields', () => {
+    const t = [{ type: 'secret', x: 0, y: 0, width: 8, height: 8, properties: [{ name: 'secretId', value: 's' }, { name: 'lore', value: 'l' }] }];
+    const out = parseMapObjects([player], t);
+    expect(out.triggers[0]).toEqual({ kind: 'secret', rect: { x: 0, y: 0, width: 8, height: 8 }, secretId: 's', lore: 'l', gold: 0 });
+  });
+
   it('parses a world_boss spawn (pool, respawn, announce)', () => {
     const spawns = [
       player,

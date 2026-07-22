@@ -237,7 +237,7 @@ export function addSlashTexture(scene: Phaser.Scene, key: string): void {
 // Tiles drawn into the shared tileset strip, in TILE-id order. Keep in sync with
 // the TILE enum (mapgen.ts) and the tileset `tilecount`/`imagewidth` that
 // scripts/generate-maps.mjs writes into each map JSON.
-export const TILE_COUNT = 12;
+export const TILE_COUNT = 14;
 
 export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   if (scene.textures.exists(key)) return;
@@ -314,24 +314,28 @@ export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   g.fillStyle = '#57a85c';
   g.fillRect(TILE.FOREST * TS + 8, 3, 1, 2);
 
-  // Pine: a tall dark conifer over forest floor (solid).
-  base(TILE.PINE, '#4f9d54');
-  g.fillStyle = '#4a3320';
-  g.fillRect(TILE.PINE * TS + 7, 12, 2, 4); // trunk
-  g.fillStyle = '#1f5b30';
-  g.beginPath();
-  g.moveTo(TILE.PINE * TS + 8, 0);
-  g.lineTo(TILE.PINE * TS + 14, 13);
-  g.lineTo(TILE.PINE * TS + 2, 13);
-  g.closePath();
-  g.fill();
-  g.fillStyle = '#2c7a41';
-  g.beginPath();
-  g.moveTo(TILE.PINE * TS + 8, 2);
-  g.lineTo(TILE.PINE * TS + 12, 9);
-  g.lineTo(TILE.PINE * TS + 4, 9);
-  g.closePath();
-  g.fill();
+  // Pine: a tall dark conifer over forest floor (solid). Drawn by column so the
+  // walkable FALSEPINE secret tile can reuse the exact same art.
+  const drawPine = (id: number): void => {
+    base(id, '#4f9d54');
+    g.fillStyle = '#4a3320';
+    g.fillRect(id * TS + 7, 12, 2, 4); // trunk
+    g.fillStyle = '#1f5b30';
+    g.beginPath();
+    g.moveTo(id * TS + 8, 0);
+    g.lineTo(id * TS + 14, 13);
+    g.lineTo(id * TS + 2, 13);
+    g.closePath();
+    g.fill();
+    g.fillStyle = '#2c7a41';
+    g.beginPath();
+    g.moveTo(id * TS + 8, 2);
+    g.lineTo(id * TS + 12, 9);
+    g.lineTo(id * TS + 4, 9);
+    g.closePath();
+    g.fill();
+  };
+  drawPine(TILE.PINE);
 
   // Mushroom decor on the forest floor (walkable).
   base(TILE.MUSHROOM, '#4f9d54');
@@ -344,6 +348,10 @@ export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   g.fillStyle = '#f2d0c0';
   g.fillRect(TILE.MUSHROOM * TS + 6, 7, 1, 1);
   g.fillRect(TILE.MUSHROOM * TS + 9, 6, 1, 1);
+
+  // Secret false walls: pixel-identical to PINE / DWALL but walkable.
+  drawPine(TILE.FALSEPINE);
+  base(TILE.FALSEWALL, '#3a2d4a'); // same fill as DWALL
 
   scene.textures.addCanvas(key, c);
 }

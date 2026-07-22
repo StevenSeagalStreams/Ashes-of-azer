@@ -56,7 +56,16 @@ export interface CutsceneTrigger {
   rect: Rect;
   cutsceneId: string; // reserved — no runtime behaviour until m2.x
 }
-export type Trigger = TransitionTrigger | HealTrigger | CutsceneTrigger;
+export interface SecretTrigger {
+  kind: 'secret';
+  rect: Rect;
+  secretId: string; // recorded in the save so it's collected once
+  lore: string; // flavour line shown on discovery
+  gold: number; // gold reward (0 = none)
+  relic?: string; // optional relic-fragment id granted
+  relicName?: string;
+}
+export type Trigger = TransitionTrigger | HealTrigger | CutsceneTrigger | SecretTrigger;
 
 export interface MapObjects {
   playerSpawn: PlayerSpawn;
@@ -201,6 +210,18 @@ export function parseMapObjects(spawnObjects: unknown[], triggerObjects: unknown
       case 'cutscene':
         out.triggers.push({ kind: 'cutscene', rect: rectOf(obj, 'cutscene'), cutsceneId: str(p, 'cutsceneId') });
         break;
+      case 'secret': {
+        const relic = p['relic'];
+        out.triggers.push({
+          kind: 'secret',
+          rect: rectOf(obj, 'secret'),
+          secretId: str(p, 'secretId'),
+          lore: str(p, 'lore'),
+          gold: num(p, 'gold', 0),
+          ...(typeof relic === 'string' && relic.length > 0 ? { relic, relicName: str(p, 'relicName') } : {}),
+        });
+        break;
+      }
       default:
         throw new MapParseError(`unknown triggers object type "${obj.type ?? ''}" (${obj.name ?? 'unnamed'})`);
     }

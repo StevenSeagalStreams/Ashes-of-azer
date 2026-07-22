@@ -114,6 +114,7 @@ describe('migrateAndValidate (real chain)', () => {
     expect(out.materials).toEqual({});
     expect(out.relics).toEqual([]);
     expect(out.reputation).toEqual({});
+    expect(out.secrets).toEqual([]);
   });
 
   it('adds an empty material stock when upgrading a v8 save (v8 → v9)', () => {
@@ -138,6 +139,14 @@ describe('migrateAndValidate (real chain)', () => {
     const out = migrateAndValidate(v10);
     expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
     expect(out.reputation).toEqual({});
+  });
+
+  it('adds an empty secrets list when upgrading a v11 save (v11 → v12)', () => {
+    const v11 = { ...defaultSave(), saveVersion: 11 } as Record<string, unknown>;
+    delete v11['secrets'];
+    const out = migrateAndValidate(v11);
+    expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(out.secrets).toEqual([]);
   });
 
   it('adds an empty quest log when upgrading a v5 save (v5 → v6)', () => {

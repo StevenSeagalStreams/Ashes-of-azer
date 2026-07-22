@@ -9,7 +9,7 @@ import { ClassSchema } from '../../data/schemas/skill.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 11; // v11 (m2.4): faction reputation
+export const CURRENT_SAVE_VERSION = 12; // v12 (m2.4): discovered secrets
 
 // Per-character quest progress (m2.1). `progress[questId]` is a parallel array
 // of per-objective counts; `tracked` is the pinned quest for the HUD tracker.
@@ -56,6 +56,7 @@ export const SaveSchema = z.object({
   materials: z.record(z.string(), z.number().int().nonnegative()), // crafting stock (since v9)
   relics: z.array(z.string()), // collected relic-fragment ids (since v10)
   reputation: z.record(z.string(), z.number()), // faction id → rep points (since v11)
+  secrets: z.array(z.string()), // discovered secret ids (since v12)
   skillRanks: z.record(z.string(), z.number().int().min(0)),
   // Which skills sit in the 6 active slots (keys 1-6); null = empty slot.
   // All-null means "never customised" and the scene seeds the default bar.
@@ -85,6 +86,7 @@ export function defaultSave(now: number = Date.now()): SaveData {
     materials: {},
     relics: [],
     reputation: {},
+    secrets: [],
     skillRanks: {},
     loadout: {
       actives: [null, null, null, null, null, null],

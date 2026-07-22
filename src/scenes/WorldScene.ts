@@ -53,7 +53,7 @@ import {
   skillsForClass,
   xpToNext,
 } from '../systems/skills.ts';
-import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects, type WorldBossSpawn } from '../systems/triggers.ts';
+import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects, type SecretTrigger, type WorldBossSpawn } from '../systems/triggers.ts';
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 import { SkillUI } from '../ui/SkillUI.ts';
 import { QuestUI } from '../ui/QuestUI.ts';
@@ -192,6 +192,8 @@ export class WorldScene extends Phaser.Scene {
   private mapLayer!: Phaser.Tilemaps.TilemapLayer;
   // Item drops lying on the ground, collected by walking over them (m1.7).
   private drops: Drop[] = [];
+  // Glimmer markers over undiscovered secret pickups (m2.4), keyed by secret id.
+  private secretMarkers = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
     super('World');
@@ -272,6 +274,17 @@ export class WorldScene extends Phaser.Scene {
     for (const spawn of this.objects.worldBosses) {
       const eid = this.spawnWorldBoss(spawn);
       this.worldBossStates.push({ spawn, eid, timer: spawn.respawn });
+    }
+    // A glimmer marks each not-yet-found secret pickup (visible only once you've
+    // pushed through the false wall hiding it).
+    this.secretMarkers.clear();
+    for (const t of this.objects.triggers) {
+      if (t.kind !== 'secret' || this.saveData.secrets.includes(t.secretId)) continue;
+      const cx = t.rect.x + t.rect.width / 2;
+      const cy = t.rect.y + t.rect.height / 2;
+      const star = this.add.star(cx, cy, 5, 3, 6, 0x6ee0d8).setDepth(4).setStrokeStyle(1, 0xffffff, 0.8);
+      this.tweens.add({ targets: star, scale: 1.4, angle: 180, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
+      this.secretMarkers.set(t.secretId, star);
     }
 
     // NPCs standing in this zone (placed data-first in npcs.json).
@@ -510,6 +523,9 @@ export class WorldScene extends Phaser.Scene {
       }
       if (trigger?.kind === 'heal') {
         this.player.hp = Math.min(this.player.hp + trigger.rate * dt, this.player.maxHp);
+      }
+      if (trigger?.kind === 'secret' && !this.saveData.secrets.includes(trigger.secretId)) {
+        this.discoverSecret(trigger);
       }
       // 'cutscene' triggers are parsed but inert until the cutscene system (m2.x).
     }
@@ -1273,6 +1289,24 @@ export class WorldScene extends Phaser.Scene {
     const afterTier = repTier(faction, after);
     if (afterTier.threshold > beforeTier.threshold) {
       this.numbers.spawn(this.player.x, this.player.y - 26, `✦ ${faction.name}: ${afterTier.name}`, '#9bd44a');
+    }
+    this.saveNow();
+  }
+
+  /** Collects a hidden secret once: records it, toasts the lore, grants rewards. */
+  private discoverSecret(secret: SecretTrigger): void {
+    this.saveData.secrets.push(secret.secretId);
+    this.secretMarkers.get(secret.secretId)?.destroy();
+    this.secretMarkers.delete(secret.secretId);
+    this.numbers.spawn(this.player.x, this.player.y - 30, '✦ SECRET FOUND', '#6ee0d8');
+    this.numbers.spawn(this.player.x, this.player.y - 18, secret.lore, '#c8b48a');
+    if (secret.gold > 0) {
+      this.player.gold += secret.gold;
+      this.numbers.spawn(this.player.x + 18, this.player.y - 6, `+${secret.gold}g`, '#e8c86a');
+    }
+    if (secret.relic && !this.saveData.relics.includes(secret.relic)) {
+      this.saveData.relics.push(secret.relic);
+      this.numbers.spawn(this.player.x, this.player.y + 6, `✦ RELIC: ${secret.relicName ?? secret.relic}`, '#6ee0d8');
     }
     this.saveNow();
   }
