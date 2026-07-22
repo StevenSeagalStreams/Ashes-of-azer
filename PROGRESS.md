@@ -1,18 +1,38 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 IN PROGRESS** — 8 of 9 boxes done (Tileset+map; Town; new enemy
-types; Dungeon+mini-boss+relic; World boss; Faction+reputation; Quest chain;
-**Secrets**). **Next box (top-to-bottom, the LAST of 2.4): "Write down the hours
-this zone took — it calibrates the rest of the plan"** — this is a reflective
-DOC entry, not code. Since sessions are AI-paced (no wall-clock hours), record it
-in terms of **sessions/boxes**: Zone 2 (2.4) took ~8 build boxes across the
-continue-sessions in this branch, each ≈ one focused session (map, town, enemies,
-dungeon, world boss, faction, quest chain, secrets), reusing the m2.1–2.3 engines
-heavily so only enemies/faction/secrets/world-boss needed new systems. Write a
-short retro in PROGRESS (and/or a note in ROADMAP under 2.4) and tick the box.
-Then **Milestone 2 is complete** → 2.5 (zone template + debug tools). Still open
-from earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
+**MILESTONE 2.4 COMPLETE** — all 9 boxes done (Tileset+map; Town; new enemy types;
+Dungeon+mini-boss+relic; World boss; Faction+reputation; Quest chain; Secrets;
+cost retro). Zone 2 (the Forest Kingdom) is fully playable: plains → Verdant Reach
+→ Thornhollow → Bramblewarren, carried by the Warden's Trials chain. **Next box
+(top-to-bottom): Milestone 2.5 — "Document the zone production checklist from 2.4
+as a repeatable template"** (a doc distilling the add-a-zone pipeline this branch
+established), then 2.5's debug tools (teleport, spawn item/enemy, set corruption,
+god mode — dev builds only; some already exist on `__AZER`). Still open from
+earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
+**Milestone 2 nearly done** — only 2.5 (template + debug tools) remains.
+
+## Zone 2 cost retro (m2.4) — calibrates the rest of the plan
+Measured in **build-boxes / sessions**, not wall-clock hours (this is an AI-paced
+build; "hours" don't map cleanly). Zone 2 took **8 feature boxes** (+1 retro),
+each roughly one focused continue-session with full green gates + a headless smoke:
+- **Content boxes** (cheap — reused existing engines, ~JSON + a little wiring):
+  Tileset+map, Town w/ services, Quest chain. These were fast because m2.1–2.3
+  already gave us zones/maps, service NPCs/UIs, and the quest/dialogue systems.
+- **Systems boxes** (≈2× the cost — needed new engine code + schema + save
+  migration + new tests): new enemy attack-patterns (Enemy.ts + enemy projectiles),
+  Dungeon+relic (save v10), World boss (world_boss object + respawn/announce),
+  Faction+reputation (save v11 + vendor gating), Secrets (false-wall tiles +
+  secret trigger + save v12).
+- **Save format churned 4×** in this zone (v8→v12: durability was v8; relics v10,
+  reputation v11, secrets v12) — each an additive field + a one-line migration.
+  The migration walker made this painless; keep new save data additive.
+- **Takeaway for Zone 3+**: budget ~8 boxes, and **front-load the systems boxes**
+  (enemies, any new mechanic, faction-like tracks) — once they exist, the content
+  boxes (map, town, quests) are cheap and mostly data. The data-driven rule paid
+  off hard: every enemy/quest/NPC/faction/recipe/secret is JSON, so content boxes
+  needed near-zero code. The one recurring tax was the shared tileset (`TILE_COUNT`
+  lives in 3 files) — bumping it touches mapgen + pixelart + generate-maps together.
 
 Faction system note: `data/factions.json` (id/name/zones/killRep/bossRep/tiers
 with vendorBonus). `systems/factions.ts` is pure (repTier / factionForZone /

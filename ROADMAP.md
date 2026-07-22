@@ -143,7 +143,7 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers) — **Wardens of the Reach**: rep from Reach/Bramblewarren kills (bosses more) + quest `rep` rewards; save v11; Thornhollow's vendor stocks more per rep tier + shows your standing
 - [x] Quest chain (8–12 quests) with a zone story — **The Warden's Trials**: 9 linked quests (Aldric/Brenna/Fen in Thornhollow, Rangers Silt/Tamsin in the Reach) escalating cull → Barrow → Mossmaw → Greathorn, each granting Warden rep
 - [x] 2–3 secrets (hidden areas, optional boss, lore items) — a **hidden grove** behind a false-pine wall (Reach) with a lore cache, and a **sealed vault** behind a false-wall (Bramblewarren) with the optional boss **Oakheart** guarding a lore chest; both grant a relic (save v12 `secrets[]`)
-- [ ] **Write down the hours this zone took — it calibrates the rest of the plan**
+- [x] **Write down the hours this zone took — it calibrates the rest of the plan** — see the "Zone 2 cost retro" in PROGRESS.md (measured in build-boxes/sessions, not wall-clock, since this is an AI-paced build): ~8 feature boxes, systems-boxes ≈2× the cost of content-boxes
 
 ### 2.5 Zone template & tooling
 - [ ] Document the zone production checklist from 2.4 as a repeatable template
