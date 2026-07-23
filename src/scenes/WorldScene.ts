@@ -22,6 +22,7 @@ import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from 
 import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
 import { cleanseCorruption, corruptedEnemy, corruptionTier, gainCorruption, npcVisibleAtCorruption } from '../systems/corruption.ts';
+import { getCorruptionAudio } from '../systems/audio.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -425,6 +426,9 @@ export class WorldScene extends Phaser.Scene {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonDown()) this.attackHeld = true;
     });
+    // Browser autoplay policy: the audio context can only start after a gesture.
+    this.input.once('pointerdown', () => getCorruptionAudio().resume());
+    kb.once('keydown', () => getCorruptionAudio().resume());
     this.input.on('pointerup', this.clearAttackHeld);
     window.addEventListener('pointerup', this.clearAttackHeld);
     this.attackHeld = false;
@@ -451,6 +455,10 @@ export class WorldScene extends Phaser.Scene {
     kb.on('keydown-K', () => this.skillUI.togglePanel());
     kb.on('keydown-J', () => this.questUI.togglePanel());
     kb.on('keydown-I', () => this.inventoryUI.toggle());
+    kb.on('keydown-M', () => {
+      const muted = getCorruptionAudio().toggleMute();
+      this.numbers.spawn(this.player.x, this.player.y - 16, muted ? '♪ MUTED' : '♪ ON', '#c8b48a');
+    });
     kb.on('keydown-E', () => this.tryTalk());
     kb.on('keydown-R', () => {
       // Prototype: rising again always returns you to the overworld spawn.
@@ -720,12 +728,14 @@ export class WorldScene extends Phaser.Scene {
     this.updateCorruptionAmbience();
   }
 
-  /** Syncs the tint + ember rate to the current corruption tier. */
+  /** Syncs the tint + ember rate + music layer to the current corruption. */
   private updateCorruptionAmbience(): void {
     if (!this.corruptionOverlay) return;
-    const tier = corruptionTier(this.saveData.world.corruption);
+    const corruption = this.saveData.world.corruption;
+    const tier = corruptionTier(corruption);
     this.corruptionOverlay.setFillStyle(tier.tint, tier.overlayAlpha);
     this.corruptionEmber.frequency = tier.emberRate > 0 ? 1000 / tier.emberRate : -1;
+    getCorruptionAudio().setCorruption(corruption); // corruption music layer (m3)
   }
 
   /** A brief screen-fixed banner heralding a world boss's (re)spawn. */

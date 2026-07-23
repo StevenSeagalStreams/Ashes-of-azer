@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **The corruption has a sound.** A low ambient drone now rises with your
+  corruption — silent when you're pure, swelling louder, darker and more
+  dissonant the deeper you sink, and easing back as you cleanse. Press **M** to
+  mute. (It's a subtle atmospheric layer, synthesized live — the game's first
+  audio.)
 - **Towns feel the corruption.** Let it spread and return to Ashfall Village to
   find it changed: **Villager Rook has fled** her post, and a nearby home stands
   **boarded up**. Cleanse the corruption back down and the village recovers — the

@@ -1,20 +1,24 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 3 IN PROGRESS** — boxes 1–6 done (risk dial + scaling + ambience +
-dialogue variants + corrupted enemies + town changes). **Next box (top-to-bottom):
-"Music layer shifts with corruption"** — an audio layer that intensifies with the
-tier. NOTE: there is **no audio system yet** in the game (no music/SFX at all), so
-this box needs either (a) a minimal audio system + a corruption-reactive track, or
-(b) it's blocked on **audio assets** (the project has no music files, and CLAUDE.md
-says never fetch copyrighted audio — this is an `## Asset requests` item). Likely
-the honest move: flag it as needing an audio-direction/asset decision from the
-user (procedural WebAudio drone vs. sourced tracks), and either build a tiny
-procedural ambient layer or defer. Then the **ending branch** (3 final quests + 3
-endings — Destroy/Control/Become — a big design/content box needing user input),
-and the **playtest box** ("does rising corruption feel ominous or cosmetic?") —
-the iterate-gate before scaling corruption to all zones. Still open from earlier:
-1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+**MILESTONE 3 IN PROGRESS** — boxes 1–7 done (risk dial + scaling + ambience +
+dialogue + corrupted enemies + town changes + music layer). **Next box
+(top-to-bottom): "Ending branch: at max fragments, the three-way choice
+(Destroy / Control / Become) — 3 final quests + 3 ending sequences"** — the
+milestone's big design/content box. **This one genuinely needs user input**: the
+Destroy/Control/Become fantasy, what triggers it (roadmap says "max fragments" =
+all relic fragments collected; there are currently 4 relics — verdant_heart,
+hollow_antler, grove_heart, sealed_oak), and what each ending IS (a final quest +
+an ending sequence — a screen/scene, since there's no cutscene system yet). Bring
+options to the user: how the choice is offered (an NPC? a shrine?), and how
+"endings" are presented (a styled end-screen per path is the cheap version).
+After that, the **playtest box** ("does rising corruption feel ominous or
+cosmetic?") closes M3. Still open from earlier: 1.6 class sprite sheets (art),
+2.1 objective markers (minimap).
+
+Audio note: `src/systems/audio.ts` is the game's first + only audio — a
+procedural WebAudio drone, no asset files. A real music/SFX system with sourced,
+licensed tracks (and combat SFX) is a future ## Asset requests item.
 
 Corruption design decision (recorded): per the user, corruption is a **risk dial**
 driven by *combat* (not relic fragments as the roadmap originally said). Relics
@@ -105,6 +109,18 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 3 music layer (box 7): procedural corruption drone** (headless-
+  verified 4/4; 216 unit tests). The game's **first audio** — original, synthesized
+  in code (no asset files; CLAUDE.md forbids fetching copyrighted sound):
+  - `src/systems/audio.ts`: pure `corruptionAudioParams(c)` (silent at 0; louder +
+    more dissonant + brighter + more restless with corruption — unit-tested) + a
+    guarded `CorruptionAudio` singleton (Web Audio drone: root + fifth sines, a
+    detuned dissonant saw that fades in past Tainted, a lowpass with an LFO wobble).
+    All Web Audio wrapped in try/catch → safe no-op where audio is unavailable.
+  - WorldScene drives it from `updateCorruptionAmbience` (every corruption change),
+    resumes the context on the first input (autoplay policy), and **M** mutes.
+  - Verified in-browser: a real AudioContext is created + running after a gesture,
+    `setCorruption` across 0→100→0 drives it with zero errors, mute toggles clean.
 - **Milestone 3 scripted town changes (box 6): the town reacts** (headless-
   verified 7/7; 212 unit tests):
   - `NpcSchema` gained `hideAboveCorruption` / `showAboveCorruption` / `prop`.
@@ -1077,3 +1093,10 @@ Notes for the remaining 2.4 boxes:
   defer directional sheets (the procedural squash/lunge stands in for now). Once
   chosen, the sprite system needs a spritesheet loader + a per-entity anim state
   machine. **Everything else in 1.6 is done and doesn't depend on this.**
+- **Music + SFX (m3 audio)**: the game's only audio is the procedural corruption
+  drone (`src/systems/audio.ts`, synthesized in code, no files). There is **no
+  combat/UI SFX and no real music**. A proper audio pass wants: licensed/original
+  music tracks (zone themes, town vs. wilds), combat SFX (hits, casts, pickups,
+  loot rarity stings), and a small asset-backed audio manager. Needs an
+  **audio-direction + licensing decision** (CLAUDE.md: never fetch copyrighted
+  audio). Deferred until sourced.

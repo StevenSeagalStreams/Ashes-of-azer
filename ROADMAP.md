@@ -163,7 +163,7 @@ Prototype this cheaply before building all 8 zones — it changes what assets ev
 - [x] Dialogue variants per tier (conditions already supported by 2.2) — NPCs react to your corruption via `corruptionMin/Max`-gated choices: Elder Maru (3 tier bands), Warden-Captain Aldric (wary → an order to cleanse), Priest Halden (a warning). Pure content.
 - [x] Spawn table variants per tier: corrupted enemy versions (recolor + 1 new move) — an optional `corrupt` block on an enemy def (tierMin + tint + overlaid pattern) applied by `makeEnemy` at high corruption. Thornwolf/grovewarden gain a slam, sporeling a bigger burst, spitter a faster barrage; all recolored magenta at Corrupt (50+).
 - [x] 1–2 scripted town changes per tier (an NPC disappears, a building boards up) — data-driven corruption gating on town entities (`hideAboveCorruption` / `showAboveCorruption` / `prop` on NpcSchema), evaluated at zone load: in Ashfall, Villager Rook flees and a boarded-up door appears at Corrupt (50+); services are untouched.
-- [ ] Music layer shifts with corruption
+- [x] Music layer shifts with corruption — an original **procedural WebAudio** ambient drone (`src/systems/audio.ts`, no asset files) that's silent at Pure and swells louder + more dissonant + brighter with each tier; resumes on first input, mute with **M**. (The game's first audio; a fuller music/SFX system with sourced tracks is a future `## Asset requests` item.)
 - [ ] Ending branch: at max fragments, the three-way choice (Destroy / Control / Become) — 3 final quests + 3 ending sequences
 - [ ] Playtest: does rising corruption feel ominous or just cosmetic? Iterate before scaling to all zones.
 
