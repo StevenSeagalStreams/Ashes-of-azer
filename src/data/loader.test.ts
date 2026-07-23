@@ -246,26 +246,63 @@ describe('the real /data/*.json content', () => {
 
     const shrine = data.dialogue.find((t) => t.id === 'shrine')!;
     const root = shrine.nodes.find((n) => n.id === shrine.startNodeId)!;
-    const ctx = (allRelics: boolean) => ({
-      flags: (allRelics ? { all_relics: true } : {}) as Record<string, boolean>,
-      quests: { active: [], completed: [], progress: {}, tracked: null },
+    const ctx = (opts: { allRelics?: boolean; completed?: string[] }) => ({
+      flags: (opts.allRelics ? { all_relics: true } : {}) as Record<string, boolean>,
+      quests: { active: [], completed: opts.completed ?? [], progress: {}, tracked: null },
       catalog: data.quests,
       corruption: 0,
     });
-    // Before the relics are gathered, none of the ending routes are offered.
-    expect(visibleChoices(root, ctx(false)).some((c) => c.nextNodeId?.startsWith('ask_'))).toBe(false);
-    // Once gathered, all three confirm-routes appear and each seals a distinct ending.
-    const openRoutes = visibleChoices(root, ctx(true))
-      .map((c) => c.nextNodeId)
-      .filter((id): id is string => !!id && id.startsWith('ask_'));
-    expect(openRoutes.length).toBe(3);
-    const sealed = new Set<string>();
-    for (const routeId of openRoutes) {
-      const node = shrine.nodes.find((n) => n.id === routeId)!;
-      const seal = node.choices.find((c) => c.action?.ending)!;
-      expect(data.endings.paths.map((p) => p.id), `${routeId} seals a real ending`).toContain(seal.action!.ending);
-      sealed.add(seal.action!.ending!);
+
+    // Before the relics are gathered, no path is offered — neither the rite-starting
+    // choices nor the sealing choices show.
+    const emptyChoices = visibleChoices(root, ctx({}));
+    expect(emptyChoices.some((c) => c.action?.startsQuest)).toBe(false);
+    expect(emptyChoices.some((c) => c.nextNodeId?.startsWith('ask_'))).toBe(false);
+
+    // With every relic in hand, all three rite-starting choices appear, each
+    // starting a distinct finale quest — but the endings can't be sealed yet.
+    const primed = visibleChoices(root, ctx({ allRelics: true }));
+    const startedQuests = new Set(primed.map((c) => c.action?.startsQuest).filter(Boolean));
+    expect(startedQuests).toEqual(new Set(['q_end_destroy', 'q_end_control', 'q_end_become']));
+    expect(primed.some((c) => c.nextNodeId?.startsWith('ask_'))).toBe(false);
+
+    // Completing a path's rite unlocks exactly that path's seal, which confirms
+    // into the matching ending.
+    const bridge: Record<string, string> = {
+      q_end_destroy: 'destroy',
+      q_end_control: 'control',
+      q_end_become: 'become',
+    };
+    for (const [questId, endingId] of Object.entries(bridge)) {
+      const withRite = visibleChoices(root, ctx({ allRelics: true, completed: [questId] }));
+      const seals = withRite.map((c) => c.nextNodeId).filter((id): id is string => !!id && id.startsWith('ask_'));
+      expect(seals.length, `${questId} unlocks one seal`).toBe(1);
+      const confirm = shrine.nodes.find((n) => n.id === seals[0])!;
+      const seal = confirm.choices.find((c) => c.action?.ending)!;
+      expect(seal.action!.ending, `${questId} seals ${endingId}`).toBe(endingId);
     }
-    expect(sealed).toEqual(new Set(['destroy', 'control', 'become']));
+  });
+
+  it('the three finale quests bridge the shrine choice to each ending', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const finale = data.quests.filter((q) => q.chain === 'ashes_finale');
+    expect(finale.map((q) => q.id)).toEqual(['q_end_destroy', 'q_end_control', 'q_end_become']);
+    for (const q of finale) {
+      expect(q.autoOffer, `${q.id} is NPC-started`).toBe(false);
+      expect(q.objectives.length).toBeGreaterThanOrEqual(1);
+    }
+    // The shrine dialogue starts every finale quest, and only the shrine does.
+    const shrine = data.dialogue.find((t) => t.id === 'shrine')!;
+    const startsAtShrine = new Set(
+      shrine.nodes.flatMap((n) => n.choices.map((c) => c.action?.startsQuest).filter(Boolean)),
+    );
+    for (const q of finale) {
+      expect(startsAtShrine, `${q.id} started at shrine`).toContain(q.id);
+      const otherStarters = data.dialogue
+        .filter((t) => t.id !== 'shrine')
+        .flatMap((t) => t.nodes.flatMap((n) => n.choices.map((c) => c.action?.startsQuest)));
+      expect(otherStarters, `${q.id} started only at shrine`).not.toContain(q.id);
+    }
   });
 });

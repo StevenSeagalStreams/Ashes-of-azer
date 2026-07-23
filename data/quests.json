@@ -227,8 +227,20 @@
   {
     "id": "q_wt_cull",
     "name": "Cull the Wilds",
-    "objectives": [{ "type": "kill", "target": "sporeling", "count": 6 }],
-    "rewards": { "xp": 80, "gold": 20, "itemIds": [], "faction": "wardens", "rep": 25 },
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "sporeling",
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "xp": 80,
+      "gold": 20,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 25
+    },
     "prerequisites": [],
     "chain": "warden_trials",
     "autoOffer": false
@@ -236,73 +248,242 @@
   {
     "id": "q_wt_spitters",
     "name": "Silence the Spitters",
-    "objectives": [{ "type": "kill", "target": "spitter", "count": 5 }],
-    "rewards": { "xp": 100, "gold": 25, "itemIds": [], "faction": "wardens", "rep": 30 },
-    "prerequisites": ["q_wt_cull"],
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "spitter",
+        "count": 5
+      }
+    ],
+    "rewards": {
+      "xp": 100,
+      "gold": 25,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 30
+    },
+    "prerequisites": [
+      "q_wt_cull"
+    ],
     "chain": "warden_trials",
     "autoOffer": false
   },
   {
     "id": "q_wt_wolves",
     "name": "Thin the Pack",
-    "objectives": [{ "type": "kill", "target": "thornwolf", "count": 6 }],
-    "rewards": { "xp": 120, "gold": 30, "itemIds": [], "faction": "wardens", "rep": 35 },
-    "prerequisites": ["q_wt_spitters"],
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "thornwolf",
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "xp": 120,
+      "gold": 30,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 35
+    },
+    "prerequisites": [
+      "q_wt_spitters"
+    ],
     "chain": "warden_trials",
     "autoOffer": false
   },
   {
     "id": "q_wt_scout",
     "name": "Scout the Barrow",
-    "objectives": [{ "type": "reach", "target": "forestdungeon", "count": 1 }],
-    "rewards": { "xp": 140, "gold": 40, "itemIds": [], "faction": "wardens", "rep": 40 },
-    "prerequisites": ["q_wt_wolves"],
+    "objectives": [
+      {
+        "type": "reach",
+        "target": "forestdungeon",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 140,
+      "gold": 40,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 40
+    },
+    "prerequisites": [
+      "q_wt_wolves"
+    ],
     "chain": "warden_trials",
     "autoOffer": false
   },
   {
     "id": "q_wt_restless",
     "name": "The Restless Dead",
-    "objectives": [{ "type": "kill", "target": "sporeling", "count": 8 }],
-    "rewards": { "xp": 160, "gold": 45, "itemIds": [], "faction": "wardens", "rep": 45 },
-    "prerequisites": ["q_wt_scout"],
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "sporeling",
+        "count": 8
+      }
+    ],
+    "rewards": {
+      "xp": 160,
+      "gold": 45,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 45
+    },
+    "prerequisites": [
+      "q_wt_scout"
+    ],
     "chain": "warden_trials",
     "autoOffer": false
   },
   {
     "id": "q_wt_grovewardens",
     "name": "Root and Branch",
-    "objectives": [{ "type": "kill", "target": "grovewarden", "count": 3 }],
-    "rewards": { "xp": 180, "gold": 55, "itemIds": [], "faction": "wardens", "rep": 50 },
-    "prerequisites": ["q_wt_restless"],
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "grovewarden",
+        "count": 3
+      }
+    ],
+    "rewards": {
+      "xp": 180,
+      "gold": 55,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 50
+    },
+    "prerequisites": [
+      "q_wt_restless"
+    ],
     "chain": "warden_trials",
     "autoOffer": false
   },
   {
     "id": "q_wt_mossmaw",
     "name": "The Elder Bramble",
-    "objectives": [{ "type": "kill", "target": "mossmaw", "count": 1 }],
-    "rewards": { "xp": 300, "gold": 90, "itemIds": [], "faction": "wardens", "rep": 80 },
-    "prerequisites": ["q_wt_grovewardens"],
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "mossmaw",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 300,
+      "gold": 90,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 80
+    },
+    "prerequisites": [
+      "q_wt_grovewardens"
+    ],
     "chain": "warden_trials",
     "autoOffer": false
   },
   {
     "id": "q_wt_greathorn",
     "name": "The Hollow Stag",
-    "objectives": [{ "type": "kill", "target": "greathorn", "count": 1 }],
-    "rewards": { "xp": 500, "gold": 160, "itemIds": [], "faction": "wardens", "rep": 120 },
-    "prerequisites": ["q_wt_mossmaw"],
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "greathorn",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 500,
+      "gold": 160,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 120
+    },
+    "prerequisites": [
+      "q_wt_mossmaw"
+    ],
     "chain": "warden_trials",
     "autoOffer": false
   },
   {
     "id": "q_wt_warden",
     "name": "Warden of the Reach",
-    "objectives": [{ "type": "talkTo", "target": "aldric", "count": 1 }],
-    "rewards": { "xp": 300, "gold": 120, "itemIds": [], "faction": "wardens", "rep": 100 },
-    "prerequisites": ["q_wt_greathorn"],
+    "objectives": [
+      {
+        "type": "talkTo",
+        "target": "aldric",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 300,
+      "gold": 120,
+      "itemIds": [],
+      "faction": "wardens",
+      "rep": 100
+    },
+    "prerequisites": [
+      "q_wt_greathorn"
+    ],
     "chain": "warden_trials",
+    "autoOffer": false
+  },
+  {
+    "id": "q_end_destroy",
+    "name": "Scatter the Ash",
+    "objectives": [
+      {
+        "type": "reach",
+        "target": "forestdungeon",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 220,
+      "gold": 40,
+      "itemIds": []
+    },
+    "prerequisites": [],
+    "chain": "ashes_finale",
+    "autoOffer": false
+  },
+  {
+    "id": "q_end_control",
+    "name": "Bind the Ash",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "grovewarden",
+        "count": 2
+      }
+    ],
+    "rewards": {
+      "xp": 220,
+      "gold": 40,
+      "itemIds": []
+    },
+    "prerequisites": [],
+    "chain": "ashes_finale",
+    "autoOffer": false
+  },
+  {
+    "id": "q_end_become",
+    "name": "Embrace the Ash",
+    "objectives": [
+      {
+        "type": "reach",
+        "target": "dungeon",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 220,
+      "gold": 40,
+      "itemIds": []
+    },
+    "prerequisites": [],
+    "chain": "ashes_finale",
     "autoOffer": false
   }
 ]

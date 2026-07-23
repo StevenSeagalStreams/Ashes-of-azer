@@ -8,6 +8,12 @@
   **Embrace** the ash and ascend as Azer reborn (*The Ash Ascendant*). Each seals
   a distinct ending screen. Until the last relic is in hand, the shrine's four
   sockets stay empty.
+- **A final rite for each ending.** The shrine no longer answers on a whim — each
+  path now asks a last deed of you first. Choose to **scatter** the ash and you
+  must carry the relics back to the ruin's heart (the Bramblewarren); choose to
+  **bind** it and you must first master the ruin's own wardens; choose to
+  **become** it and you must descend to where the ash lies oldest (the Hollow
+  Barrow). Complete the rite, return to the shrine, and seal your ending.
 - **The corruption has a sound.** A low ambient drone now rises with your
   corruption — silent when you're pure, swelling louder, darker and more
   dissonant the deeper you sink, and easing back as you cleanse. Press **M** to

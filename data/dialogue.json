@@ -1218,26 +1218,59 @@
     "nodes": [
       {
         "id": "root",
-        "text": "The Shrine of Ashes. Four hollow sockets ring a bowl of cold embers, and something older than the Reach waits in the stone for a hand to decide how this ends.",
+        "text": "The Shrine of Ashes. Four sockets ring a bowl of cold embers. With every relic in hand the stone waits — but it will not answer until you have earned the ending you would give the Reach.",
         "choices": [
           {
-            "text": "Shatter the relics — end the corruption forever.",
+            "text": "Scatter it. I will carry the relics to the ruin's heart and break them there.",
             "condition": {
-              "flag": "all_relics"
+              "flag": "all_relics",
+              "questAvailable": "q_end_destroy"
+            },
+            "action": {
+              "startsQuest": "q_end_destroy"
+            },
+            "nextNodeId": "rite"
+          },
+          {
+            "text": "Bind it. First I will master the ruin's own wardens.",
+            "condition": {
+              "flag": "all_relics",
+              "questAvailable": "q_end_control"
+            },
+            "action": {
+              "startsQuest": "q_end_control"
+            },
+            "nextNodeId": "rite"
+          },
+          {
+            "text": "Become it. I will descend to where the ash lies oldest.",
+            "condition": {
+              "flag": "all_relics",
+              "questAvailable": "q_end_become"
+            },
+            "action": {
+              "startsQuest": "q_end_become"
+            },
+            "nextNodeId": "rite"
+          },
+          {
+            "text": "Shatter the relics — the rite is done.",
+            "condition": {
+              "questCompleted": "q_end_destroy"
             },
             "nextNodeId": "ask_destroy"
           },
           {
-            "text": "Bind the corruption — hold its leash yourself.",
+            "text": "Bind the corruption — the rite is done.",
             "condition": {
-              "flag": "all_relics"
+              "questCompleted": "q_end_control"
             },
             "nextNodeId": "ask_control"
           },
           {
-            "text": "Embrace the ash — ascend as Azer reborn.",
+            "text": "Take the ash into yourself — the rite is done.",
             "condition": {
-              "flag": "all_relics"
+              "questCompleted": "q_end_become"
             },
             "nextNodeId": "ask_become"
           },
@@ -1252,6 +1285,15 @@
             "condition": {
               "flag": "all_relics"
             }
+          }
+        ]
+      },
+      {
+        "id": "rite",
+        "text": "It is begun. Walk the rite to its end, then return to the shrine to seal what you have chosen.",
+        "choices": [
+          {
+            "text": "I will return."
           }
         ]
       },

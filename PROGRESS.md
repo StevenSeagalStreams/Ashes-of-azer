@@ -2,14 +2,30 @@
 
 ## Current task
 **MILESTONE 3 IN PROGRESS** — boxes 1–7 done (risk dial + scaling + ambience +
-dialogue + corrupted enemies + town changes + music layer). The "Ending branch"
-box was split into two sub-checkboxes; **sub-box (a) is now DONE** — the ending
-choice + 3 end-screens. **Next task (top-to-bottom): sub-box (b) "3 final quests
-bridging the choice and each ending"** — connective quests that lead the player
-to the Shrine and set up each of Destroy/Control/Become. After that, the
-**playtest box** ("does rising corruption feel ominous or cosmetic?") closes M3.
-Still open from earlier: 1.6 class sprite sheets (art), 2.1 objective markers
-(minimap).
+dialogue + corrupted enemies + town changes + music layer), and **box 8 "Ending
+branch" is now FULLY DONE** (both sub-boxes: the choice + 3 end-screens, and the
+3 final quests bridging the choice to each ending). **Next task (top-to-bottom):
+the M3-closing playtest box — "does rising corruption feel ominous or
+cosmetic?"** This is an iterate/tune gate that needs human eyes (see
+`## Needs human playtest`); with no roadmap boxes left before it, the next
+session should either (a) do a tuning pass on corruption feel and mark it, or
+(b) confirm with the user whether M3 is signed off and move to M4. Still open
+from earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+
+### Finale-quest note (m3 box 8b — DONE)
+Three `chain:'ashes_finale'` quests in `data/quests.json`, all `autoOffer:false`,
+started only from the shrine dialogue and each bridging a path to its ending:
+- `q_end_destroy` "Scatter the Ash" — reach `forestdungeon` (Bramblewarren).
+- `q_end_control` "Bind the Ash" — kill `grovewarden` ×2.
+- `q_end_become` "Embrace the Ash" — reach `dungeon` (Hollow Barrow).
+The shrine tree was restructured: with `all_relics` set, the root shows three
+rite-*starting* choices (each gated `flag:all_relics` + `questAvailable:q_end_*`,
+firing `startsQuest` → the `rite` node). The *sealing* choices (which route to
+the `ask_*` confirm nodes carrying `action.ending`) are gated on
+`questCompleted:q_end_*`, so an ending can only be sealed after its rite is
+walked. Quests are intentionally NOT in the shrine NPC's `offersQuests` (that
+list ignores flags, so it'd show a premature `!` marker before relics) — the
+shrine landmark + the "SHRINE OF ASHES STIRS" toast is the discovery cue.
 
 ### Ending system note (m3 box 8a — DONE)
 The finale is fully data-driven off `data/endings.json` (schema
@@ -1088,6 +1104,18 @@ Notes for the remaining 2.4 boxes:
   until the green XP bar fills → "LEVEL 2!" burst, full heal. Does casting
   feel responsive? (4/5 are locked until the skill panel lets you spend
   points — next sub-task.)
+- **The ending branch (m3 box 8)**: collect all four relic fragments (Verdant
+  Heart from Mossmaw, Hollow Antler from Greathorn, and the two hidden-grove /
+  sealed-vault secrets) — or run `__AZER.debug.grantAllRelics()` in the console —
+  then visit the **Shrine of Ashes** in Ashfall Village (top-centre of the plaza).
+  It offers three paths, each of which first sends you on a short **final rite**
+  (Scatter → reach the Bramblewarren; Bind → kill 2 grovewardens; Become → reach
+  the Hollow Barrow); complete the rite, return, and seal the ending. Smoke-verified
+  the whole flow (relics → rite-start → walk → seal → end-screen → Begin Anew) —
+  but **wants human eyes**: does the three-way choice land with weight? Do the end-
+  screen prose + styling feel like an *ending*, or an afterthought? Are the rites a
+  satisfying last errand or just busywork before the real payoff? Is the shrine
+  findable, and is it clear you need all four relics first?
 
 ## Asset requests
 - **Pet/wolf sprite (m1.4)**: the Hunter's Summon Wolf currently renders with
