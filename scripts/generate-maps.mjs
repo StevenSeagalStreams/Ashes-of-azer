@@ -13,10 +13,11 @@ const MAPH = 40;
 const TILE = {
   GRASS: 0, TREE: 1, WATER: 2, PATH: 3, DOOR: 4, DFLOOR: 5, DWALL: 6, PORTAL: 7, FLOWERS: 8,
   FOREST: 9, PINE: 10, MUSHROOM: 11, FALSEPINE: 12, FALSEWALL: 13,
+  MARSH: 14, MURK: 15, DEADTREE: 16, REED: 17,
 };
-const TILE_COUNT = 14; // keep in sync with pixelart.ts TILE_COUNT + mapgen.ts TILE
+const TILE_COUNT = 18; // keep in sync with pixelart.ts TILE_COUNT + mapgen.ts TILE
 // FALSEPINE / FALSEWALL look like PINE / DWALL but are deliberately walkable (secrets).
-const SOLID = [TILE.TREE, TILE.WATER, TILE.DWALL, TILE.PINE];
+const SOLID = [TILE.TREE, TILE.WATER, TILE.DWALL, TILE.PINE, TILE.MURK, TILE.DEADTREE];
 
 function mulberry32(seed) {
   return function () {
@@ -151,6 +152,71 @@ function genForest(rnd) {
     for (let x = 9; x <= 15; x++) m[y][x] = y === 9 || y === 15 || x === 9 || x === 15 ? TILE.PINE : TILE.FOREST;
   m[12][12] = TILE.MUSHROOM;
   m[15][12] = TILE.FALSEPINE; // push through here
+  // South spur to the Haunted Marsh (m4): drop from the central glade to a
+  // doorway on the south edge that leads down into the mire.
+  carveV(50, 56, 70);
+  for (let y = 68; y < 72; y++) for (let x = 48; x < 53; x++) if (m[y][x] === TILE.PINE) m[y][x] = TILE.FOREST;
+  carveV(50, 68, 70);
+  m[70][50] = TILE.DOOR;
+  m[70][51] = TILE.DOOR;
+  return m;
+}
+
+// The Mirefen (m4, Zone 3): the Haunted Marsh's wilds — a sickly olive bog floor,
+// stagnant murk pools (solid), dead trees, reeds, and dry causeways winding from
+// the north gate down out of the Verdant Reach. ~2.5× the plains (96×64 = 6144).
+const MARSHW = 96;
+const MARSHH = 64;
+function genMarsh(rnd) {
+  const W = MARSHW;
+  const H = MARSHH;
+  const m = [];
+  for (let y = 0; y < H; y++) {
+    const row = [];
+    for (let x = 0; x < W; x++) {
+      let t = TILE.MARSH;
+      if (x === 0 || y === 0 || x === W - 1 || y === H - 1) t = TILE.DEADTREE;
+      else if (rnd() < 0.1) t = TILE.DEADTREE;
+      else if (rnd() < 0.05) t = TILE.REED;
+      else if (rnd() < 0.03) t = TILE.MURK;
+      row.push(t);
+    }
+    m.push(row);
+  }
+  // Stagnant bog pools (solid murk) break up the mire.
+  const pool = (cx, cy, r) => {
+    for (let y = cy - r; y <= cy + r; y++)
+      for (let x = cx - r; x <= cx + r; x++)
+        if (y > 0 && x > 0 && y < H - 1 && x < W - 1 && Math.hypot(x - cx, y - cy) < r) m[y][x] = TILE.MURK;
+  };
+  pool(22, 22, 6);
+  pool(66, 24, 7);
+  pool(40, 48, 6);
+  pool(78, 50, 5);
+  // Dry causeways (walkable path) threading the mire.
+  const carveH = (y, x1, x2) => {
+    for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      m[y][x] = TILE.PATH;
+      m[y + 1][x] = TILE.PATH;
+    }
+  };
+  const carveV = (x, y1, y2) => {
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      m[y][x] = TILE.PATH;
+      m[y][x + 1] = TILE.PATH;
+    }
+  };
+  carveV(48, 3, 30);
+  carveH(30, 6, 88);
+  carveV(20, 30, 54);
+  carveH(52, 20, 70);
+  carveV(70, 30, 52);
+  carveV(48, 30, 44);
+  // North gate pocket + doorway back up to the Verdant Reach.
+  for (let y = 1; y < 5; y++) for (let x = 46; x < 51; x++) if (m[y][x] === TILE.DEADTREE) m[y][x] = TILE.MARSH;
+  carveV(48, 3, 6);
+  m[3][48] = TILE.DOOR;
+  m[3][49] = TILE.DOOR;
   return m;
 }
 
@@ -509,6 +575,19 @@ const forest = tiledMap({
       ],
     },
     {
+      name: 'marsh-gate',
+      type: 'transition',
+      x: 50 * TS,
+      y: 70 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'marsh'),
+        prop('targetX', 'float', 48 * TS + 8),
+        prop('targetY', 'float', 6 * TS),
+      ],
+    },
+    {
       name: 'grove-cache',
       type: 'secret',
       x: 12 * TS - 8,
@@ -521,6 +600,43 @@ const forest = tiledMap({
         prop('gold', 'int', 120),
         prop('relic', 'string', 'relic_grove_heart'),
         prop('relicName', 'string', 'Heart of the Grove'),
+      ],
+    },
+  ],
+});
+
+const marsh = tiledMap({
+  grid: genMarsh(mulberry32(2024)),
+  spawnObjects: [
+    { name: 'player', type: 'player_spawn', point: true, x: 48 * TS + 8, y: 6 * TS },
+    {
+      // Open wilds: one region scatters the zone's enemyTypes across the mire.
+      name: 'wilds',
+      type: 'enemy_region',
+      x: TS,
+      y: TS,
+      width: (MARSHW - 2) * TS,
+      height: (MARSHH - 2) * TS,
+      properties: [
+        prop('count', 'int', 26),
+        prop('respawn', 'bool', true),
+        prop('respawnCap', 'int', 20),
+        prop('respawnInterval', 'float', 4),
+      ],
+    },
+  ],
+  triggerObjects: [
+    {
+      name: 'reach-gate',
+      type: 'transition',
+      x: 48 * TS,
+      y: 3 * TS,
+      width: 2 * TS,
+      height: 2 * TS,
+      properties: [
+        prop('target', 'string', 'forest'),
+        prop('targetX', 'float', 50 * TS + 8),
+        prop('targetY', 'float', 68 * TS),
       ],
     },
   ],
@@ -711,9 +827,11 @@ writeFileSync(join(out, 'town.json'), JSON.stringify(town));
 writeFileSync(join(out, 'forest.json'), JSON.stringify(forest));
 writeFileSync(join(out, 'foresttown.json'), JSON.stringify(foresttown));
 writeFileSync(join(out, 'forestdungeon.json'), JSON.stringify(forestdungeon));
+writeFileSync(join(out, 'marsh.json'), JSON.stringify(marsh));
 console.log('wrote', join(out, 'overworld.json'));
 console.log('wrote', join(out, 'dungeon.json'));
 console.log('wrote', join(out, 'town.json'));
 console.log('wrote', join(out, 'forest.json'));
 console.log('wrote', join(out, 'foresttown.json'));
 console.log('wrote', join(out, 'forestdungeon.json'));
+console.log('wrote', join(out, 'marsh.json'));

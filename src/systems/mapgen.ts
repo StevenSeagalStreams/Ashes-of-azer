@@ -23,6 +23,12 @@ export const TILE = {
   // so a hidden grove or vault entrance reads as solid until you push into it.
   FALSEPINE: 12,
   FALSEWALL: 13,
+  // Haunted Marsh set (m4, Zone 3): boggy floor, stagnant murk (solid), dead
+  // trees (solid), and reed decor.
+  MARSH: 14, // wet bog floor (walkable)
+  MURK: 15, // stagnant marsh water / quagmire (solid)
+  DEADTREE: 16, // twisted dead tree (solid)
+  REED: 17, // reeds/cattails decor on the bog (walkable)
 } as const;
 
 /**

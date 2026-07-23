@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **A new land to explore: the Mirefen.** South of the Verdant Reach lies a
+  sprawling haunted marsh — an olive bog threaded with dry causeways, stagnant
+  murk pools, dead trees, and reeds. Take the new south path out of the Reach's
+  central glade to descend into it (and back up the way you came). Its proper
+  inhabitants — the marsh's undead — arrive next; for now it's roamed by strays
+  from the plains and barrow.
 - **Poison enters the world (groundwork for the Haunted Marsh).** A new
   damage-over-time system: poison ticks away at your health over a few seconds,
   shown by green damage numbers, a green flash, and a "☣ PSN" timer by your health

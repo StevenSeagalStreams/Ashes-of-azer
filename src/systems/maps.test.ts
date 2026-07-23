@@ -2,12 +2,20 @@ import { describe, expect, it } from 'vitest';
 import forestMap from '../../assets/maps/forest.json' assert { type: 'json' };
 import forestTownMap from '../../assets/maps/foresttown.json' assert { type: 'json' };
 import forestDungeonMap from '../../assets/maps/forestdungeon.json' assert { type: 'json' };
+import marshMap from '../../assets/maps/marsh.json' assert { type: 'json' };
 import plains from '../../assets/maps/overworld.json' assert { type: 'json' };
 import { TILE } from './mapgen.ts';
 
 // Solid tile GIDs (Tiled GIDs are the tile id + 1). These are the tiles the
 // generator marks solid; a walkable landing spot must not be one of them.
-const SOLID_GIDS = new Set([TILE.TREE + 1, TILE.WATER + 1, TILE.DWALL + 1, TILE.PINE + 1]);
+const SOLID_GIDS = new Set([
+  TILE.TREE + 1,
+  TILE.WATER + 1,
+  TILE.DWALL + 1,
+  TILE.PINE + 1,
+  TILE.MURK + 1,
+  TILE.DEADTREE + 1,
+]);
 
 interface TiledMap {
   width: number;
@@ -44,7 +52,7 @@ describe('Verdant Reach (forest) map', () => {
   it('is ~3× the Starter Plains and carries the standard layers + tileset', () => {
     expect(forest.width * forest.height).toBe(7200); // 100×72 = 3 × (60×40)
     expect(forest.layers.map((l) => l.name)).toEqual(['ground', 'spawns', 'triggers']);
-    expect(forest.tilesets[0]?.tilecount).toBe(14); // forest tiles + secret false walls
+    expect(forest.tilesets[0]?.tilecount).toBe(18); // base + forest + secret + marsh tiles
   });
 
   it('spawns the player on a walkable tile', () => {
@@ -155,5 +163,46 @@ describe('Bramblewarren (forest dungeon) map', () => {
     expect(SOLID_GIDS.has(groundGid(dungeon, secret!.x + secret!.width / 2, secret!.y + secret!.height / 2))).toBe(false);
     const data = dungeon.layers.find((l) => l.name === 'ground')!.data as number[];
     expect(data).toContain(TILE.FALSEWALL + 1); // the walkable false wall exists
+  });
+});
+
+describe('The Mirefen (marsh) map', () => {
+  const forest = forestMap as unknown as TiledMap;
+  const marsh = marshMap as unknown as TiledMap;
+
+  it('is a large wilds map carrying the standard layers + tileset', () => {
+    expect(marsh.width * marsh.height).toBe(6144); // 96×64
+    expect(marsh.layers.map((l) => l.name)).toEqual(['ground', 'spawns', 'triggers']);
+    expect(marsh.tilesets[0]?.tilecount).toBe(18);
+  });
+
+  it('spawns the player on a walkable tile', () => {
+    const s = playerSpawn(marsh);
+    expect(SOLID_GIDS.has(groundGid(marsh, s.x, s.y))).toBe(false);
+  });
+
+  it('links to the Verdant Reach and back, landing both ways on walkable ground', () => {
+    // Forest → marsh.
+    const toMarsh = transitions(forest).find((t) => t.props['target'] === 'marsh');
+    expect(toMarsh, 'forest has a marsh gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(marsh, toMarsh!.props['targetX'] as number, toMarsh!.props['targetY'] as number))).toBe(false);
+
+    // Marsh → forest.
+    const toForest = transitions(marsh).find((t) => t.props['target'] === 'forest');
+    expect(toForest, 'marsh has a reach gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(forest, toForest!.props['targetX'] as number, toForest!.props['targetY'] as number))).toBe(false);
+  });
+
+  it('uses the new marsh tiles somewhere in its ground layer', () => {
+    const data = marsh.layers.find((l) => l.name === 'ground')!.data as number[];
+    expect(data).toContain(TILE.MARSH + 1);
+    expect(data).toContain(TILE.MURK + 1);
+    expect(data).toContain(TILE.DEADTREE + 1);
+    expect(data).toContain(TILE.REED + 1);
+  });
+
+  it('scatters enemies from a wilds region', () => {
+    const region = (marsh.layers.find((l) => l.name === 'spawns')!.objects as { type: string }[]).find((o) => o.type === 'enemy_region');
+    expect(region, 'marsh has a wilds enemy region').toBeTruthy();
   });
 });

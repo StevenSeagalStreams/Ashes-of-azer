@@ -53,5 +53,14 @@
       "mossmaw",
       "oakheart"
     ]
+  },
+  {
+    "id": "marsh",
+    "name": "The Mirefen",
+    "dark": false,
+    "enemyTypes": [
+      "skel",
+      "bat"
+    ]
   }
 ]

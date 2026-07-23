@@ -264,7 +264,7 @@ export function addSlashTexture(scene: Phaser.Scene, key: string): void {
 // Tiles drawn into the shared tileset strip, in TILE-id order. Keep in sync with
 // the TILE enum (mapgen.ts) and the tileset `tilecount`/`imagewidth` that
 // scripts/generate-maps.mjs writes into each map JSON.
-export const TILE_COUNT = 14;
+export const TILE_COUNT = 18;
 
 export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   if (scene.textures.exists(key)) return;
@@ -379,6 +379,43 @@ export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   // Secret false walls: pixel-identical to PINE / DWALL but walkable.
   drawPine(TILE.FALSEPINE);
   base(TILE.FALSEWALL, '#3a2d4a'); // same fill as DWALL
+
+  // ---- Haunted Marsh tiles (m4, Zone 3) ----
+  // Bog floor: a sickly olive-brown mire so the marsh reads distinctly.
+  base(TILE.MARSH, '#5a6a3a');
+  g.fillStyle = '#4e5d32';
+  g.fillRect(TILE.MARSH * TS + 3, 6, 3, 2);
+  g.fillRect(TILE.MARSH * TS + 10, 11, 3, 2);
+  g.fillStyle = '#6a7a46';
+  g.fillRect(TILE.MARSH * TS + 8, 3, 2, 1);
+
+  // Murk: stagnant marsh water / quagmire (solid), dark green with an oily sheen.
+  base(TILE.MURK, '#2f3d2a');
+  g.fillStyle = '#3c4d32';
+  g.fillRect(TILE.MURK * TS, 0, 8, 8);
+  g.fillRect(TILE.MURK * TS + 8, 8, 8, 8);
+  g.fillStyle = '#546a3e';
+  g.fillRect(TILE.MURK * TS + 4, 5, 3, 1);
+  g.fillRect(TILE.MURK * TS + 10, 11, 3, 1);
+
+  // Dead tree: a bare twisted trunk over the bog (solid).
+  base(TILE.DEADTREE, '#5a6a3a');
+  g.fillStyle = '#3a2f28';
+  g.fillRect(TILE.DEADTREE * TS + 7, 4, 2, 11); // trunk
+  g.fillRect(TILE.DEADTREE * TS + 3, 6, 4, 2); // left bough
+  g.fillRect(TILE.DEADTREE * TS + 9, 8, 4, 2); // right bough
+  g.fillStyle = '#2a221c';
+  g.fillRect(TILE.DEADTREE * TS + 4, 4, 2, 2);
+  g.fillRect(TILE.DEADTREE * TS + 11, 6, 2, 2);
+
+  // Reeds/cattails decor on the bog floor (walkable).
+  base(TILE.REED, '#5a6a3a');
+  g.fillStyle = '#7a8a4a';
+  g.fillRect(TILE.REED * TS + 5, 5, 1, 9); // stalk
+  g.fillRect(TILE.REED * TS + 9, 4, 1, 10);
+  g.fillStyle = '#3a2f28';
+  g.fillRect(TILE.REED * TS + 5, 4, 1, 3); // cattail heads
+  g.fillRect(TILE.REED * TS + 9, 3, 1, 3);
 
   scene.textures.addCanvas(key, c);
 }

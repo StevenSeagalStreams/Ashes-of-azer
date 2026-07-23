@@ -1,17 +1,35 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 4 STARTED — Zone 3 (Haunted Marsh).** M3 is complete. The user chose
-"Start Zone 3 now", so Zone 3 was split into sub-boxes (systems-first, per the
-add-a-zone template) and the **first systems box — the poison/DoT status system —
-is DONE** (note below). **Next task (top-to-bottom): the marsh tiles + wilds map
-+ register the zone + wire gates from a neighbour (both directions)** — a
-content/map box (ZONE_TEMPLATE steps 1–3). Follow with the undead roster (they
-set the new `poison` field in JSON), then town, quest chain, dungeon+mini-boss,
-secrets. Per the Zone 2 retro, budget ~8 boxes total for the zone. Still open
-from earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
-M3's corruption-feel sign-off remains the user's (logged under Needs human
-playtest) but doesn't block Zone 3.
+**MILESTONE 4 — Zone 3 (Haunted Marsh), in progress.** Two boxes done: the
+poison/DoT status system (box 1), and now **the marsh tiles + wilds map + zone
+registration + gates (box 2 — DONE, note below)**. **Next task (top-to-bottom):
+the undead enemy roster** — data-only enemies in `data/enemies.json` (the biters
+set the new `poison {dps,duration}` field so the DoT system finally fires in
+normal play), given sprites in `pixelart.ts`, then swap the marsh's placeholder
+`enemyTypes` (currently `skel,bat`) for the new roster in `data/zones.json`.
+After that: marsh town + services, quest chain, dungeon + mini-boss (relic),
+secrets. Budget ~8 boxes total per the Zone 2 retro. Still open from earlier:
+1.6 class sprite sheets (art), 2.1 objective markers (minimap). M3's
+corruption-feel sign-off remains the user's (Needs human playtest).
+
+### Marsh map/zone note (m4 Zone 3 box 2 — DONE)
+Added 4 marsh tiles — MARSH (bog floor, walkable), MURK (stagnant water, solid),
+DEADTREE (solid), REED (decor, walkable) — bumping `TILE_COUNT` 14→18 **kept in
+sync across all three files** (`mapgen.ts` TILE, `pixelart.ts` TILE_COUNT +
+`addTilesetTexture` art, `generate-maps.mjs` TILE/TILE_COUNT/SOLID). New
+`genMarsh` (96×64 = 6144, seed 2024) draws "The Mirefen": bog fill, murk pools,
+dead-tree/reed scatter, dry PATH causeways from a north gate. Registered in
+`data/zones.json` (`marsh` / dark:false / placeholder enemyTypes skel,bat), added
+to `BootScene.MAP_ZONES`, and the loader zone-list test. Gate both ways: a new
+**south spur** off the forest's central glade (carveV 50,56→70 + a DOOR at row
+70) with a `marsh-gate` transition, and the marsh's `reach-gate` back. Regenerate
+maps with `node scripts/generate-maps.mjs` (rewrites all maps — the tileset block
+changed for every map, but untouched ground layouts stay identical). Map tests in
+`maps.test.ts` (forest tilecount now 18; new Mirefen describe block); smoke-verified
+both gates cross in a real browser, enemies scatter, tiles render, no console
+errors. NB: the marsh is still roamed by placeholder skel/bat — the undead roster
+box makes it its own.
 
 ### Poison/DoT status note (m4 Zone 3 box 1 — DONE)
 `src/systems/status.ts` is the pure, tested engine: `applyPoison` (refresh with
