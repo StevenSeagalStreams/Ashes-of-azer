@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **Corruption — push your luck.** Every foe you kill feeds a **corruption dial**
+  (top-left, under your XP), and bosses spike it hard. The more corrupt the ground
+  you fight on, the **tougher the enemies** (more health, more damage) — but the
+  **more and better the loot** they drop. Ride the risk up through the tiers
+  (Pure → Tainted → Corrupt → Defiled → Abyssal) for greater rewards, or fall back
+  to a town **well to cleanse** it back down. Towns are safe — fighting only
+  corrupts you out in the wilds.
 - **Dev tooling (behind the scenes).** A repeatable zone-authoring checklist
   (`docs/ZONE_TEMPLATE.md`) and a console-only debug kit — teleport, spawn
   item/enemy, set corruption, and god mode — to speed up building and testing the

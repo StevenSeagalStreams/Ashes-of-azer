@@ -43,6 +43,12 @@ describe('rollItem', () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
+  it('luck (corruption) takes the best of extra rarity rolls', () => {
+    // luck 1 → best of two rarity rolls: a white (0.0) and a rare (0.8) → rare.
+    const item = rollItem(items, affixes, scriptRng([0.0, 0.8, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Helmet', luck: 1 });
+    expect(item.rarity).toBe('rare');
+  });
+
   it('honours a forced rarity (crafting) regardless of the rarity roll value', () => {
     // First rng value would roll white by dropChance; opts.rarity overrides it.
     const item = rollItem(items, affixes, scriptRng([0.0, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Weapon', rarity: 'rare' });

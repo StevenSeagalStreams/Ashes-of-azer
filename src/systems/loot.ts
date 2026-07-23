@@ -27,6 +27,18 @@ const slotsWithBases = (items: ItemsFile): ItemSlot[] =>
 export interface RollOpts {
   slot?: ItemSlot; // force a slot; otherwise a random slot that has bases
   rarity?: string; // force a rarity id (crafting); otherwise rolled by dropChance
+  luck?: number; // extra rarity rolls (corruption); the best of (1 + luck) wins
+}
+
+/** Best-of-(1+luck) rarity roll — higher luck biases toward rarer tiers. */
+function rollRarityLucky(items: ItemsFile, rng: Rng, luck: number): ItemsFile['rarities'][number] {
+  let best = rollRarity(items, rng);
+  const order = (r: ItemsFile['rarities'][number]): number => items.rarities.indexOf(r);
+  for (let i = 0; i < luck; i++) {
+    const r = rollRarity(items, rng);
+    if (order(r) > order(best)) best = r;
+  }
+  return best;
 }
 
 const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, epic: 30, legendary: 50 };
@@ -55,7 +67,7 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
   const slot = opts.slot ?? pick(eligible, rng);
   const rarity = opts.rarity
     ? items.rarities.find((r) => r.id === opts.rarity) ?? rollRarity(items, rng)
-    : rollRarity(items, rng);
+    : rollRarityLucky(items, rng, opts.luck ?? 0);
 
   if (rarity.id === 'legendary') {
     const forSlot = items.legendaries.filter((l) => l.slot === slot);

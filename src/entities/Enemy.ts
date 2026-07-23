@@ -48,11 +48,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
-  constructor(scene: Phaser.Scene, def: EnemyData, x: number, y: number, playerLevel: number) {
+  // Corruption scales enemies at spawn (m3): HP and damage-dealt multipliers.
+  private readonly dmgMult: number;
+
+  constructor(scene: Phaser.Scene, def: EnemyData, x: number, y: number, playerLevel: number, hpMult = 1, dmgMult = 1) {
     addSpriteTexture(scene, def.sprite, spriteRowsFor(def.sprite));
     super(scene, x, y, def.sprite);
     this.def = def;
-    this.maxHp = scaledEnemyHp(def.hp, playerLevel);
+    this.dmgMult = dmgMult;
+    this.maxHp = Math.round(scaledEnemyHp(def.hp, playerLevel) * hpMult);
     this.hp = this.maxHp;
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -103,7 +107,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.windupT <= 0) {
         this.clearTint();
         const reach = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-        if (reach < CONTACT_RANGE + 4) this.receiveThorns(player.takeDamage(this.def.dmg, numbers), numbers);
+        if (reach < CONTACT_RANGE + 4) this.receiveThorns(this.hitPlayer(player, this.def.dmg, numbers), numbers);
       }
       this.positionHpBar();
       return;
@@ -131,7 +135,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.setVelocity(this.chargeVX, this.chargeVY);
         if (!this.chargeHit && d < CONTACT_RANGE + 4) {
           this.chargeHit = true;
-          this.receiveThorns(player.takeDamage(this.def.dmg, numbers), numbers);
+          this.receiveThorns(this.hitPlayer(player, this.def.dmg, numbers), numbers);
         }
         if (this.chargeDashT <= 0) {
           this.chargeCd = this.def.charge.cooldown;
@@ -176,7 +180,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         y: this.y,
         angle: Math.atan2(player.y - this.y, player.x - this.x),
         speed: ranged.projectileSpeed,
-        damage: ranged.damage,
+        damage: ranged.damage * this.dmgMult,
       });
     }
     // Exploder (m2.4): within range, arm a telegraph then self-destruct in an AoE.
@@ -185,7 +189,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.explodePendingT > 0) {
         this.explodePendingT -= dt;
         if (this.explodePendingT <= 0) {
-          if (d < explode.radius) player.takeDamage(explode.damage, numbers);
+          if (d < explode.radius) this.hitPlayer(player, explode.damage, numbers);
           this.spawnRing(explode.radius, SLAM_WINDUP);
           this.die();
           return;
@@ -212,7 +216,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.slamPendingT > 0) {
         this.slamPendingT -= dt;
         if (this.slamPendingT <= 0 && d < slam.radius) {
-          this.receiveThorns(player.takeDamage(slam.damage, numbers), numbers);
+          this.receiveThorns(this.hitPlayer(player, slam.damage, numbers), numbers);
         }
       }
       this.slamT -= dt;
@@ -232,6 +236,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       .setDepth(7)
       .setScale((radius * 2) / 64);
     this.scene.tweens.add({ targets: ring, alpha: 0, duration: seconds * 1000, onComplete: () => ring.destroy() });
+  }
+
+  /** Deals `base` damage to the player, scaled by this enemy's corruption mult. */
+  private hitPlayer(player: Player, base: number, numbers: DamageNumbers): number {
+    return player.takeDamage(base * this.dmgMult, numbers);
   }
 
   private receiveThorns(thorns: number, numbers: DamageNumbers): void {

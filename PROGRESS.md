@@ -1,19 +1,26 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2 COMPLETE** — 2.5's two boxes are done (zone template doc + debug
-tools), and 2.1–2.4 were finished earlier this branch. Zone 1 (Ashfall/Starter
-Plains) and Zone 2 (Forest Kingdom) are both fully playable, quest-carried, with
-towns/dungeons/bosses/faction/secrets. **Next milestone: Milestone 3 — The
-Corruption System** (ROADMAP §3): prototype corruption cheaply before building all
-8 zones, since it changes what assets every zone needs. The save already carries
-`world.corruption` (0–100, settable via `__AZER.debug.setCorruption`) and dialogue
-conditions already support `corruptionMin/Max` — but there's no corruption
-*gameplay* yet (it does nothing). M3's first box will define what corruption
-*does*. **This milestone will need design input** (what corruption changes:
-enemy scaling? loot? zone state? player risk/reward) — a stop-and-ask per
-CLAUDE.md. Still open from earlier: 1.6 class sprite sheets (art) and 2.1
-objective markers (minimap) — both need a decision (art / a minimap system).
+**MILESTONE 3 IN PROGRESS** — the corruption *risk-dial prototype* is done (boxes
+1–2). Corruption now DOES something: kills raise it, tiers scale enemies + loot,
+wells cleanse it (see below). **Next box (top-to-bottom): "Cheap visual layer:
+palette/tint shifts per tier, particle ambience (ash, embers)"** — make rising
+corruption *feel* ominous, not just a number. Approach: tint the camera / a
+fullscreen overlay per tier (subtle at Tainted → heavy red-black at Abyssal) +
+a light ash/ember particle emitter that intensifies with the tier. Then: dialogue
+variants per tier (conditions already support corruptionMin/Max), corrupted spawn
+variants (recolor + 1 move), scripted town changes, music layer, and the ending
+branch (3 final quests + 3 endings — that one is a big design/content box that
+will need your input). Also the roadmap's **playtest box** ("does rising
+corruption feel ominous or cosmetic?") is the key iterate-gate before scaling to
+all zones. Still open from earlier: 1.6 class sprite sheets (art), 2.1 objective
+markers (minimap).
+
+Corruption design decision (recorded): per the user, corruption is a **risk dial**
+driven by *combat* (not relic fragments as the roadmap originally said). Relics
+remain pure collectibles. If we later want relics to also nudge corruption, it's a
+one-liner. Tuning table lives in `src/systems/corruption.ts` (not data/, since
+it's game-tuning not content — movable later).
 
 ## Zone 2 cost retro (m2.4) — calibrates the rest of the plan
 Measured in **build-boxes / sessions**, not wall-clock hours (this is an AI-paced
@@ -98,6 +105,25 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 3 corruption prototype (boxes 1–2): the risk dial**
+  (headless-verified 6/6; 205 unit tests):
+  - **Pure `src/systems/corruption.ts`**: 5 tiers (Pure/Tainted/Corrupt/Defiled/
+    Abyssal at 0/25/50/75/100), each with `enemyHpMult`, `enemyDmgMult`,
+    `dropChanceAdd`, `rarityBonus`. `gainCorruption` (+1.5/kill, +8/boss),
+    `cleanseCorruption` (−12/s), `corruptionTier`. Unit-tested.
+  - **Enemy scaling**: `Enemy` constructor takes `hpMult`/`dmgMult`; all its
+    player-damage sites go through `hitPlayer` (×dmgMult). A new `WorldScene.makeEnemy`
+    applies the *current* corruption tier's mults at spawn — every spawn site
+    (region, points, summon, world-boss, debug) routes through it.
+  - **Loot bonus**: `rollItem` gained `luck` (best-of-(1+luck) rarity rolls);
+    `maybeDropLoot` adds the tier's `dropChanceAdd` and passes `rarityBonus` as luck.
+  - **Gain/cleanse wiring**: kills in a combat zone (`enemyDefs.length > 0`) raise
+    corruption in `onEnemyDied` (toast on tier-up); heal wells cleanse it. Safe
+    towns (no enemyDefs) never corrupt you. Corruption persists in the save
+    (`world.corruption`, already present).
+  - **HUD**: a purple corruption bar + tier name under the XP bar (UIScene).
+  - Verified in-browser: +1.5/kill, +8/boss, ~2.8× enemy HP at Abyssal, HUD tier,
+    well cleanse, safe-town no-gain.
 - **Milestone 2.5: zone template + debug tools** (debug tools headless-verified
   8/8; 198 unit tests) — closes out Milestone 2:
   - **`docs/ZONE_TEMPLATE.md`**: the repeatable add-a-zone checklist distilled
@@ -856,6 +882,13 @@ Notes for the remaining 2.4 boxes:
   gating + rep — but **wants human eyes**: does the chain pace well across
   town↔Reach↔dungeon, are the givers easy to find (esp. the two rangers out in the
   wilds among enemies), and does earning Warden rank *feel* earned by the end?
+- **Corruption risk dial (m3)**: fight in the Reach/Bramblewarren and watch the
+  **purple corruption bar** (top-left, under XP) climb with each kill; enemies get
+  visibly tankier and hit harder, and loot drops more + rarer. Cleanse at a town
+  well. Smoke-verified the numbers — but the **core playtest question** (ROADMAP)
+  is human: does rising corruption feel *ominous / worth the risk*, or just a
+  number? Are the tier multipliers (up to 2.8× HP / 1.8× dmg at Abyssal) and the
+  +1.5/kill climb rate tuned right? This gates scaling corruption to all zones.
 - **Greathorn world boss (m2.4)**: enter the Verdant Reach and head to the **big
   central glade** — the Hollow Stag spawns there with a banner. Smoke-verified
   spawn/announce/kill/relic — but **wants human eyes**: is the banner readable and

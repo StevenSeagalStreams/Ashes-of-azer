@@ -21,6 +21,7 @@ import { StashUI } from '../ui/StashUI.ts';
 import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from '../ui/RepairUI.ts';
 import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
+import { cleanseCorruption, corruptionTier, gainCorruption } from '../systems/corruption.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -276,7 +277,7 @@ export class WorldScene extends Phaser.Scene {
     this.enemies = this.physics.add.group({ runChildUpdate: false });
     this.physics.add.collider(this.enemies, layer);
     for (const point of this.objects.enemySpawnPoints) {
-      this.enemies.add(new Enemy(this, this.pickFromPool(point.pool), point.x, point.y, this.player.level));
+      this.makeEnemy(this.pickFromPool(point.pool), point.x, point.y);
     }
     for (const region of this.objects.enemyRegions) {
       for (let i = 0; i < region.count; i++) this.spawnInRegion(region, 90);
@@ -474,7 +475,7 @@ export class WorldScene extends Phaser.Scene {
       spawn: (id, x, y) => {
         const def = this.gameData.enemies.find((e) => e.id === id);
         if (!def) return false;
-        this.enemies.add(new Enemy(this, def, x, y, this.player.level));
+        this.makeEnemy(def, x, y);
         return true;
       },
       zone: () => this.zoneId,
@@ -568,6 +569,11 @@ export class WorldScene extends Phaser.Scene {
       }
       if (trigger?.kind === 'heal') {
         this.player.hp = Math.min(this.player.hp + trigger.rate * dt, this.player.maxHp);
+        // A well purifies as it mends: bleed the corruption dial back down (m3).
+        if (this.saveData.world.corruption > 0) {
+          this.saveData.world.corruption = cleanseCorruption(this.saveData.world.corruption, dt);
+          this.publishHud();
+        }
       }
       if (trigger?.kind === 'secret' && !this.saveData.secrets.includes(trigger.secretId)) {
         this.discoverSecret(trigger);
@@ -611,6 +617,14 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- spawning ----------
 
+  /** Creates an enemy scaled by the current corruption tier and adds it to the group. */
+  private makeEnemy(def: EnemyData, x: number, y: number): Enemy {
+    const tier = corruptionTier(this.saveData.world.corruption);
+    const e = new Enemy(this, def, x, y, this.player.level, tier.enemyHpMult, tier.enemyDmgMult);
+    this.enemies.add(e);
+    return e;
+  }
+
   private pickFromPool(pool: string[] | null): EnemyData {
     if (!pool) return Phaser.Utils.Array.GetRandom(this.enemyDefs);
     const byId = new Map(this.gameData.enemies.map((e) => [e.id, e]));
@@ -628,7 +642,7 @@ export class WorldScene extends Phaser.Scene {
       const y = Phaser.Math.Between(region.rect.y, region.rect.y + region.rect.height);
       if (!walkableMask(this.solidMask, x, y, 6)) continue;
       if (Math.hypot(x - this.player.x, y - this.player.y) <= minPlayerDist) continue;
-      this.enemies.add(new Enemy(this, this.pickFromPool(region.pool), x, y, this.player.level));
+      this.makeEnemy(this.pickFromPool(region.pool), x, y);
       return true;
     }
     return false;
@@ -646,8 +660,7 @@ export class WorldScene extends Phaser.Scene {
 
   /** Spawns an open-world boss and announces it; returns its instance id. */
   private spawnWorldBoss(spawn: WorldBossSpawn): number {
-    const boss = new Enemy(this, this.pickFromPool(spawn.pool), spawn.x, spawn.y, this.player.level);
-    this.enemies.add(boss);
+    const boss = this.makeEnemy(this.pickFromPool(spawn.pool), spawn.x, spawn.y);
     this.announceBoss(spawn.announce);
     return boss.eid;
   }
@@ -701,7 +714,7 @@ export class WorldScene extends Phaser.Scene {
       const sx = x + Math.cos(ang) * dist;
       const sy = y + Math.sin(ang) * dist;
       if (!walkableMask(this.solidMask, sx, sy, 6)) continue;
-      this.enemies.add(new Enemy(this, def, sx, sy, this.player.level));
+      this.makeEnemy(def, sx, sy);
       room--;
     }
   }
@@ -828,6 +841,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private publishHud(): void {
+    const corruption = this.saveData.world.corruption;
     this.registry.set('hud', {
       hp: this.player.hp,
       maxHp: this.player.maxHp,
@@ -837,6 +851,8 @@ export class WorldScene extends Phaser.Scene {
       xpNext: xpToNext(this.player.level),
       level: this.player.level,
       dead: this.player.dead,
+      corruption,
+      corruptionTier: corruptionTier(corruption).name,
     });
   }
 
@@ -1169,6 +1185,15 @@ export class WorldScene extends Phaser.Scene {
     // Faction reputation: kills in a faction's zones build standing with it.
     const faction = factionForZone(this.gameData.factions, this.zoneId);
     if (faction) this.awardRep(faction.id, def.boss ? faction.bossRep : faction.killRep);
+    // Corruption (m3): fighting raises the risk dial (bosses spike it). Only in
+    // combat zones — a town kill (there are none) shouldn't corrupt you.
+    if (this.enemyDefs.length > 0) {
+      const before = corruptionTier(this.saveData.world.corruption).name;
+      this.saveData.world.corruption = gainCorruption(this.saveData.world.corruption, def.boss === true);
+      const after = corruptionTier(this.saveData.world.corruption);
+      if (after.name !== before) this.numbers.spawn(this.player.x, this.player.y - 30, `☣ ${after.name}`, '#b06ad0');
+      this.publishHud();
+    }
     this.gainXp(def.xp);
     this.questEvent('kill', def.id);
   }
@@ -1194,10 +1219,12 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- loot ----------
 
-  /** Bosses always drop gear; normal enemies roll a chance. Both may drop a material. */
+  /** Bosses always drop gear; normal enemies roll a chance. Both may drop a
+   *  material. Corruption raises the drop chance and the rarity "luck" (m3). */
   private maybeDropLoot(def: EnemyData, x: number, y: number): void {
-    if (def.boss || Math.random() < NORMAL_DROP_CHANCE) {
-      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random);
+    const tier = corruptionTier(this.saveData.world.corruption);
+    if (def.boss || Math.random() < NORMAL_DROP_CHANCE + tier.dropChanceAdd) {
+      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { luck: tier.rarityBonus });
       this.spawnItemDrop(x, y, item);
     }
     if (Math.random() < MATERIAL_DROP_CHANCE) {

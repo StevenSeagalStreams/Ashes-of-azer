@@ -9,6 +9,8 @@ interface Hud {
   xpNext: number;
   level: number;
   dead: boolean;
+  corruption: number;
+  corruptionTier: string;
 }
 
 const BAR_X = 12;
@@ -26,6 +28,8 @@ export class UIScene extends Phaser.Scene {
   private mpText!: Phaser.GameObjects.Text;
   private xpFill!: Phaser.GameObjects.Rectangle;
   private levelText!: Phaser.GameObjects.Text;
+  private corruptionFill!: Phaser.GameObjects.Rectangle;
+  private corruptionText!: Phaser.GameObjects.Text;
   private deathOverlay!: Phaser.GameObjects.Container;
 
   constructor() {
@@ -56,6 +60,12 @@ export class UIScene extends Phaser.Scene {
       .text(BAR_X + BAR_W + 6, BAR_Y, '', { fontFamily: 'monospace', fontSize: '9px', color: '#e8b64c' })
       .setOrigin(0, 0);
 
+    // Corruption dial (m3): a purple bar under the XP, with its tier name.
+    this.corruptionFill = this.bar(BAR_Y + 34, 5, 0xb06ad0);
+    this.corruptionText = this.add
+      .text(BAR_X + BAR_W + 6, BAR_Y + 32, '', { fontFamily: 'monospace', fontSize: '8px', color: '#c88af5' })
+      .setOrigin(0, 0);
+
     this.deathOverlay = this.buildDeathOverlay().setVisible(false);
   }
 
@@ -69,6 +79,8 @@ export class UIScene extends Phaser.Scene {
     this.mpText.setText(`${Math.floor(hud.mp)} / ${hud.maxMp}`);
     this.xpFill.setScale(frac(hud.xp, hud.xpNext), 1);
     this.levelText.setText(`Lv ${hud.level}`);
+    this.corruptionFill.setScale(frac(hud.corruption, 100), 1);
+    this.corruptionText.setText(`☣ ${hud.corruptionTier}`);
     this.deathOverlay.setVisible(hud.dead);
   }
 
