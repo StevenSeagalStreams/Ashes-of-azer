@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **Corruption crossings hit harder.** Tipping over into a worse corruption tier
+  is now a moment: the screen flashes that tier's colour, a banner declares
+  **"THE CORRUPTION DEEPENS · <Tier>"**, and the ground gives a brief shudder — so
+  you *feel* the threshold instead of just watching a bar tick up.
 - **The Shrine of Ashes — how it all ends.** Gather every relic fragment (all
   four) and the shrine in **Ashfall Village** stirs. Speak to it and choose the
   world's fate: **Shatter** the relics and end the corruption forever (*The Ash

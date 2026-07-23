@@ -51,6 +51,11 @@ export function corruptionTier(corruption: number): CorruptionTier {
 /** Clamps a corruption value into [0, 100]. */
 export const clampCorruption = (c: number): number => Math.max(0, Math.min(CORRUPTION_MAX, c));
 
+/** True when corruption climbed from one tier into a strictly worse one — the
+ *  trigger for the ominous tier-crossing surge (banner + flash + shake). */
+export const corruptionTierRose = (before: number, after: number): boolean =>
+  corruptionTier(after).threshold > corruptionTier(before).threshold;
+
 /** Corruption after a kill (boss kills spike harder). */
 export const gainCorruption = (corruption: number, boss: boolean): number =>
   clampCorruption(corruption + (boss ? CORRUPTION_PER_BOSS : CORRUPTION_PER_KILL));

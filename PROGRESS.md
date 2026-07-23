@@ -1,16 +1,32 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 3 IN PROGRESS** — boxes 1–7 done (risk dial + scaling + ambience +
-dialogue + corrupted enemies + town changes + music layer), and **box 8 "Ending
-branch" is now FULLY DONE** (both sub-boxes: the choice + 3 end-screens, and the
-3 final quests bridging the choice to each ending). **Next task (top-to-bottom):
-the M3-closing playtest box — "does rising corruption feel ominous or
-cosmetic?"** This is an iterate/tune gate that needs human eyes (see
-`## Needs human playtest`); with no roadmap boxes left before it, the next
-session should either (a) do a tuning pass on corruption feel and mark it, or
-(b) confirm with the user whether M3 is signed off and move to M4. Still open
-from earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+**MILESTONE 3 IS COMPLETE** — all nine boxes done (risk dial + scaling +
+ambience + dialogue + corrupted enemies + town changes + music layer + ending
+branch + the closing playtest/iterate box). The final box got a concrete
+iteration for "ominous vs cosmetic": a **tier-crossing surge** (banner + tint
+flash + camera shake) on `corruptionTierRose` — see the note below and under
+`## Needs human playtest`. **Next task (top-to-bottom): Milestone 4 — Content
+Buildout, starting with Zone 3 (Haunted Marsh — poison/DoT theme, undead
+roster)**, built via the 2.5 add-a-zone template (`docs/ZONE_TEMPLATE.md`).
+Per the Zone 2 retro, budget ~8 boxes and front-load the systems boxes (a
+poison/DoT status system is the likely new mechanic here). **Before diving into
+M4**, the next session should confirm with the user that M3 is signed off (the
+corruption-feel sign-off is subjectively theirs) and that Zone 3's theme/roster
+direction matches what they want — M4 is a big scope commitment. Still open from
+earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+
+### Corruption tier-surge note (m3 playtest iteration — DONE)
+Crossing *up* a corruption tier now fires `WorldScene.corruptionSurge(tier)`:
+a screen-fixed banner ("☣ THE CORRUPTION DEEPENS · <TIER>"), a one-shot
+full-screen flash of the tier's tint (depth 32, self-destroying tween), and a
+brief `camera.shake`. Triggered from `onEnemyDied` via the pure, unit-tested
+`corruptionTierRose(before, after)` in `corruption.ts` (only true on an upward
+tier change; false within a tier or when cleansing down). Debug `setCorruption`
+deliberately does NOT surge. The old tiny floating "☣ Name" toast was removed in
+favour of the banner. Smoke-verified the real path: god-mode + setCorruption(24)
++ a real slime kill crosses 25 → banner renders + tint active, zero console
+errors.
 
 ### Finale-quest note (m3 box 8b — DONE)
 Three `chain:'ashes_finale'` quests in `data/quests.json`, all `autoOffer:false`,
@@ -988,7 +1004,12 @@ Notes for the remaining 2.4 boxes:
   feel *ominous / worth the risk*, or just a number? Are the tint/ember intensities
   right (too subtle? too much?), and the tier multipliers (up to 2.8× HP / 1.8× dmg
   at Abyssal) + the +1.5/kill climb rate tuned well? This gates scaling corruption
-  to all zones.
+  to all zones. **New (playtest iteration):** crossing up into a worse tier now
+  fires a **surge** — a "THE CORRUPTION DEEPENS · <Tier>" banner, a screen flash of
+  the tier colour, and a short camera shake. Does that make the threshold land as
+  ominous, or is it too much / too little (banner wording, flash strength, shake
+  duration)? This is the box's core subjective sign-off — your call decides whether
+  M3's corruption feel is done or wants another tuning pass before M4.
 - **Greathorn world boss (m2.4)**: enter the Verdant Reach and head to the **big
   central glade** — the Hollow Stag spawns there with a banner. Smoke-verified
   spawn/announce/kill/relic — but **wants human eyes**: is the banner readable and

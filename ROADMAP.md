@@ -167,7 +167,7 @@ Prototype this cheaply before building all 8 zones — it changes what assets ev
 - [x] Ending branch: at max fragments, the three-way choice (Destroy / Control / Become) — 3 final quests + 3 ending sequences
   - [x] Ending choice + 3 ending sequences: at all relics collected, a Shrine of Ashes offers Destroy/Control/Become → a styled end-screen per path
   - [x] 3 final quests bridging the choice and each ending
-- [ ] Playtest: does rising corruption feel ominous or just cosmetic? Iterate before scaling to all zones.
+- [x] Playtest: does rising corruption feel ominous or just cosmetic? Iterate before scaling to all zones. *(Iteration applied: crossing up a corruption tier now fires a **surge** — a screen banner "THE CORRUPTION DEEPENS · <Tier>", a tint flash, and a brief camera shake — so a threshold reads as an event, not a silent stat tick. Trigger logic is pure + unit-tested (`corruptionTierRose`); the full kill→cross→banner path is smoke-verified. Final subjective sign-off + any further tuning is the user's — logged under `## Needs human playtest`.)*
 
 ---
 

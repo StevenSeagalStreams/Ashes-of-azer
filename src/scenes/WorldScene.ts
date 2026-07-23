@@ -22,7 +22,7 @@ import { StashUI } from '../ui/StashUI.ts';
 import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from '../ui/RepairUI.ts';
 import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
-import { cleanseCorruption, corruptedEnemy, corruptionTier, gainCorruption, npcVisibleAtCorruption } from '../systems/corruption.ts';
+import { cleanseCorruption, corruptedEnemy, corruptionTier, corruptionTierRose, gainCorruption, npcVisibleAtCorruption, type CorruptionTier } from '../systems/corruption.ts';
 import { getCorruptionAudio } from '../systems/audio.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
@@ -755,6 +755,39 @@ export class WorldScene extends Phaser.Scene {
     getCorruptionAudio().setCorruption(corruption); // corruption music layer (m3)
   }
 
+  /**
+   * The ominous beat when corruption climbs into a worse tier (m3 playtest
+   * iteration): a screen-fixed banner naming the new tier, a one-shot flash of
+   * that tier's tint over the whole screen, and a brief camera shake — so a
+   * threshold reads as a threshold, not a silent stat change. One-shot objects,
+   * self-destroying; the persistent ambience overlay is left untouched.
+   */
+  private corruptionSurge(tier: CorruptionTier): void {
+    const cam = this.cameras.main;
+    const flash = this.add
+      .rectangle(0, 0, cam.width, cam.height, tier.tint, 0.5)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(32);
+    this.tweens.add({ targets: flash, alpha: 0, duration: 750, onComplete: () => flash.destroy() });
+    const banner = this.add
+      .text(cam.width / 2, 44, `☣ THE CORRUPTION DEEPENS\n${tier.name.toUpperCase()}`, {
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        color: '#e6a8f0',
+        fontStyle: 'bold',
+        align: 'center',
+        stroke: '#1a0620',
+        strokeThickness: 4,
+        wordWrap: { width: cam.width - 24 },
+      })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(40);
+    this.tweens.add({ targets: banner, alpha: 0, y: 34, delay: 2000, duration: 900, onComplete: () => banner.destroy() });
+    cam.shake(240, 0.006);
+  }
+
   /** A brief screen-fixed banner heralding a world boss's (re)spawn. */
   private announceBoss(text: string): void {
     const cam = this.cameras.main;
@@ -1265,12 +1298,14 @@ export class WorldScene extends Phaser.Scene {
     // Corruption (m3): fighting raises the risk dial (bosses spike it). Only in
     // combat zones — a town kill (there are none) shouldn't corrupt you.
     if (this.enemyDefs.length > 0) {
-      const before = corruptionTier(this.saveData.world.corruption).name;
-      this.saveData.world.corruption = gainCorruption(this.saveData.world.corruption, def.boss === true);
-      const after = corruptionTier(this.saveData.world.corruption);
-      if (after.name !== before) this.numbers.spawn(this.player.x, this.player.y - 30, `☣ ${after.name}`, '#b06ad0');
+      const before = this.saveData.world.corruption;
+      this.saveData.world.corruption = gainCorruption(before, def.boss === true);
       this.publishHud();
       this.updateCorruptionAmbience();
+      // Crossing up into a worse tier is a real event, not a number ticking up:
+      // herald it with a banner, a tint flash, and a short shake.
+      if (corruptionTierRose(before, this.saveData.world.corruption))
+        this.corruptionSurge(corruptionTier(this.saveData.world.corruption));
     }
     this.gainXp(def.xp);
     this.questEvent('kill', def.id);

@@ -4,6 +4,7 @@ import {
   clampCorruption,
   corruptedEnemy,
   corruptionTier,
+  corruptionTierRose,
   gainCorruption,
   npcVisibleAtCorruption,
   CORRUPTION_PER_BOSS,
@@ -58,6 +59,19 @@ describe('clampCorruption', () => {
     expect(clampCorruption(-5)).toBe(0);
     expect(clampCorruption(150)).toBe(100);
     expect(clampCorruption(42)).toBe(42);
+  });
+});
+
+describe('corruptionTierRose', () => {
+  it('is true only when crossing up into a worse tier', () => {
+    expect(corruptionTierRose(24, 25)).toBe(true); // Pure -> Tainted
+    expect(corruptionTierRose(49, 51)).toBe(true); // Tainted -> Corrupt
+    expect(corruptionTierRose(74, 100)).toBe(true); // jump multiple tiers
+  });
+  it('is false within a tier or when corruption falls', () => {
+    expect(corruptionTierRose(26, 40)).toBe(false); // same tier (Tainted)
+    expect(corruptionTierRose(60, 30)).toBe(false); // cleansed down a tier
+    expect(corruptionTierRose(50, 50)).toBe(false); // no change
   });
 });
 
