@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **Towns feel the corruption.** Let it spread and return to Ashfall Village to
+  find it changed: **Villager Rook has fled** her post, and a nearby home stands
+  **boarded up**. Cleanse the corruption back down and the village recovers — the
+  villager returns, the boards come down. (Your vendors, smith and stash carry on
+  regardless.)
 - **Corrupted foes.** Fight in a heavily corrupted zone (Corrupt tier and above)
   and the wilds fight dirtier: enemies turn an unnatural **violet** and gain a new
   attack. Thornwolves and grovewardens pulse a **ground shockwave**, sporelings

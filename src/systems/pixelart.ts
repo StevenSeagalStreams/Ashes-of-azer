@@ -159,6 +159,17 @@ export const GROVEWARDEN_ROWS = [
   '.d......d.',
 ];
 
+// Boarded-up planks (m3 scripted town change): nailed brown boards over a door.
+export const BOARDS_ROWS = [
+  'hDDDDDDDDh',
+  'hDkDDDDkDh',
+  'hDDDDDDDDh',
+  'hhhhhhhhhh',
+  'hDDDDDDDDh',
+  'hDkDDDDkDh',
+  'hDDDDDDDDh',
+];
+
 // Fallback for a `sprite` key in enemies.json that has no dedicated art
 // (e.g. a freshly-added enemy type) — a plain magenta blob, so content
 // authors can add a new enemy purely in JSON without the game crashing on
@@ -177,6 +188,7 @@ const SPRITE_ROW_SETS: Record<string, string[]> = {
   sporeling: SPORELING_ROWS,
   spitter: SPITTER_ROWS,
   grovewarden: GROVEWARDEN_ROWS,
+  boards: BOARDS_ROWS,
 };
 
 export const spriteRowsFor = (key: string): string[] => SPRITE_ROW_SETS[key] ?? DEFAULT_ENEMY_ROWS;

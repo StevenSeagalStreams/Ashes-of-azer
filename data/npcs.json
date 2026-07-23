@@ -63,6 +63,31 @@
     "service": "blacksmith"
   },
   {
+    "id": "villager_rook",
+    "name": "Villager Rook",
+    "sprite": "vendor",
+    "zone": "town",
+    "x": 472,
+    "y": 400,
+    "dialogue": "villager",
+    "wander": true,
+    "offersQuests": [],
+    "hideAboveCorruption": 50
+  },
+  {
+    "id": "boarded_door",
+    "name": "Boarded Door",
+    "sprite": "boards",
+    "zone": "town",
+    "x": 400,
+    "y": 176,
+    "dialogue": "villager",
+    "wander": false,
+    "offersQuests": [],
+    "prop": true,
+    "showAboveCorruption": 50
+  },
+  {
     "id": "wellkeeper",
     "name": "Wellkeeper Sena",
     "sprite": "vendor",

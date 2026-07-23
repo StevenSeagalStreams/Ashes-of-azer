@@ -1,4 +1,4 @@
-import type { EnemyData } from '../data/schemas/index.ts';
+import type { EnemyData, NpcData } from '../data/schemas/index.ts';
 
 // Corruption — the risk dial (Milestone 3 prototype). Pure + unit-tested; the
 // scene owns the side effects (scaling spawns, biasing loot, cleansing at wells).
@@ -58,6 +58,17 @@ export const gainCorruption = (corruption: number, boss: boolean): number =>
 /** Corruption after `dt` seconds of cleansing at a well. */
 export const cleanseCorruption = (corruption: number, dt: number): number =>
   clampCorruption(corruption - CORRUPTION_CLEANSE_RATE * dt);
+
+/**
+ * Whether a town entity (NPC or prop) is present at a corruption level (m3
+ * scripted town changes). `hideAboveCorruption` vanishes it once reached;
+ * `showAboveCorruption` only reveals it once reached. Both apply if both set.
+ */
+export function npcVisibleAtCorruption(npc: NpcData, corruption: number): boolean {
+  if (npc.hideAboveCorruption !== undefined && corruption >= npc.hideAboveCorruption) return false;
+  if (npc.showAboveCorruption !== undefined && corruption < npc.showAboveCorruption) return false;
+  return true;
+}
 
 /**
  * The def an enemy should actually spawn as at a given corruption level (m3

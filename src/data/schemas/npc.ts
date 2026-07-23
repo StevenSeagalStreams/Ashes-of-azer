@@ -16,6 +16,10 @@ export const NpcSchema = z.object({
   offersQuests: z.array(z.string()).default([]), // quest ids for the ! / ? marker
   service: z.enum(['vendor', 'blacksmith', 'stash', 'trainer']).optional(), // opens a service UI on interact
   faction: z.string().optional(), // a vendor's faction: its stock unlocks with your rep (m2.4)
+  // Scripted town changes per corruption tier (m3), evaluated at zone load:
+  hideAboveCorruption: z.number().optional(), // vanish when world corruption ≥ this
+  showAboveCorruption: z.number().optional(), // only appear when world corruption ≥ this
+  prop: z.boolean().default(false), // a non-interactive decoration (e.g. boarded-up door), no name/prompt/talk
 });
 export type NpcData = z.infer<typeof NpcSchema>;
 

@@ -17,9 +17,10 @@ export class Npc extends Phaser.Physics.Arcade.Sprite {
   private readonly homeX: number;
   private readonly homeY: number;
   private wanderT = 0;
-  private readonly nameTag: Phaser.GameObjects.Text;
-  private readonly marker: Phaser.GameObjects.Text;
-  private readonly prompt: Phaser.GameObjects.Text;
+  // Props (boarded doors etc.) render sprite-only: no name/marker/prompt labels.
+  private readonly nameTag: Phaser.GameObjects.Text | null;
+  private readonly marker: Phaser.GameObjects.Text | null;
+  private readonly prompt: Phaser.GameObjects.Text | null;
 
   constructor(scene: Phaser.Scene, def: NpcData) {
     addSpriteTexture(scene, def.sprite, spriteRowsFor(def.sprite));
@@ -31,6 +32,10 @@ export class Npc extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     (this.body as Phaser.Physics.Arcade.Body).setImmovable(true);
     this.setDepth(4);
+    if (def.prop) {
+      this.nameTag = this.marker = this.prompt = null;
+      return;
+    }
     this.nameTag = scene.add
       .text(def.x, def.y, def.name, { fontFamily: 'monospace', fontSize: '7px', color: '#f7efd8' })
       .setOrigin(0.5, 1)
@@ -55,14 +60,15 @@ export class Npc extends Phaser.Physics.Arcade.Sprite {
 
   /** Wander, reposition labels, refresh the prompt + quest marker. */
   updateNpc(dt: number, player: Player, marker: '!' | '?' | null): void {
+    if (this.def.prop) return; // decorations don't move, wander, or label
     if (this.def.wander) this.wander(dt);
     const topY = this.y - this.height / 2 - 4;
-    this.nameTag.setPosition(this.x, topY);
-    this.marker.setPosition(this.x, topY - 8);
-    this.prompt.setPosition(this.x, this.y + this.height / 2 + 2);
+    this.nameTag!.setPosition(this.x, topY);
+    this.marker!.setPosition(this.x, topY - 8);
+    this.prompt!.setPosition(this.x, this.y + this.height / 2 + 2);
 
-    this.marker.setText(marker ?? '').setColor(marker === '!' ? '#ffd84a' : '#c8c8ff');
-    this.prompt.setVisible(this.inRange(player));
+    this.marker!.setText(marker ?? '').setColor(marker === '!' ? '#ffd84a' : '#c8c8ff');
+    this.prompt!.setVisible(this.inRange(player));
   }
 
   private wander(dt: number): void {
@@ -78,9 +84,9 @@ export class Npc extends Phaser.Physics.Arcade.Sprite {
   }
 
   destroyNpc(): void {
-    this.nameTag.destroy();
-    this.marker.destroy();
-    this.prompt.destroy();
+    this.nameTag?.destroy();
+    this.marker?.destroy();
+    this.prompt?.destroy();
     this.destroy();
   }
 }

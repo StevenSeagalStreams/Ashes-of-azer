@@ -755,5 +755,26 @@
       { "id": "a_great", "text": "It roams the central glade and charges like a landslide. Watch its horns, and end it. Aldric will want to hear of it.", "choices": [{ "text": "I'll hunt it." }] },
       { "id": "p_great", "text": "The Stag still stamps the glade. Mind its charge.", "choices": [{ "text": "Soon." }] }
     ]
+  },
+  {
+    "id": "villager",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Fine day, isn't it? Though folk say the ash has been creeping closer of late. Gives me the shivers.",
+        "choices": [
+          { "text": "The ash?", "nextNodeId": "lore" },
+          {
+            "text": "You look frightened.",
+            "condition": { "corruptionMin": 25 },
+            "nextNodeId": "afraid"
+          },
+          { "text": "Stay well." }
+        ]
+      },
+      { "id": "lore", "text": "Corruption, the priests call it. When it thickens, the wise bar their doors and wait it out. I hope it never comes to that here.", "choices": [{ "text": "So do I.", "nextNodeId": "greet" }] },
+      { "id": "afraid", "text": "Can't you feel it on the wind? If it gets much worse I'm boarding my windows and not coming out. You should cleanse yourself at the well while you still can.", "choices": [{ "text": "I'll be careful.", "nextNodeId": "greet" }] }
+    ]
   }
 ]

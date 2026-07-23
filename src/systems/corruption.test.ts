@@ -5,10 +5,11 @@ import {
   corruptedEnemy,
   corruptionTier,
   gainCorruption,
+  npcVisibleAtCorruption,
   CORRUPTION_PER_BOSS,
   CORRUPTION_PER_KILL,
 } from './corruption.ts';
-import type { EnemyData } from '../data/schemas/index.ts';
+import type { EnemyData, NpcData } from '../data/schemas/index.ts';
 
 describe('corruptionTier', () => {
   it('returns the highest tier the value has reached', () => {
@@ -57,6 +58,29 @@ describe('clampCorruption', () => {
     expect(clampCorruption(-5)).toBe(0);
     expect(clampCorruption(150)).toBe(100);
     expect(clampCorruption(42)).toBe(42);
+  });
+});
+
+describe('npcVisibleAtCorruption', () => {
+  const npc = (extra: Partial<NpcData>): NpcData => ({
+    id: 'n', name: 'N', sprite: 's', zone: 'town', x: 0, y: 0, dialogue: 'd', wander: false, offersQuests: [], prop: false, ...extra,
+  });
+
+  it('a plain NPC is always present', () => {
+    expect(npcVisibleAtCorruption(npc({}), 0)).toBe(true);
+    expect(npcVisibleAtCorruption(npc({}), 100)).toBe(true);
+  });
+
+  it('hideAboveCorruption vanishes the NPC once reached', () => {
+    const villager = npc({ hideAboveCorruption: 50 });
+    expect(npcVisibleAtCorruption(villager, 49)).toBe(true);
+    expect(npcVisibleAtCorruption(villager, 50)).toBe(false);
+  });
+
+  it('showAboveCorruption reveals a prop only once reached', () => {
+    const boards = npc({ prop: true, showAboveCorruption: 50 });
+    expect(npcVisibleAtCorruption(boards, 49)).toBe(false);
+    expect(npcVisibleAtCorruption(boards, 50)).toBe(true);
   });
 });
 

@@ -1,21 +1,20 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 3 IN PROGRESS** — boxes 1–5 done (risk dial + gameplay scaling +
-visual ambience + dialogue variants + corrupted enemy variants). **Next box
-(top-to-bottom): "1–2 scripted town changes per tier (an NPC disappears, a
-building boards up)"** — make the towns visibly react to corruption. Approach:
-data-driven per-NPC/per-object corruption gating — e.g. an NPC gains an optional
-`hideAtCorruption` (min) so it despawns at high corruption, and/or a map tile
-swaps (a door → boards). Cheapest: an optional `hideAboveCorruption`/`showBelow`
-field on `NpcSchema` filtered when placing NPCs in `create()` (npcs are already
-placed from data there). A boarded-up building could be a tile swap driven the
-same way, but that needs a small map-overlay mechanic — start with the NPC
-vanish. Then: music layer, and the **ending branch** (3 final quests + 3 endings
-— Destroy/Control/Become — a big design/content box that WILL need your input).
-The roadmap's **playtest box** ("does rising corruption feel ominous or
-cosmetic?") is the iterate-gate before scaling corruption to all zones. Still open
-from earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+**MILESTONE 3 IN PROGRESS** — boxes 1–6 done (risk dial + scaling + ambience +
+dialogue variants + corrupted enemies + town changes). **Next box (top-to-bottom):
+"Music layer shifts with corruption"** — an audio layer that intensifies with the
+tier. NOTE: there is **no audio system yet** in the game (no music/SFX at all), so
+this box needs either (a) a minimal audio system + a corruption-reactive track, or
+(b) it's blocked on **audio assets** (the project has no music files, and CLAUDE.md
+says never fetch copyrighted audio — this is an `## Asset requests` item). Likely
+the honest move: flag it as needing an audio-direction/asset decision from the
+user (procedural WebAudio drone vs. sourced tracks), and either build a tiny
+procedural ambient layer or defer. Then the **ending branch** (3 final quests + 3
+endings — Destroy/Control/Become — a big design/content box needing user input),
+and the **playtest box** ("does rising corruption feel ominous or cosmetic?") —
+the iterate-gate before scaling corruption to all zones. Still open from earlier:
+1.6 class sprite sheets (art), 2.1 objective markers (minimap).
 
 Corruption design decision (recorded): per the user, corruption is a **risk dial**
 driven by *combat* (not relic fragments as the roadmap originally said). Relics
@@ -106,6 +105,20 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 3 scripted town changes (box 6): the town reacts** (headless-
+  verified 7/7; 212 unit tests):
+  - `NpcSchema` gained `hideAboveCorruption` / `showAboveCorruption` / `prop`.
+    Pure `npcVisibleAtCorruption(npc, corruption)` (corruption.ts, tested); NPC
+    placement in `create()` filters by it (evaluated at zone load — towns don't
+    corrupt you, so you return to a changed town).
+  - `Npc` entity supports `prop` mode: renders sprite-only (no name/marker/talk
+    prompt), excluded from `tryTalk`. New `boards` sprite (pixelart).
+  - Content (Ashfall `town`, Corrupt 50+): **Villager Rook** (`hideAboveCorruption:
+    50`, with a corruption-reactive `villager` dialogue tree) vanishes; a
+    **boarded-up door** prop (`showAboveCorruption: 50`) appears over a building.
+    Service NPCs are untouched.
+  - Verified in-browser: clean town has the villager + no boards; corrupt town
+    loses the villager + gains the boards; cleansing restores it; services persist.
 - **Milestone 3 corrupted enemy variants (box 5): recolor + 1 new move**
   (headless-verified 7/7; 209 unit tests):
   - Extracted the attack-pattern schemas (`SlamSchema`/`ChargeSchema`/`RangedSchema`/

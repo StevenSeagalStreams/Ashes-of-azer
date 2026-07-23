@@ -21,7 +21,7 @@ import { StashUI } from '../ui/StashUI.ts';
 import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from '../ui/RepairUI.ts';
 import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
-import { cleanseCorruption, corruptedEnemy, corruptionTier, gainCorruption } from '../systems/corruption.ts';
+import { cleanseCorruption, corruptedEnemy, corruptionTier, gainCorruption, npcVisibleAtCorruption } from '../systems/corruption.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -305,6 +305,7 @@ export class WorldScene extends Phaser.Scene {
     // NPCs standing in this zone (placed data-first in npcs.json).
     this.npcs = this.gameData.npcs
       .filter((n) => n.zone === this.zoneId)
+      .filter((n) => npcVisibleAtCorruption(n, this.saveData.world.corruption)) // town reacts to corruption (m3)
       .map((n) => new Npc(this, n));
     for (const npc of this.npcs) this.physics.add.collider(this.player, npc);
 
@@ -1362,7 +1363,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.stashUI.isOpen()) return this.stashUI.close();
     if (this.repairUI.isOpen()) return this.repairUI.close();
     if (this.dialogueUI.isOpen() || this.player.dead || this.transitioning) return;
-    const npc = this.npcs.find((n) => n.inRange(this.player));
+    const npc = this.npcs.find((n) => !n.def.prop && n.inRange(this.player));
     if (!npc) return;
     this.player.setVelocity(0, 0);
     this.questEvent('talkTo', npc.def.id); // any interaction can satisfy a talkTo
