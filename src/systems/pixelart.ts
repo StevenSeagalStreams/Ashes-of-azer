@@ -159,6 +159,51 @@ export const GROVEWARDEN_ROWS = [
   '.d......d.',
 ];
 
+// ---- Haunted Marsh undead (m4, Zone 3) ----
+// Rotshambler (poison-touch zombie): a hunched mass of rotting green flesh.
+export const ROTSHAMBLER_ROWS = [
+  '..ggggg..',
+  '.gtgggtg.',
+  '.gkgggkg.',
+  '.ggggggg.',
+  'd.ggggg.d',
+  '..g.g.g..',
+  '..k...k..',
+];
+
+// Bogwraith (poison-touch spirit): a pale drifting shade with hollow eyes.
+export const BOGWRAITH_ROWS = [
+  '..MMMMM..',
+  '.MBBBBBM.',
+  '.BkBBBkB.',
+  '.BBBBBBB.',
+  '.MBBBBBM.',
+  '..MBBBM..',
+  '.M.M.M.M.',
+];
+
+// Fenspitter (ranged bloated corpse): a swollen sac with a dark, gaping maw.
+export const FENSPITTER_ROWS = [
+  '..ggggg..',
+  '.ggtgtgg.',
+  'gkgggggkg',
+  'ggggggggg',
+  'gkkkkkkkg',
+  '.ggggggg.',
+  '..g...g..',
+];
+
+// Drownhound (charger): a waterlogged grey beast, forest-green sludge on its back.
+export const DROWNHOUND_ROWS = [
+  'k........k',
+  'mm......mm',
+  '.mmmmmmmm.',
+  '.mykmmkym.',
+  '.mmttttmm.',
+  '..mmmmmm..',
+  '.d.d..d.d.',
+];
+
 // Boarded-up planks (m3 scripted town change): nailed brown boards over a door.
 export const BOARDS_ROWS = [
   'hDDDDDDDDh',
@@ -204,6 +249,10 @@ const SPRITE_ROW_SETS: Record<string, string[]> = {
   grovewarden: GROVEWARDEN_ROWS,
   boards: BOARDS_ROWS,
   shrine: SHRINE_ROWS,
+  rotshambler: ROTSHAMBLER_ROWS,
+  bogwraith: BOGWRAITH_ROWS,
+  fenspitter: FENSPITTER_ROWS,
+  drownhound: DROWNHOUND_ROWS,
 };
 
 export const spriteRowsFor = (key: string): string[] => SPRITE_ROW_SETS[key] ?? DEFAULT_ENEMY_ROWS;

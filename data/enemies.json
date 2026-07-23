@@ -1,7 +1,37 @@
 [
-  { "id": "slime", "sprite": "slime", "hp": 22, "dmg": 6, "spd": 26, "xp": 8, "aggro": 90, "width": 10, "height": 6 },
-  { "id": "bat", "sprite": "bat", "hp": 16, "dmg": 5, "spd": 52, "xp": 10, "aggro": 120, "width": 10, "height": 5 },
-  { "id": "skel", "sprite": "skel", "hp": 40, "dmg": 10, "spd": 34, "xp": 18, "aggro": 110, "width": 8, "height": 8 },
+  {
+    "id": "slime",
+    "sprite": "slime",
+    "hp": 22,
+    "dmg": 6,
+    "spd": 26,
+    "xp": 8,
+    "aggro": 90,
+    "width": 10,
+    "height": 6
+  },
+  {
+    "id": "bat",
+    "sprite": "bat",
+    "hp": 16,
+    "dmg": 5,
+    "spd": 52,
+    "xp": 10,
+    "aggro": 120,
+    "width": 10,
+    "height": 5
+  },
+  {
+    "id": "skel",
+    "sprite": "skel",
+    "hp": 40,
+    "dmg": 10,
+    "spd": 34,
+    "xp": 18,
+    "aggro": 110,
+    "width": 8,
+    "height": 8
+  },
   {
     "id": "boss",
     "sprite": "boss",
@@ -14,7 +44,11 @@
     "height": 12,
     "boss": true,
     "name": "ROTFANG, BARROW TYRANT",
-    "slam": { "interval": 4.5, "damage": 22, "radius": 64 }
+    "slam": {
+      "interval": 4.5,
+      "damage": 22,
+      "radius": 64
+    }
   },
   {
     "id": "thornwolf",
@@ -26,11 +60,21 @@
     "aggro": 170,
     "width": 12,
     "height": 8,
-    "charge": { "range": 130, "windup": 0.5, "speed": 240, "duration": 0.45, "cooldown": 3 },
+    "charge": {
+      "range": 130,
+      "windup": 0.5,
+      "speed": 240,
+      "duration": 0.45,
+      "cooldown": 3
+    },
     "corrupt": {
       "tierMin": 50,
       "tint": "#c060c0",
-      "slam": { "interval": 4, "damage": 10, "radius": 42 }
+      "slam": {
+        "interval": 4,
+        "damage": 10,
+        "radius": 42
+      }
     }
   },
   {
@@ -43,11 +87,21 @@
     "aggro": 160,
     "width": 9,
     "height": 8,
-    "explode": { "range": 24, "windup": 0.6, "damage": 22, "radius": 34 },
+    "explode": {
+      "range": 24,
+      "windup": 0.6,
+      "damage": 22,
+      "radius": 34
+    },
     "corrupt": {
       "tierMin": 50,
       "tint": "#c060c0",
-      "explode": { "range": 28, "windup": 0.5, "damage": 30, "radius": 48 }
+      "explode": {
+        "range": 28,
+        "windup": 0.5,
+        "damage": 30,
+        "radius": 48
+      }
     }
   },
   {
@@ -61,11 +115,21 @@
     "width": 10,
     "height": 10,
     "keepDistance": 110,
-    "ranged": { "range": 210, "cooldown": 1.8, "damage": 8, "projectileSpeed": 130 },
+    "ranged": {
+      "range": 210,
+      "cooldown": 1.8,
+      "damage": 8,
+      "projectileSpeed": 130
+    },
     "corrupt": {
       "tierMin": 50,
       "tint": "#c060c0",
-      "ranged": { "range": 230, "cooldown": 1.1, "damage": 11, "projectileSpeed": 150 }
+      "ranged": {
+        "range": 230,
+        "cooldown": 1.1,
+        "damage": 11,
+        "projectileSpeed": 150
+      }
     }
   },
   {
@@ -79,12 +143,26 @@
     "width": 14,
     "height": 12,
     "keepDistance": 130,
-    "summon": { "minion": "sporeling", "count": 2, "interval": 6, "max": 4 },
+    "summon": {
+      "minion": "sporeling",
+      "count": 2,
+      "interval": 6,
+      "max": 4
+    },
     "corrupt": {
       "tierMin": 50,
       "tint": "#c060c0",
-      "summon": { "minion": "sporeling", "count": 3, "interval": 4.5, "max": 6 },
-      "slam": { "interval": 5, "damage": 14, "radius": 50 }
+      "summon": {
+        "minion": "sporeling",
+        "count": 3,
+        "interval": 4.5,
+        "max": 6
+      },
+      "slam": {
+        "interval": 5,
+        "damage": 14,
+        "radius": 50
+      }
     }
   },
   {
@@ -99,8 +177,17 @@
     "height": 14,
     "boss": true,
     "name": "MOSSMAW, THE ELDER BRAMBLE",
-    "slam": { "interval": 5, "damage": 20, "radius": 58 },
-    "summon": { "minion": "sporeling", "count": 2, "interval": 7, "max": 3 },
+    "slam": {
+      "interval": 5,
+      "damage": 20,
+      "radius": 58
+    },
+    "summon": {
+      "minion": "sporeling",
+      "count": 2,
+      "interval": 7,
+      "max": 3
+    },
     "relic": "relic_verdant_heart",
     "relicName": "Verdant Heart"
   },
@@ -116,8 +203,18 @@
     "height": 14,
     "boss": true,
     "name": "GREATHORN, THE HOLLOW STAG",
-    "charge": { "range": 220, "windup": 0.6, "speed": 300, "duration": 0.55, "cooldown": 4 },
-    "slam": { "interval": 6, "damage": 24, "radius": 66 },
+    "charge": {
+      "range": 220,
+      "windup": 0.6,
+      "speed": 300,
+      "duration": 0.55,
+      "cooldown": 4
+    },
+    "slam": {
+      "interval": 6,
+      "damage": 24,
+      "radius": 66
+    },
     "relic": "relic_hollow_antler",
     "relicName": "Hollow Antler"
   },
@@ -133,7 +230,82 @@
     "height": 14,
     "boss": true,
     "name": "OAKHEART, THE SEALED WARDEN",
-    "slam": { "interval": 5, "damage": 22, "radius": 60 },
-    "summon": { "minion": "sporeling", "count": 2, "interval": 6, "max": 3 }
+    "slam": {
+      "interval": 5,
+      "damage": 22,
+      "radius": 60
+    },
+    "summon": {
+      "minion": "sporeling",
+      "count": 2,
+      "interval": 6,
+      "max": 3
+    }
+  },
+  {
+    "id": "rotshambler",
+    "sprite": "rotshambler",
+    "hp": 55,
+    "dmg": 12,
+    "spd": 22,
+    "xp": 32,
+    "aggro": 140,
+    "width": 10,
+    "height": 10,
+    "poison": {
+      "dps": 6,
+      "duration": 3
+    }
+  },
+  {
+    "id": "bogwraith",
+    "sprite": "bogwraith",
+    "hp": 40,
+    "dmg": 10,
+    "spd": 42,
+    "xp": 30,
+    "aggro": 200,
+    "width": 10,
+    "height": 10,
+    "poison": {
+      "dps": 5,
+      "duration": 2.5
+    }
+  },
+  {
+    "id": "fenspitter",
+    "sprite": "fenspitter",
+    "hp": 34,
+    "dmg": 8,
+    "spd": 26,
+    "xp": 28,
+    "aggro": 240,
+    "width": 10,
+    "height": 10,
+    "ranged": {
+      "range": 200,
+      "cooldown": 2.0,
+      "damage": 8,
+      "projectileSpeed": 130
+    },
+    "keepDistance": 90
+  },
+  {
+    "id": "drownhound",
+    "sprite": "drownhound",
+    "hp": 44,
+    "dmg": 13,
+    "spd": 46,
+    "xp": 32,
+    "aggro": 200,
+    "width": 12,
+    "height": 8,
+    "charge": {
+      "range": 130,
+      "windup": 0.5,
+      "speed": 220,
+      "duration": 0.45,
+      "cooldown": 3.2
+    }
   }
 ]

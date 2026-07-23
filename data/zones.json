@@ -59,8 +59,10 @@
     "name": "The Mirefen",
     "dark": false,
     "enemyTypes": [
-      "skel",
-      "bat"
+      "rotshambler",
+      "bogwraith",
+      "fenspitter",
+      "drownhound"
     ]
   }
 ]

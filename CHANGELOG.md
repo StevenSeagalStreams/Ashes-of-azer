@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **The Mirefen's dead have risen.** The marsh is now home to its own undead: the
+  shambling **rotshambler** and drifting **bogwraith** both leave you *poisoned* on
+  contact, the bloated **fenspitter** lobs corrosive spores from range, and the
+  **drownhound** charges out of the murk. Watch your health tick and the "☣ PSN"
+  timer — the marsh will wear you down if you linger. (The strays from the plains
+  and barrow have moved on.)
 - **A new land to explore: the Mirefen.** South of the Verdant Reach lies a
   sprawling haunted marsh — an olive bog threaded with dry causeways, stagnant
   murk pools, dead trees, and reeds. Take the new south path out of the Reach's

@@ -1,17 +1,30 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 4 — Zone 3 (Haunted Marsh), in progress.** Two boxes done: the
-poison/DoT status system (box 1), and now **the marsh tiles + wilds map + zone
-registration + gates (box 2 — DONE, note below)**. **Next task (top-to-bottom):
-the undead enemy roster** — data-only enemies in `data/enemies.json` (the biters
-set the new `poison {dps,duration}` field so the DoT system finally fires in
-normal play), given sprites in `pixelart.ts`, then swap the marsh's placeholder
-`enemyTypes` (currently `skel,bat`) for the new roster in `data/zones.json`.
-After that: marsh town + services, quest chain, dungeon + mini-boss (relic),
-secrets. Budget ~8 boxes total per the Zone 2 retro. Still open from earlier:
-1.6 class sprite sheets (art), 2.1 objective markers (minimap). M3's
-corruption-feel sign-off remains the user's (Needs human playtest).
+**MILESTONE 4 — Zone 3 (Haunted Marsh), in progress.** Three boxes done: poison/DoT
+system (box 1), marsh tiles+map+gates (box 2), and now **the undead roster (box 3
+— DONE, note below)**. **Next task (top-to-bottom): the marsh town + services** —
+a marsh-floor town map (`genX` town template on MARSH tiles, well, gates), service
+NPCs placed in `data/npcs.json` (`service: vendor|blacksmith|stash` route to the
+shared UIs; a `respec` trainer via dialogue), wired to the marsh with a gate both
+ways. All service UIs + vendor stock are global, so a new town "just works" (see
+ZONE_TEMPLATE step 5 + the Thornhollow build). After that: quest chain, dungeon +
+mini-boss (relic), secrets. Budget ~8 boxes total per the Zone 2 retro. Still open:
+1.6 class sprite sheets (art), 2.1 objective markers (minimap). M3's corruption-feel
+sign-off remains the user's (Needs human playtest).
+
+### Marsh undead roster note (m4 Zone 3 box 3 — DONE)
+Four data-only undead in `data/enemies.json`, sprites in `pixelart.ts`
+(`SPRITE_ROW_SETS`): **rotshambler** (hp55, poison-touch `{dps6,dur3}`, slow
+bruiser — contact), **bogwraith** (hp40, poison-touch `{dps5,dur2.5}`, fast
+shade — contact), **fenspitter** (hp34, `ranged`+`keepDistance` kiter, no poison
+since it can't land a touch), **drownhound** (hp44, `charge` bursts). All reuse
+existing patterns + the new `poison` field — zero engine code. The marsh's
+`enemyTypes` now lists them (placeholder skel/bat retired). This is what finally
+makes the poison DoT system fire in normal play. Test: `loader.test.ts` asserts
+the roster resolves, carries poison, and that poisoners aren't pure kiters (so
+poison can actually land). Smoke-verified: all four spawn + render, a rotshambler
+contact poisons the player, and the DoT drains hp — no console errors.
 
 ### Marsh map/zone note (m4 Zone 3 box 2 — DONE)
 Added 4 marsh tiles — MARSH (bog floor, walkable), MURK (stagnant water, solid),

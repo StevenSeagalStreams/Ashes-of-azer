@@ -305,4 +305,24 @@ describe('the real /data/*.json content', () => {
       expect(otherStarters, `${q.id} started only at shrine`).not.toContain(q.id);
     }
   });
+
+  it('the Mirefen is stocked by an undead roster that carries poison', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const marsh = data.zones.find((z) => z.id === 'marsh')!;
+    const roster = new Set(['rotshambler', 'bogwraith', 'fenspitter', 'drownhound']);
+    // The marsh spawns its own roster (no more placeholder skel/bat).
+    expect(new Set(marsh.enemyTypes)).toEqual(roster);
+    const byId = new Map(data.enemies.map((e) => [e.id, e]));
+    // At least one marsh foe inflicts poison — the zone's core mechanic.
+    const poisoners = [...roster].map((id) => byId.get(id)!).filter((e) => e.poison);
+    expect(poisoners.length).toBeGreaterThanOrEqual(1);
+    for (const e of poisoners) {
+      expect(e.poison!.dps, `${e.id} poison dps`).toBeGreaterThan(0);
+      expect(e.poison!.duration, `${e.id} poison duration`).toBeGreaterThan(0);
+      // Poison only lands on contact/slam/charge, so a poisoner must not be a
+      // pure kiter — a ranged+keepDistance foe could never apply it.
+      expect(e.ranged && e.keepDistance, `${e.id} can land its poison touch`).toBeFalsy();
+    }
+  });
 });
