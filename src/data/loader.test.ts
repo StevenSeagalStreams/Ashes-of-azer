@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { describe, expect, it } from 'vitest';
 import { DataValidationError, validateGameData } from './loader.ts';
 
@@ -17,6 +18,7 @@ const validRaw = {
   npcs: [],
   recipes: { materials: [], recipes: [] },
   factions: [],
+  endings: { requiredRelics: [], paths: [] },
 };
 
 describe('validateGameData', () => {
@@ -76,6 +78,7 @@ describe('the real /data/*.json content', () => {
     const enemyIds = new Set(data.enemies.map((e) => e.id));
     const zoneIds = new Set(data.zones.map((z) => z.id));
     const treeIds = new Set(data.dialogue.map((t) => t.id));
+    const endingIds = new Set(data.endings.paths.map((p) => p.id));
 
     for (const z of data.zones)
       for (const et of z.enemyTypes) expect(enemyIds, `${z.id} enemyType`).toContain(et);
@@ -116,6 +119,7 @@ describe('the real /data/*.json content', () => {
         for (const c of node.choices) {
           if (c.nextNodeId) expect(nodeIds, `${tree.id}.${node.id} nextNodeId`).toContain(c.nextNodeId);
           if (c.action?.startsQuest) expect(questIds, `${tree.id} startsQuest`).toContain(c.action.startsQuest);
+          if (c.action?.ending) expect(endingIds, `${tree.id} ending`).toContain(c.action.ending);
           for (const key of ['questActive', 'questCompleted', 'questAvailable'] as const) {
             const ref = c.condition?.[key];
             if (ref) expect(questIds, `${tree.id} ${key}`).toContain(ref);
@@ -206,5 +210,62 @@ describe('the real /data/*.json content', () => {
     expect(trainer, 'foresttrainer dialogue tree').toBeTruthy();
     const hasRespec = trainer!.nodes.some((n) => n.choices.some((c) => c.action?.respec === true));
     expect(hasRespec).toBe(true);
+  });
+
+  it('the Shrine of Ashes offers all three endings, each gated on all relics', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const { visibleChoices } = await import('../systems/dialogue.ts');
+    const data = loadGameData();
+    // The three ending paths are the canonical Destroy / Control / Become.
+    expect(data.endings.paths.map((p) => p.id)).toEqual(['destroy', 'control', 'become']);
+    for (const p of data.endings.paths) {
+      expect(p.title, `${p.id} title`).toBeTruthy();
+      expect(p.text.length, `${p.id} text`).toBeGreaterThan(40);
+    }
+    // requiredRelics must all be real relic ids granted somewhere in the content:
+    // either by an enemy (enemies.json) or by a map secret (Tiled objects). This
+    // guards the finale gate against a typo'd or unobtainable relic.
+    const grantedRelics = new Set<string>();
+    for (const e of data.enemies) if (e.relic) grantedRelics.add(e.relic);
+    // Vite statically replaces import.meta.glob at transform time (Vitest supports it).
+    const maps = import.meta.glob('../../assets/maps/*.json', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }) as Record<string, string>;
+    for (const raw of Object.values(maps))
+      for (const m of raw.matchAll(/relic_[a-z_]+/g)) grantedRelics.add(m[0]);
+    expect(data.endings.requiredRelics.length).toBeGreaterThan(0);
+    for (const r of data.endings.requiredRelics) expect(grantedRelics, `relic ${r} is grantable`).toContain(r);
+
+    // The shrine NPC lives in the Ashfall hub and talks to the shrine tree.
+    const shrineNpc = data.npcs.find((n) => n.id === 'shrine');
+    expect(shrineNpc?.zone).toBe('town');
+    expect(shrineNpc?.dialogue).toBe('shrine');
+    expect(shrineNpc?.prop ?? false).toBe(false); // must be interactive
+
+    const shrine = data.dialogue.find((t) => t.id === 'shrine')!;
+    const root = shrine.nodes.find((n) => n.id === shrine.startNodeId)!;
+    const ctx = (allRelics: boolean) => ({
+      flags: (allRelics ? { all_relics: true } : {}) as Record<string, boolean>,
+      quests: { active: [], completed: [], progress: {}, tracked: null },
+      catalog: data.quests,
+      corruption: 0,
+    });
+    // Before the relics are gathered, none of the ending routes are offered.
+    expect(visibleChoices(root, ctx(false)).some((c) => c.nextNodeId?.startsWith('ask_'))).toBe(false);
+    // Once gathered, all three confirm-routes appear and each seals a distinct ending.
+    const openRoutes = visibleChoices(root, ctx(true))
+      .map((c) => c.nextNodeId)
+      .filter((id): id is string => !!id && id.startsWith('ask_'));
+    expect(openRoutes.length).toBe(3);
+    const sealed = new Set<string>();
+    for (const routeId of openRoutes) {
+      const node = shrine.nodes.find((n) => n.id === routeId)!;
+      const seal = node.choices.find((c) => c.action?.ending)!;
+      expect(data.endings.paths.map((p) => p.id), `${routeId} seals a real ending`).toContain(seal.action!.ending);
+      sealed.add(seal.action!.ending!);
+    }
+    expect(sealed).toEqual(new Set(['destroy', 'control', 'become']));
   });
 });

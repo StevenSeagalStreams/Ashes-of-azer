@@ -21,6 +21,7 @@ export const DialogueActionSchema = z.object({
   setsFlag: z.string().optional(),
   startsQuest: z.string().optional(),
   respec: z.boolean().optional(), // trainer: reset skill points + passive slots
+  ending: z.string().optional(), // m3 ending branch: seals a Destroy/Control/Become ending
 });
 export type DialogueAction = z.infer<typeof DialogueActionSchema>;
 

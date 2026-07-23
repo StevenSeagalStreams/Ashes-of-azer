@@ -16,6 +16,7 @@ const baseData: GameData = {
   npcs: [],
   recipes: { materials: [], recipes: [] },
   factions: [],
+  endings: { requiredRelics: [], paths: [] },
 };
 
 describe('zoneEnemyDefs', () => {

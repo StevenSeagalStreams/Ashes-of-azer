@@ -2,19 +2,32 @@
 
 ## Current task
 **MILESTONE 3 IN PROGRESS** — boxes 1–7 done (risk dial + scaling + ambience +
-dialogue + corrupted enemies + town changes + music layer). **Next box
-(top-to-bottom): "Ending branch: at max fragments, the three-way choice
-(Destroy / Control / Become) — 3 final quests + 3 ending sequences"** — the
-milestone's big design/content box. **This one genuinely needs user input**: the
-Destroy/Control/Become fantasy, what triggers it (roadmap says "max fragments" =
-all relic fragments collected; there are currently 4 relics — verdant_heart,
-hollow_antler, grove_heart, sealed_oak), and what each ending IS (a final quest +
-an ending sequence — a screen/scene, since there's no cutscene system yet). Bring
-options to the user: how the choice is offered (an NPC? a shrine?), and how
-"endings" are presented (a styled end-screen per path is the cheap version).
-After that, the **playtest box** ("does rising corruption feel ominous or
-cosmetic?") closes M3. Still open from earlier: 1.6 class sprite sheets (art),
-2.1 objective markers (minimap).
+dialogue + corrupted enemies + town changes + music layer). The "Ending branch"
+box was split into two sub-checkboxes; **sub-box (a) is now DONE** — the ending
+choice + 3 end-screens. **Next task (top-to-bottom): sub-box (b) "3 final quests
+bridging the choice and each ending"** — connective quests that lead the player
+to the Shrine and set up each of Destroy/Control/Become. After that, the
+**playtest box** ("does rising corruption feel ominous or cosmetic?") closes M3.
+Still open from earlier: 1.6 class sprite sheets (art), 2.1 objective markers
+(minimap).
+
+### Ending system note (m3 box 8a — DONE)
+The finale is fully data-driven off `data/endings.json` (schema
+`src/data/schemas/ending.ts`: `requiredRelics` + `paths[{id,choice,title,text}]`,
+wired through schemas/index + loader + gameData). Flow: collecting the last
+relic sets `questFlags['all_relics']` (via `WorldScene.checkAllRelics()`, called
+from both relic-award spots — boss/mini-boss death and secrets). In **Ashfall
+Village (town)** the **Shrine of Ashes** NPC (id `shrine`, sprite `shrine` in
+pixelart.ts, at 536,208) runs the `shrine` dialogue tree, whose three ending
+choices are each gated on `flag:'all_relics'` and route to a confirm node whose
+seal choice carries `action.ending: 'destroy'|'control'|'become'`. `WorldScene`
+handles `action.ending` in `onDialogueChoice → sealEnding()`: records
+`questFlags['ending']`, freezes the sim (`transitioning=true`), and shows the new
+`EndingUI` DOM overlay (title+text for the chosen path, "Begin Anew" → Title).
+No save-version bump (reused `questFlags`). Debug: `__AZER.debug.grantAllRelics()`
+injects all required relics + sets the gate (used by the headless smoke). Adding
+a 4th ending or changing the prose needs only endings.json + a shrine dialogue
+choice — no code.
 
 Audio note: `src/systems/audio.ts` is the game's first + only audio — a
 procedural WebAudio drone, no asset files. A real music/SFX system with sourced,

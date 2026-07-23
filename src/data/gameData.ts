@@ -1,6 +1,7 @@
 import affixes from '../../data/affixes.json';
 import dialogue from '../../data/dialogue.json';
 import enemies from '../../data/enemies.json';
+import endings from '../../data/endings.json';
 import factions from '../../data/factions.json';
 import items from '../../data/items.json';
 import npcs from '../../data/npcs.json';
@@ -14,6 +15,6 @@ let cached: GameData | null = null;
 
 /** Validates /data/*.json once and caches the result for the session. */
 export function loadGameData(): GameData {
-  cached ??= validateGameData({ enemies, affixes, items, skills, zones, quests, dialogue, npcs, recipes, factions });
+  cached ??= validateGameData({ enemies, affixes, items, skills, zones, quests, dialogue, npcs, recipes, factions, endings });
   return cached;
 }

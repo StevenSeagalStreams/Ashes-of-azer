@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **The Shrine of Ashes — how it all ends.** Gather every relic fragment (all
+  four) and the shrine in **Ashfall Village** stirs. Speak to it and choose the
+  world's fate: **Shatter** the relics and end the corruption forever (*The Ash
+  Scattered*), **Bind** it and hold its leash yourself (*The Ash Bound*), or
+  **Embrace** the ash and ascend as Azer reborn (*The Ash Ascendant*). Each seals
+  a distinct ending screen. Until the last relic is in hand, the shrine's four
+  sockets stay empty.
 - **The corruption has a sound.** A low ambient drone now rises with your
   corruption — silent when you're pure, swelling louder, darker and more
   dissonant the deeper you sink, and easing back as you cleanse. Press **M** to

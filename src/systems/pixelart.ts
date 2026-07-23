@@ -170,6 +170,20 @@ export const BOARDS_ROWS = [
   'hDDDDDDDDh',
 ];
 
+// Shrine of Ashes (m3 finale): a squat stone altar cradling an ember-bowl,
+// orange flame licking up with a teal relic-glow at its heart.
+export const SHRINE_ROWS = [
+  '...ooo...',
+  '..oRoRo..',
+  '..oRqRo..',
+  '.mMMMMMm.',
+  '.mMkqkMm.',
+  '.mMMMMMm.',
+  '.dDDDDDd.',
+  '.dDdDdDd.',
+  '.ddddddd.',
+];
+
 // Fallback for a `sprite` key in enemies.json that has no dedicated art
 // (e.g. a freshly-added enemy type) — a plain magenta blob, so content
 // authors can add a new enemy purely in JSON without the game crashing on
@@ -189,6 +203,7 @@ const SPRITE_ROW_SETS: Record<string, string[]> = {
   spitter: SPITTER_ROWS,
   grovewarden: GROVEWARDEN_ROWS,
   boards: BOARDS_ROWS,
+  shrine: SHRINE_ROWS,
 };
 
 export const spriteRowsFor = (key: string): string[] => SPRITE_ROW_SETS[key] ?? DEFAULT_ENEMY_ROWS;

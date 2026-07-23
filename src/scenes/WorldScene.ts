@@ -10,6 +10,7 @@ import { Pet } from '../entities/Pet.ts';
 import { Npc } from '../entities/Npc.ts';
 import { nodeById, questMarker, visibleChoices, type DialogueContext } from '../systems/dialogue.ts';
 import { DialogueUI } from '../ui/DialogueUI.ts';
+import { EndingUI } from '../ui/EndingUI.ts';
 import { recordEvent, startAvailable, startQuest } from '../systems/quests.ts';
 import type { DialogueChoice, DialogueTreeData } from '../data/schemas/index.ts';
 import { fanAngles } from '../systems/projectiles.ts';
@@ -88,6 +89,7 @@ declare global {
         spawnEnemy: (id: string, x?: number, y?: number) => boolean;
         setCorruption: (n: number) => number;
         godMode: (on?: boolean) => boolean;
+        grantAllRelics: () => string[];
       };
     };
   }
@@ -195,6 +197,7 @@ export class WorldScene extends Phaser.Scene {
   // Faction of the vendor currently being talked to (drives stock size + rep note).
   private activeVendorFaction: string | null = null;
   private dialogueUI!: DialogueUI;
+  private endingUI!: EndingUI;
   private dialogueTree: DialogueTreeData | null = null;
   private dialogueNpc: Npc | null = null;
   private dialogueNodeId = '';
@@ -386,6 +389,12 @@ export class WorldScene extends Phaser.Scene {
         this.dialogueNpc = null;
       },
     });
+    this.endingUI = new EndingUI({
+      onBeginAnew: () => {
+        this.scene.stop('UI');
+        this.scene.start('Title');
+      },
+    });
     this.inventoryUI = new InventoryUI({
       affixes: this.gameData.affixes,
       gear: () => this.saveData.gear,
@@ -437,6 +446,7 @@ export class WorldScene extends Phaser.Scene {
       this.skillUI.destroy();
       this.questUI.destroy();
       this.dialogueUI.destroy();
+      this.endingUI.destroy();
       this.inventoryUI.destroy();
       this.shopUI.destroy();
       this.stashUI.destroy();
@@ -530,6 +540,13 @@ export class WorldScene extends Phaser.Scene {
           }
           this.numbers.spawn(this.player.x, this.player.y - 20, this.debugGod ? 'GOD MODE ON' : 'GOD MODE OFF', '#ffd84a');
           return this.debugGod;
+        },
+        grantAllRelics: () => {
+          for (const r of this.gameData.endings.requiredRelics)
+            if (!this.saveData.relics.includes(r)) this.saveData.relics.push(r);
+          this.checkAllRelics();
+          this.saveNow();
+          return [...this.saveData.relics];
         },
       },
     };
@@ -1239,6 +1256,7 @@ export class WorldScene extends Phaser.Scene {
     if (def.relic && !this.saveData.relics.includes(def.relic)) {
       this.saveData.relics.push(def.relic);
       this.numbers.spawn(x, y - 20, `✦ RELIC: ${def.relicName ?? def.relic}`, '#6ee0d8');
+      this.checkAllRelics();
       this.saveNow();
     }
     // Faction reputation: kills in a faction's zones build standing with it.
@@ -1439,8 +1457,23 @@ export class WorldScene extends Phaser.Scene {
     if (secret.relic && !this.saveData.relics.includes(secret.relic)) {
       this.saveData.relics.push(secret.relic);
       this.numbers.spawn(this.player.x, this.player.y + 6, `✦ RELIC: ${secret.relicName ?? secret.relic}`, '#6ee0d8');
+      this.checkAllRelics();
     }
     this.saveNow();
+  }
+
+  /**
+   * Sets the `all_relics` quest flag once every relic in endings.requiredRelics
+   * is collected — this is the gate that opens the Shrine of Ashes finale. Called
+   * from both relic-award spots (boss/mini-boss deaths and secrets).
+   */
+  private checkAllRelics(): void {
+    if (this.saveData.world.questFlags['all_relics']) return;
+    const required = this.gameData.endings.requiredRelics;
+    if (required.length > 0 && required.every((r) => this.saveData.relics.includes(r))) {
+      this.saveData.world.questFlags['all_relics'] = true;
+      this.numbers.spawn(this.player.x, this.player.y - 42, '✦ THE SHRINE OF ASHES STIRS', '#e8a86a');
+    }
   }
 
   private buyFromVendor(stockIndex: number): void {
@@ -1623,12 +1656,31 @@ export class WorldScene extends Phaser.Scene {
       this.doRespec();
       this.numbers.spawn(this.player.x, this.player.y - 14, 'SKILLS RESET', '#8bd06a');
     }
+    if (choice.action?.ending) {
+      this.sealEnding(choice.action.ending);
+      return;
+    }
     if (choice.nextNodeId) {
       this.dialogueNodeId = choice.nextNodeId;
       this.renderDialogueNode();
     } else {
       this.dialogueUI.close();
     }
+  }
+
+  /**
+   * Seals one of the three endings (m3). Records the choice in questFlags,
+   * closes the conversation, freezes the world, and shows the end-screen for
+   * the chosen path. The path's title/text come from endings.json.
+   */
+  private sealEnding(endingId: string): void {
+    const path = this.gameData.endings.paths.find((p) => p.id === endingId);
+    if (!path) return;
+    this.saveData.world.questFlags['ending'] = endingId;
+    this.saveNow();
+    this.dialogueUI.close();
+    this.transitioning = true; // freeze the sim under the end-screen
+    this.endingUI.show(path.title, path.text);
   }
 
   /** Refunds all skill points and clears slotted passives (Trainer / K-panel). */

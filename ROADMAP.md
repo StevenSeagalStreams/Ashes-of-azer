@@ -165,6 +165,8 @@ Prototype this cheaply before building all 8 zones — it changes what assets ev
 - [x] 1–2 scripted town changes per tier (an NPC disappears, a building boards up) — data-driven corruption gating on town entities (`hideAboveCorruption` / `showAboveCorruption` / `prop` on NpcSchema), evaluated at zone load: in Ashfall, Villager Rook flees and a boarded-up door appears at Corrupt (50+); services are untouched.
 - [x] Music layer shifts with corruption — an original **procedural WebAudio** ambient drone (`src/systems/audio.ts`, no asset files) that's silent at Pure and swells louder + more dissonant + brighter with each tier; resumes on first input, mute with **M**. (The game's first audio; a fuller music/SFX system with sourced tracks is a future `## Asset requests` item.)
 - [ ] Ending branch: at max fragments, the three-way choice (Destroy / Control / Become) — 3 final quests + 3 ending sequences
+  - [x] Ending choice + 3 ending sequences: at all relics collected, a Shrine of Ashes offers Destroy/Control/Become → a styled end-screen per path
+  - [ ] 3 final quests bridging the choice and each ending
 - [ ] Playtest: does rising corruption feel ominous or just cosmetic? Iterate before scaling to all zones.
 
 ---

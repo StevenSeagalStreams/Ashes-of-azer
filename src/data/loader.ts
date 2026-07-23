@@ -3,6 +3,7 @@ import {
   AffixesFileSchema,
   DialogueFileSchema,
   EnemiesFileSchema,
+  EndingsFileSchema,
   ItemsFileSchema,
   FactionsFileSchema,
   NpcsFileSchema,
@@ -13,6 +14,7 @@ import {
   type AffixesFile,
   type DialogueFile,
   type EnemiesFile,
+  type EndingsFile,
   type FactionsFile,
   type ItemsFile,
   type NpcsFile,
@@ -33,6 +35,7 @@ export interface GameData {
   npcs: NpcsFile;
   recipes: RecipesFile;
   factions: FactionsFile;
+  endings: EndingsFile;
 }
 
 /**
@@ -74,6 +77,7 @@ export function validateGameData(raw: {
   npcs: unknown;
   recipes: unknown;
   factions: unknown;
+  endings: unknown;
 }): GameData {
   const issues: string[] = [];
   const enemies = parseFile('enemies.json', EnemiesFileSchema, raw.enemies, issues);
@@ -86,9 +90,10 @@ export function validateGameData(raw: {
   const npcs = parseFile('npcs.json', NpcsFileSchema, raw.npcs, issues);
   const recipes = parseFile('recipes.json', RecipesFileSchema, raw.recipes, issues);
   const factions = parseFile('factions.json', FactionsFileSchema, raw.factions, issues);
+  const endings = parseFile('endings.json', EndingsFileSchema, raw.endings, issues);
 
   if (issues.length > 0) throw new DataValidationError(issues);
 
   // Non-null by construction: issues is empty only when every parseFile call succeeded.
-  return { enemies, affixes, items, skills, zones, quests, dialogue, npcs, recipes, factions } as GameData;
+  return { enemies, affixes, items, skills, zones, quests, dialogue, npcs, recipes, factions, endings } as GameData;
 }

@@ -209,7 +209,10 @@
     "y": 336,
     "dialogue": "aldric",
     "wander": false,
-    "offersQuests": ["q_wt_cull", "q_wt_warden"]
+    "offersQuests": [
+      "q_wt_cull",
+      "q_wt_warden"
+    ]
   },
   {
     "id": "brenna",
@@ -220,7 +223,10 @@
     "y": 336,
     "dialogue": "brenna",
     "wander": false,
-    "offersQuests": ["q_wt_spitters", "q_wt_wolves"]
+    "offersQuests": [
+      "q_wt_spitters",
+      "q_wt_wolves"
+    ]
   },
   {
     "id": "fen",
@@ -231,7 +237,9 @@
     "y": 336,
     "dialogue": "fen",
     "wander": false,
-    "offersQuests": ["q_wt_grovewardens"]
+    "offersQuests": [
+      "q_wt_grovewardens"
+    ]
   },
   {
     "id": "silt",
@@ -242,7 +250,11 @@
     "y": 896,
     "dialogue": "silt",
     "wander": true,
-    "offersQuests": ["q_wt_scout", "q_wt_restless", "q_wt_mossmaw"]
+    "offersQuests": [
+      "q_wt_scout",
+      "q_wt_restless",
+      "q_wt_mossmaw"
+    ]
   },
   {
     "id": "tamsin",
@@ -253,6 +265,18 @@
     "y": 480,
     "dialogue": "tamsin",
     "wander": false,
-    "offersQuests": ["q_wt_greathorn"]
+    "offersQuests": [
+      "q_wt_greathorn"
+    ]
+  },
+  {
+    "id": "shrine",
+    "name": "Shrine of Ashes",
+    "sprite": "shrine",
+    "zone": "town",
+    "x": 536,
+    "y": 208,
+    "dialogue": "shrine",
+    "wander": false
   }
 ]
