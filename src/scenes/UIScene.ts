@@ -11,6 +11,7 @@ interface Hud {
   dead: boolean;
   corruption: number;
   corruptionTier: string;
+  poison: number; // remaining poison seconds (0 = not poisoned)
 }
 
 const BAR_X = 12;
@@ -30,6 +31,7 @@ export class UIScene extends Phaser.Scene {
   private levelText!: Phaser.GameObjects.Text;
   private corruptionFill!: Phaser.GameObjects.Rectangle;
   private corruptionText!: Phaser.GameObjects.Text;
+  private poisonText!: Phaser.GameObjects.Text;
   private deathOverlay!: Phaser.GameObjects.Container;
 
   constructor() {
@@ -66,6 +68,13 @@ export class UIScene extends Phaser.Scene {
       .text(BAR_X + BAR_W + 6, BAR_Y + 32, '', { fontFamily: 'monospace', fontSize: '8px', color: '#c88af5' })
       .setOrigin(0, 0);
 
+    // Poison indicator (m4): a green droplet + countdown beside the HP bar,
+    // shown only while a DoT is ticking.
+    this.poisonText = this.add
+      .text(BAR_X + BAR_W + 6, BAR_Y + 12, '', { fontFamily: 'monospace', fontSize: '8px', color: '#8bd06a' })
+      .setOrigin(0, 0)
+      .setVisible(false);
+
     this.deathOverlay = this.buildDeathOverlay().setVisible(false);
   }
 
@@ -81,6 +90,9 @@ export class UIScene extends Phaser.Scene {
     this.levelText.setText(`Lv ${hud.level}`);
     this.corruptionFill.setScale(frac(hud.corruption, 100), 1);
     this.corruptionText.setText(`☣ ${hud.corruptionTier}`);
+    const poisoned = hud.poison > 0;
+    this.poisonText.setVisible(poisoned);
+    if (poisoned) this.poisonText.setText(`☣ PSN ${Math.ceil(hud.poison)}s`);
     this.deathOverlay.setVisible(hud.dead);
   }
 

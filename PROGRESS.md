@@ -1,20 +1,32 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 3 IS COMPLETE** — all nine boxes done (risk dial + scaling +
-ambience + dialogue + corrupted enemies + town changes + music layer + ending
-branch + the closing playtest/iterate box). The final box got a concrete
-iteration for "ominous vs cosmetic": a **tier-crossing surge** (banner + tint
-flash + camera shake) on `corruptionTierRose` — see the note below and under
-`## Needs human playtest`. **Next task (top-to-bottom): Milestone 4 — Content
-Buildout, starting with Zone 3 (Haunted Marsh — poison/DoT theme, undead
-roster)**, built via the 2.5 add-a-zone template (`docs/ZONE_TEMPLATE.md`).
-Per the Zone 2 retro, budget ~8 boxes and front-load the systems boxes (a
-poison/DoT status system is the likely new mechanic here). **Before diving into
-M4**, the next session should confirm with the user that M3 is signed off (the
-corruption-feel sign-off is subjectively theirs) and that Zone 3's theme/roster
-direction matches what they want — M4 is a big scope commitment. Still open from
-earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+**MILESTONE 4 STARTED — Zone 3 (Haunted Marsh).** M3 is complete. The user chose
+"Start Zone 3 now", so Zone 3 was split into sub-boxes (systems-first, per the
+add-a-zone template) and the **first systems box — the poison/DoT status system —
+is DONE** (note below). **Next task (top-to-bottom): the marsh tiles + wilds map
++ register the zone + wire gates from a neighbour (both directions)** — a
+content/map box (ZONE_TEMPLATE steps 1–3). Follow with the undead roster (they
+set the new `poison` field in JSON), then town, quest chain, dungeon+mini-boss,
+secrets. Per the Zone 2 retro, budget ~8 boxes total for the zone. Still open
+from earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+M3's corruption-feel sign-off remains the user's (logged under Needs human
+playtest) but doesn't block Zone 3.
+
+### Poison/DoT status note (m4 Zone 3 box 1 — DONE)
+`src/systems/status.ts` is the pure, tested engine: `applyPoison` (refresh with
+stronger dps + longer duration, never unbounded stacking) and `tickPoison`
+(0.5s ticks, `dps*0.5` rounded min 1, expires to `NO_POISON`). The player holds
+a transient `poison: Poison` (NOT saved — cleared on respawn/god-mode); the scene
+calls `player.tickPoison(dt, numbers)` each frame, dealing green DoT numbers + a
+green flash and setting `dead` at 0 hp. Source hook: an optional
+`poison {dps,duration}` on the enemy schema (+ the corrupt-variant schema),
+applied in `Enemy.hitPlayer` on any landed contact/slam hit — so a future undead
+inflicts poison purely via JSON. HUD shows a "☣ PSN <n>s" pip beside HP.
+Debug: `__AZER.debug.poisonPlayer(dps=20, dur=3)`. Smoke-verified: apply →
+hp ticks down → expires + stabilizes (~dps*dur total) → god mode purges, no
+console errors. NB: no enemy inflicts poison yet — that lands with the undead
+roster box.
 
 ### Corruption tier-surge note (m3 playtest iteration — DONE)
 Crossing *up* a corruption tier now fires `WorldScene.corruptionSurge(tier)`:

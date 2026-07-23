@@ -251,7 +251,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   /** Deals `base` damage to the player, scaled by this enemy's corruption mult. */
   private hitPlayer(player: Player, base: number, numbers: DamageNumbers): number {
-    return player.takeDamage(base * this.dmgMult, numbers);
+    const thorns = player.takeDamage(base * this.dmgMult, numbers);
+    // Poison-touch enemies (m4) leave a DoT on contact — harmless under god mode.
+    if (this.def.poison && !player.dead && !player.invulnerable) {
+      player.poisonSelf(this.def.poison.dps, this.def.poison.duration);
+    }
+    return thorns;
   }
 
   private receiveThorns(thorns: number, numbers: DamageNumbers): void {

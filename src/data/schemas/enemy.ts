@@ -45,6 +45,12 @@ export const SummonSchema = z.object({
   interval: z.number().positive(),
   max: z.number().int().positive(),
 });
+// Poison touch (m4, Haunted Marsh): a landed contact/slam hit also inflicts a
+// poison DoT on the player — `dps` damage per second for `duration` seconds.
+export const PoisonAttackSchema = z.object({
+  dps: z.number().positive(),
+  duration: z.number().positive(),
+});
 
 // Corruption variant (m3): at/above corruption `tierMin`, this enemy spawns
 // "corrupted" — tinted `tint`, with the given pattern fields overlaid onto its
@@ -57,6 +63,7 @@ export const CorruptVariantSchema = z.object({
   ranged: RangedSchema.optional(),
   explode: ExplodeSchema.optional(),
   summon: SummonSchema.optional(),
+  poison: PoisonAttackSchema.optional(),
 });
 export type CorruptVariant = z.infer<typeof CorruptVariantSchema>;
 
@@ -84,6 +91,7 @@ export const EnemySchema = z.object({
   ranged: RangedSchema.optional(),
   explode: ExplodeSchema.optional(),
   summon: SummonSchema.optional(),
+  poison: PoisonAttackSchema.optional(), // poison-touch DoT on hit (m4)
   corrupt: CorruptVariantSchema.optional(), // corrupted spawn variant (m3)
 });
 export type EnemyData = z.infer<typeof EnemySchema>;

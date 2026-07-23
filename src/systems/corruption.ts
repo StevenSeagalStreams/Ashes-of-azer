@@ -90,5 +90,6 @@ export function corruptedEnemy(def: EnemyData, corruption: number): { def: Enemy
   if (v.ranged) merged.ranged = v.ranged;
   if (v.explode) merged.explode = v.explode;
   if (v.summon) merged.summon = v.summon;
+  if (v.poison) merged.poison = v.poison;
   return { def: merged, tint: Number.parseInt(v.tint.replace('#', ''), 16) };
 }

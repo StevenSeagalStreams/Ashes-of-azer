@@ -175,7 +175,14 @@ Prototype this cheaply before building all 8 zones — it changes what assets ev
 
 Zones 3–8, one at a time, each shippable as a content update. Per zone, run the 2.5 template:
 
-- [ ] **Zone 3 — Haunted Marsh** (poison/DoT theme, undead roster)
+- [ ] **Zone 3 — Haunted Marsh** (poison/DoT theme, undead roster) — built via the 2.5 add-a-zone template; systems first, then content
+  - [x] **Systems: poison/DoT status** — the marsh's core mechanic. Pure `src/systems/status.ts` (refresh-not-stack poison, 0.5s ticks); the player takes ticking DoT (green numbers + flash + HUD "☣ PSN" pip), sourced by an optional `poison {dps,duration}` field on the enemy schema applied on any contact/slam hit (data-driven — undead set it in JSON, no code). God mode purges it; transient (no save field). Debug `__AZER.debug.poisonPlayer(dps,dur)`.
+  - [ ] Tiles + marsh wilds map + register zone + wire gates from a neighbour (both directions)
+  - [ ] Undead enemy roster (data; the poison-touch field on the biters)
+  - [ ] Marsh town + services
+  - [ ] Quest chain (the marsh story)
+  - [ ] Dungeon + mini-boss (relic)
+  - [ ] Secrets
 - [ ] **Zone 4 — Desert Empire** (elite packs, faction conflict storyline)
 - [ ] **Zone 5 — Frozen Peaks** (frost enemies — synergy/counter to frost builds)
 - [ ] **Zone 6 — Volcanic Depths** (ground hazards, burning ground everywhere)

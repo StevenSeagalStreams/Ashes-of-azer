@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { addSpriteTexture, HERO_ROWS } from '../systems/pixelart.ts';
 import type { DamageNumbers } from '../systems/DamageNumbers.ts';
+import { NO_POISON, applyPoison, tickPoison, type Poison } from '../systems/status.ts';
 
 // Prototype: spd = 78 * (1 + ST.ms/100) px/s (update() movement block).
 const BASE_SPEED = 78;
@@ -35,6 +36,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   atkCd = 0;
   dead = false;
   invulnerable = false; // debug god mode (dev tools) — takeDamage is a no-op when set
+  /** Poison/DoT afflicting the player (m4, the Haunted Marsh's touch). Transient
+   *  combat state — not saved. Ticked by the scene each frame. */
+  poison: Poison = { ...NO_POISON };
   // From slotted passives (recomputed by the scene each stat change).
   passiveDamagePct = 0;
   lifestealPct = 0;
@@ -138,6 +142,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   respawn(x: number, y: number): void {
     this.dead = false;
     this.hp = this.maxHp;
+    this.poison = { ...NO_POISON };
+    this.clearTint();
     this.setAlpha(1);
     this.setPosition(x, y);
     this.setVelocity(0, 0);
@@ -156,6 +162,36 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   applyAttackSpeedBuff(pct: number, duration: number): void {
     this.aspdBuffPct = pct;
     this.aspdBuffT = duration;
+  }
+
+  /** Adds/refreshes a poison DoT on the player (the marsh's undead touch). */
+  poisonSelf(dps: number, duration: number): void {
+    this.poison = applyPoison(this.poison, dps, duration);
+  }
+
+  /**
+   * Advances poison and applies any landed DoT damage (green numbers + a brief
+   * green flash). God mode purges it outright; a dead player doesn't tick.
+   * Returns remaining poison seconds (0 = clear) for the HUD.
+   */
+  tickPoison(dt: number, numbers: DamageNumbers): number {
+    if (this.invulnerable) {
+      this.poison = { ...NO_POISON };
+      return 0;
+    }
+    if (this.dead) return 0;
+    const { poison, damage } = tickPoison(this.poison, dt);
+    this.poison = poison;
+    if (damage > 0) {
+      this.hp = Math.max(0, this.hp - damage);
+      numbers.spawn(this.x, this.y, damage, '#6bd06a', 'dot');
+      this.setTint(0x6bd06a);
+      this.scene.time.delayedCall(120, () => {
+        if (!this.dead) this.clearTint();
+      });
+      if (this.hp <= 0) this.dead = true;
+    }
+    return this.poison.remaining;
   }
 
   /** Ticks timed effects; called from the scene's update. */

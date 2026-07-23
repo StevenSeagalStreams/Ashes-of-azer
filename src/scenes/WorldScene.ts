@@ -90,6 +90,7 @@ declare global {
         setCorruption: (n: number) => number;
         godMode: (on?: boolean) => boolean;
         grantAllRelics: () => string[];
+        poisonPlayer: (dps?: number, duration?: number) => number;
       };
     };
   }
@@ -548,6 +549,10 @@ export class WorldScene extends Phaser.Scene {
           this.saveNow();
           return [...this.saveData.relics];
         },
+        poisonPlayer: (dps = 20, duration = 3) => {
+          this.player.poisonSelf(dps, duration);
+          return this.player.poison.remaining;
+        },
       },
     };
   }
@@ -582,6 +587,7 @@ export class WorldScene extends Phaser.Scene {
     else this.player.update();
 
     this.player.tickEffects(dt);
+    this.player.tickPoison(dt, this.numbers); // m4: DoT drains hp on its own tick
     for (const [id, t] of this.skillCooldowns) {
       const left = t - dt;
       if (left <= 0) this.skillCooldowns.delete(id);
@@ -962,6 +968,7 @@ export class WorldScene extends Phaser.Scene {
       dead: this.player.dead,
       corruption,
       corruptionTier: corruptionTier(corruption).name,
+      poison: this.player.poison.remaining,
     });
   }
 

@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Poison enters the world (groundwork for the Haunted Marsh).** A new
+  damage-over-time system: poison ticks away at your health over a few seconds,
+  shown by green damage numbers, a green flash, and a "☣ PSN" timer by your health
+  bar. Stronger poison refreshes weaker (it won't stack endlessly), and a healing
+  well or god mode clears it. No creature inflicts it *yet* — the marsh's undead,
+  who carry it, arrive with Zone 3.
 - **Corruption crossings hit harder.** Tipping over into a worse corruption tier
   is now a moment: the screen flashes that tier's colour, a banner declares
   **"THE CORRUPTION DEEPENS · <Tier>"**, and the ground gives a brief shudder — so
