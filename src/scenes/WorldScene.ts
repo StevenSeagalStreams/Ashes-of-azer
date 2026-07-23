@@ -78,6 +78,15 @@ declare global {
         drops: number;
         bag: number;
       };
+      // Dev-only debug tools (m2.5). Console-only — no player-facing UI, so it
+      // stays out of the way in normal play but powers headless smokes + dev use.
+      debug: {
+        teleport: (zone: string, x?: number, y?: number) => void;
+        spawnItem: (slot?: string, rarity?: string) => string;
+        spawnEnemy: (id: string, x?: number, y?: number) => boolean;
+        setCorruption: (n: number) => number;
+        godMode: (on?: boolean) => boolean;
+      };
     };
   }
 }
@@ -175,6 +184,7 @@ export class WorldScene extends Phaser.Scene {
   private stashUI!: StashUI;
   private repairUI!: RepairUI;
   private attackWearCounter = 0; // gear wears every couple of swings
+  private debugGod = false; // dev god-mode, re-applied to the fresh Player each zone
   // The current vendor's stock (in-memory; re-rolls on zone load + level-up).
   private vendorStock: ItemInstance[] = [];
   // Faction of the vendor currently being talked to (drives stock size + rep note).
@@ -247,6 +257,7 @@ export class WorldScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, layer);
     this.applySaveToPlayer();
+    this.player.invulnerable = this.debugGod; // carry dev god-mode across zones
 
     this.numbers = new DamageNumbers(this);
     this.slash = this.add.image(0, 0, 'slash').setVisible(false).setDepth(8);
@@ -485,7 +496,41 @@ export class WorldScene extends Phaser.Scene {
         drops: this.drops.length,
         bag: this.saveData.bag.length,
       }),
+      debug: {
+        teleport: (zone, x, y) => this.doTransition({ target: zone, targetX: x, targetY: y }),
+        spawnItem: (slot, rarity) => this.debugSpawnItem(slot, rarity),
+        spawnEnemy: (id, x, y) => window.__AZER!.spawn(id, x ?? this.player.x + 24, y ?? this.player.y),
+        setCorruption: (n) => {
+          this.saveData.world.corruption = Phaser.Math.Clamp(n, 0, 100);
+          this.saveNow();
+          this.publishHud();
+          return this.saveData.world.corruption;
+        },
+        godMode: (on) => {
+          this.debugGod = on ?? !this.debugGod;
+          this.player.invulnerable = this.debugGod;
+          if (this.debugGod) {
+            this.player.dead = false;
+            this.player.hp = this.player.maxHp;
+          }
+          this.numbers.spawn(this.player.x, this.player.y - 20, this.debugGod ? 'GOD MODE ON' : 'GOD MODE OFF', '#ffd84a');
+          return this.debugGod;
+        },
+      },
     };
+  }
+
+  /** Debug: roll a loot item (optionally forcing slot/rarity) straight into the bag. */
+  private debugSpawnItem(slot?: string, rarity?: string): string {
+    const opts: { slot?: ItemSlot; rarity?: string } = {};
+    if (slot) opts.slot = slot as ItemSlot;
+    if (rarity) opts.rarity = rarity;
+    const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, opts);
+    this.saveData.bag.push(item);
+    this.saveNow();
+    this.inventoryUI.refresh();
+    this.numbers.spawn(this.player.x, this.player.y - 14, item.name, '#6ee0d8');
+    return item.name;
   }
 
   override update(_time: number, delta: number): void {

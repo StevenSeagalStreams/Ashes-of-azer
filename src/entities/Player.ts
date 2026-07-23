@@ -34,6 +34,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   gearFlatDamage = 0;
   atkCd = 0;
   dead = false;
+  invulnerable = false; // debug god mode (dev tools) — takeDamage is a no-op when set
   // From slotted passives (recomputed by the scene each stat change).
   passiveDamagePct = 0;
   lifestealPct = 0;
@@ -109,7 +110,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * (the attacking enemy) can take it.
    */
   takeDamage(amount: number, numbers: DamageNumbers): number {
-    if (this.dead) return 0;
+    if (this.dead || this.invulnerable) return 0;
     if (this.blockPct > 0 && this.rng() * 100 < this.blockPct) {
       numbers.spawn(this.x, this.y, 'BLOCK', '#7fa8ee');
       return 0;

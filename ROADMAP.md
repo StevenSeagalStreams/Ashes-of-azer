@@ -146,8 +146,8 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] **Write down the hours this zone took — it calibrates the rest of the plan** — see the "Zone 2 cost retro" in PROGRESS.md (measured in build-boxes/sessions, not wall-clock, since this is an AI-paced build): ~8 feature boxes, systems-boxes ≈2× the cost of content-boxes
 
 ### 2.5 Zone template & tooling
-- [ ] Document the zone production checklist from 2.4 as a repeatable template
-- [ ] Debug tools: teleport, spawn item/enemy, set corruption, god mode (dev builds only)
+- [x] Document the zone production checklist from 2.4 as a repeatable template — `docs/ZONE_TEMPLATE.md`
+- [x] Debug tools: teleport, spawn item/enemy, set corruption, god mode (dev builds only) — on the `__AZER.debug` console handle (no player-facing UI)
 
 **Milestone complete when:** a new player can play Starter Plains → Forest Kingdom with quests carrying them, and you know your real cost-per-zone.
 

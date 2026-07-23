@@ -1,16 +1,19 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 2.4 COMPLETE** — all 9 boxes done (Tileset+map; Town; new enemy types;
-Dungeon+mini-boss+relic; World boss; Faction+reputation; Quest chain; Secrets;
-cost retro). Zone 2 (the Forest Kingdom) is fully playable: plains → Verdant Reach
-→ Thornhollow → Bramblewarren, carried by the Warden's Trials chain. **Next box
-(top-to-bottom): Milestone 2.5 — "Document the zone production checklist from 2.4
-as a repeatable template"** (a doc distilling the add-a-zone pipeline this branch
-established), then 2.5's debug tools (teleport, spawn item/enemy, set corruption,
-god mode — dev builds only; some already exist on `__AZER`). Still open from
-earlier: 1.6 class sprite sheets (art) and 2.1 objective markers (minimap).
-**Milestone 2 nearly done** — only 2.5 (template + debug tools) remains.
+**MILESTONE 2 COMPLETE** — 2.5's two boxes are done (zone template doc + debug
+tools), and 2.1–2.4 were finished earlier this branch. Zone 1 (Ashfall/Starter
+Plains) and Zone 2 (Forest Kingdom) are both fully playable, quest-carried, with
+towns/dungeons/bosses/faction/secrets. **Next milestone: Milestone 3 — The
+Corruption System** (ROADMAP §3): prototype corruption cheaply before building all
+8 zones, since it changes what assets every zone needs. The save already carries
+`world.corruption` (0–100, settable via `__AZER.debug.setCorruption`) and dialogue
+conditions already support `corruptionMin/Max` — but there's no corruption
+*gameplay* yet (it does nothing). M3's first box will define what corruption
+*does*. **This milestone will need design input** (what corruption changes:
+enemy scaling? loot? zone state? player risk/reward) — a stop-and-ask per
+CLAUDE.md. Still open from earlier: 1.6 class sprite sheets (art) and 2.1
+objective markers (minimap) — both need a decision (art / a minimap system).
 
 ## Zone 2 cost retro (m2.4) — calibrates the rest of the plan
 Measured in **build-boxes / sessions**, not wall-clock hours (this is an AI-paced
@@ -95,6 +98,18 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 2.5: zone template + debug tools** (debug tools headless-verified
+  8/8; 198 unit tests) — closes out Milestone 2:
+  - **`docs/ZONE_TEMPLATE.md`**: the repeatable add-a-zone checklist distilled
+    from Zone 2 — tiles → maps → register → enemies → town → faction → quests →
+    secrets → verify, with the "build systems first, content is cheap" calibration.
+  - **Debug tools on `__AZER.debug`** (console-only, no player UI): `teleport(zone,
+    x,y)`, `spawnItem(slot?,rarity?)` (rolls into the bag), `spawnEnemy(id,x?,y?)`,
+    `setCorruption(n)` (clamped 0–100, persisted), `godMode(on?)` (new
+    `Player.invulnerable` flag — takeDamage no-ops; persists across zones via a
+    scene `debugGod` field re-applied in create). Verified: forced-rarity item to
+    bag, corruption clamp+persist, enemy spawn, no-damage/no-death, god carries
+    across a teleport, toggles off.
 - **Milestone 2.4 Secrets (8th box): the hidden grove + sealed vault**
   (headless-verified 8/8; 198 unit tests):
   - **False-wall tiles**: `FALSEPINE` (12) and `FALSEWALL` (13) render

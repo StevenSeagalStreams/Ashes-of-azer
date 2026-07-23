@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **Dev tooling (behind the scenes).** A repeatable zone-authoring checklist
+  (`docs/ZONE_TEMPLATE.md`) and a console-only debug kit — teleport, spawn
+  item/enemy, set corruption, and god mode — to speed up building and testing the
+  next zones. No change to normal play.
 - **Secrets in the wood.** The Reach keeps things hidden. Some "pine walls" and
   "barrow walls" aren't walls at all — push into them. A **hidden grove**
   tucked in the northwest pines holds a long-lost Warden cache, and deep in the
