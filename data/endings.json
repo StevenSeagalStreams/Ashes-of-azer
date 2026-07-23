@@ -1,0 +1,28 @@
+{
+  "requiredRelics": [
+    "relic_verdant_heart",
+    "relic_hollow_antler",
+    "relic_grove_heart",
+    "relic_sealed_oak"
+  ],
+  "paths": [
+    {
+      "id": "destroy",
+      "choice": "Shatter the relics — end the corruption forever.",
+      "title": "The Ash Scattered",
+      "text": "You break the four relics against the shrine, and the corruption unspools like smoke drawn to an open window. The Reach goes quiet. The wells run clear. But the old magic that made the forest sing is scattered with the ash — the groves stand green and ordinary now, and no warden will walk them again. You saved the world by making it smaller. It was worth it. You tell yourself it was worth it."
+    },
+    {
+      "id": "control",
+      "choice": "Bind the corruption — hold its leash yourself.",
+      "title": "The Ash Bound",
+      "text": "You gather the corruption into the shrine's heart and set the four relics as locks upon it. It strains against them and settles, a caged storm answering only to you. The ruin is restrained, not gone; the power is held, not spent. The Reach names you Warden-Regent, and speaks the title carefully, the way one speaks near a sleeping thing. You will hold the leash for the rest of your life. You have decided your life is long enough."
+    },
+    {
+      "id": "become",
+      "choice": "Embrace the ash — ascend as Azer reborn.",
+      "title": "The Ash Ascendant",
+      "text": "You do not break the corruption and you do not cage it — you open your hands and let it in. The relics dissolve into your skin like rain into dry earth, and the shrine's fire climbs your arms without burning. When you rise, the forest bends toward you as toward a second sun. You are the ruin and the green both, the ash and the fire that named this land. Azer is not a place any longer. Azer is a person, and the person is you."
+    }
+  ]
+}

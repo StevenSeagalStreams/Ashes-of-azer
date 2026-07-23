@@ -18,35 +18,35 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 - [x] Configure ESLint + Prettier, strict tsconfig (`strict: true`)
 - [x] Folder structure: `/src/scenes`, `/src/systems`, `/src/entities`, `/data`, `/assets`
 - [x] Set up GitHub Actions: lint + typecheck + build on every push
-- [ ] Deploy pipeline: auto-publish `dev` builds to itch.io or GitHub Pages (workflow written, blocked on a one-time human step — see PROGRESS.md)
+- [x] Deploy pipeline: auto-publish `dev` builds to itch.io or GitHub Pages
 
 ### 0.2 Port the prototype into Phaser scenes
 - [x] `BootScene` (asset loading, data loading), `WorldScene` (gameplay), `UIScene` (overlay)
-- [ ] Port player movement + collision to Phaser arcade physics
-- [ ] Port camera follow with world bounds
-- [ ] Port the combat core: hit detection, damage numbers, cooldowns
-- [ ] Port fog of war as a Phaser render texture / mask (test performance early)
-- [ ] Verify feature parity with the HTML prototype before continuing
+- [x] Port player movement + collision to Phaser arcade physics
+- [x] Port camera follow with world bounds
+- [x] Port the combat core: hit detection, damage numbers, cooldowns
+- [x] Port fog of war as a Phaser render texture / mask (test performance early)
+- [x] Verify feature parity with the HTML prototype before continuing (overworld loop at parity; loot/skills/XP/dungeon owned by later milestones — see PROGRESS.md)
 
 ### 0.3 Data-driven content (highest-leverage task in the project)
-- [ ] Define JSON schemas: `items.json`, `affixes.json`, `enemies.json`, `skills.json`, `zones.json`, `quests.json`, `dialogue.json`
-- [ ] Write TypeScript types for every schema (`zod` recommended — validates at load time)
-- [ ] Loader that reads all JSON at boot and fails loudly on invalid data
-- [ ] Move every hardcoded item, affix, enemy, and skill from the prototype into JSON
-- [ ] Test: add a new enemy type by editing JSON only — zero code changes
+- [x] Define JSON schemas: `items.json`, `affixes.json`, `enemies.json`, `skills.json`, `zones.json`, `quests.json`, `dialogue.json`
+- [x] Write TypeScript types for every schema (`zod` recommended — validates at load time)
+- [x] Loader that reads all JSON at boot and fails loudly on invalid data
+- [x] Move every hardcoded item, affix, enemy, and skill from the prototype into JSON
+- [x] Test: add a new enemy type by editing JSON only — zero code changes
 
 ### 0.4 Save system
-- [ ] Serialize: character (level, xp, stats), gear, bag, skill ranks, gold
-- [ ] Serialize world state: quest flags, killed bosses, discovered zones, corruption level
-- [ ] Save slots (3) + autosave on zone transition and every 60s
-- [ ] `saveVersion` field + migration functions so old saves survive updates
-- [ ] Export/import save as base64 string (cheap cloud-save substitute + debugging tool)
+- [x] Serialize: character (level, xp, stats), gear, bag, skill ranks, gold (stats recompute from level+gear by design; gear/bag/skill ranks persist as data now, mutate when their systems land in m1.x)
+- [x] Serialize world state: quest flags, killed bosses, discovered zones, corruption level
+- [x] Save slots (3) + autosave on zone transition and every 60s (zone-transition trigger call-site lands with 0.5's transitions)
+- [x] `saveVersion` field + migration functions so old saves survive updates
+- [x] Export/import save as base64 string (cheap cloud-save substitute + debugging tool)
 
 ### 0.5 Tilemap pipeline
-- [ ] Install Tiled map editor; define tileset conventions (collision layer, spawn layer, trigger layer)
-- [ ] Phaser loader for Tiled JSON maps
-- [ ] Rebuild Starter Plains and Hollow Barrow as hand-crafted Tiled maps
-- [ ] Trigger system: zone transitions, dungeon doors, cutscene triggers as Tiled objects
+- [x] Install Tiled map editor; define tileset conventions (collision layer, spawn layer, trigger layer) — conventions in assets/maps/README.md; Tiled itself installs on the human's machine to edit the committed maps
+- [x] Phaser loader for Tiled JSON maps
+- [x] Rebuild Starter Plains and Hollow Barrow as hand-crafted Tiled maps (prototype layouts frozen into editable Tiled JSON by scripts/generate-maps.mjs)
+- [x] Trigger system: zone transitions, dungeon doors, cutscene triggers as Tiled objects (cutscene type parsed/validated, inert until m2.x)
 
 **Milestone complete when:** the prototype gameplay runs in Phaser, all content lives in JSON, saves persist across refresh, and maps are made in Tiled.
 
@@ -55,82 +55,99 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 ## Milestone 1 — Combat & Class Depth (4–6 weeks)
 
 ### 1.1 The 6 active / 6 passive build system
-- [ ] Skill loadout UI: drag skills from library into 6 active slots (keys 1–6)
-- [ ] Passive skill type in `skills.json` (always-on modifiers)
-- [ ] 6 passive slots with their own UI
-- [ ] Respec: free skill-point reset at the town trainer (tune cost later)
+- [x] Skill loadout UI: drag skills from library into 6 active slots (keys 1–6)
+  - [x] Skill execution engine: cast the 5 warrior skills from skills.json (mana pool/regen, per-skill cooldowns, rank scaling, stun) + XP → levels → skill points (implied dependency, no other owning checkbox)
+  - [x] Skill panel UI (HTML/CSS overlay): library, rank-up with skill points, hotbar with cooldown/mana state
+  - [x] Drag skills from library into 6 active slots (keys 1–6), loadout persisted in the save
+- [x] Passive skill type in `skills.json` (always-on modifiers)
+- [x] 6 passive slots with their own UI
+- [x] Respec: free skill-point reset at the town trainer (tune cost later) — free RESPEC button in the K panel; moves to the trainer in m2.3
 
 ### 1.2 Warrior — complete kit (~25 skills)
-- [ ] Fill the kit per the design doc structure: primary, generator, spender, utility, ultimate
-- [ ] 12–15 actives (Shield Slam, Whirlwind, Leap, Execute, War Cry + ~8 new)
-- [ ] 10–12 passives (e.g. "+15% dmg to stunned", "Whirlwind pulls enemies", "block chance")
-- [ ] Resource model: rage/mana generation and spending per the doc
+- [x] Fill the kit per the design doc structure: primary, generator, spender, utility, ultimate
+- [x] 12–15 actives (Shield Slam, Whirlwind, Leap, Execute, War Cry + ~8 new)
+- [x] 10–12 passives (e.g. "+15% dmg to stunned", "Whirlwind pulls enemies", "block chance") — 10 passives; "Whirlwind pulls" deferred to m1.5 (item-modifies-skill)
+- [x] Resource model: rage/mana generation and spending per the doc — user chose mana + mana-restoring generators
 
 ### 1.3 Mage class
-- [ ] Kit from the doc: Frost Nova, Fireball, Blink, Meteor + fill to ~25 skills
-- [ ] Projectile system (speed, piercing, chaining, splitting — data-driven properties)
-- [ ] Ground-effect system (burning ground, frost patches) — reused by enemies later
-- [ ] Class selection screen at new game
+- [x] Kit from the doc: Frost Nova, Fireball, Blink, Meteor + fill to ~25 skills
+- [x] Projectile system (speed, piercing, chaining, splitting — data-driven properties)
+- [x] Ground-effect system (burning ground, frost patches) — reused by enemies later
+- [x] Class selection screen at new game
 
 ### 1.4 Hunter class
-- [ ] Kit: Multi Shot, Trap, Pet, Rapid Fire + fill to ~25 skills
-- [ ] Pet AI: follow, attack player's target, pet HP/respawn
-- [ ] Trap system: placed entities with trigger radius and arming time
+- [x] Multi Shot: projectile fan (count + spread) reusing the projectile engine
+- [x] Trap system: placed entities with trigger radius and arming time
+- [x] Pet AI: follow, attack player's target, pet HP/respawn
+- [x] Rapid Fire: temporary attack-speed self-buff
+- [x] Kit: Multi Shot, Trap, Pet, Rapid Fire + fill to ~25 skills
+- [x] Enable Hunter in the class-select menu
 
 ### 1.5 Item-modifies-skill system (the heart of the design)
-- [ ] Affix hook types in `affixes.json`: `onCast`, `onHit`, `onKill`, `projectileMod`, `skillMod`
-- [ ] `skillMod` targets a specific skill: `{"skill":"fireball","mod":"split","value":3}`
-- [ ] Implement the doc's example chain end-to-end: Fireball splits → chains → burns → returns
-- [ ] At least 2 skill-modifying legendaries per class
-- [ ] Tooltips show modified skill values (item bonuses included)
+- [x] `skillMod` data model + pure resolver: fold equipped item mods onto a skill (`{"skill":"fireball","mod":"split","value":3}`)
+- [x] Projectile `returns` (boomerang) engine support — the last link of the example chain
+- [x] Equipped-gear → active skillMods: WorldScene builds effective skills from `saveData.gear` legendaries
+- [x] Affix/legendary hook types: `onCast`, `onHit`, `onKill` as data-driven effects
+- [x] Implement the doc's example chain end-to-end: Fireball splits → chains → burns → returns
+- [x] At least 2 skill-modifying legendaries per class
+- [x] Tooltips show modified skill values (item bonuses included)
 
 ### 1.6 Combat feel pass
-- [ ] 4-direction walk/attack/hit/death animations for all 3 classes (32×32, 4–6 frames)
-- [ ] Enemy attack telegraphs: windup flash + area indicator before every hit
-- [ ] Hit-stop (2–3 frame freeze on hit), screen shake on heavy hits, knockback
-- [ ] Death animations + corpse fade instead of instant despawn
-- [ ] Damage number pass: crits pop bigger, DoT ticks smaller, player damage red
+- [x] Procedural motion now (no art dep): walk squash/bob + attack lunge on hero & enemies
+- [ ] Final 4-direction walk/attack/hit/death sheets for all 3 classes (32×32, 4–6 frames) — needs art direction (Asset request)
+- [x] Enemy attack telegraphs: windup flash + area indicator before every hit
+- [x] Hit-stop (2–3 frame freeze on hit), screen shake on heavy hits, knockback
+- [x] Death animations + corpse fade instead of instant despawn
+- [x] Damage number pass: crits pop bigger, DoT ticks smaller, player damage red
 
 **Milestone complete when:** all 3 classes are playable with full kits, builds differ meaningfully, and at least one "my fireball behaves completely differently now" legendary works.
+
+### 1.7 Loot & inventory (the loot loop) — added scope; the town (2.3) and the core pillar depend on it
+- [x] Loot roll engine (pure): rarity → base → affixes from items.json/affixes.json, plus legendary drops
+- [x] Enemies drop items on death; ground pickups the player walks over to collect into the bag
+- [x] Gear affects stats: equipped affixes feed derived stats (dmg/hp/crit/aspd/ms/cdr/lifesteal/mana-on-kill/vision)
+- [x] Inventory UI (I): bag grid + equipment slots, equip/unequip, rarity-colored item tooltips
 
 ---
 
 ## Milestone 2 — World, Quests & Towns (5–8 weeks)
 
 ### 2.1 Quest system
-- [ ] Quest schema: objectives (kill N / collect N / talk to / reach), rewards, prerequisites, chain links
-- [ ] Quest journal UI (J): active, tracked, completed
-- [ ] On-screen tracker for the pinned quest
-- [ ] Objective markers on minimap/compass
-- [ ] Quest flags integrate with the save system
+- [x] Quest schema: objectives (kill N / collect N / talk to / reach), rewards, prerequisites, chain links
+- [x] Quest journal UI (J): active, tracked, completed
+- [x] On-screen tracker for the pinned quest
+- [ ] Objective markers on minimap/compass — deferred: no minimap exists yet; pairs with NPC quest-givers (2.2) + a minimap system
+- [x] Quest flags integrate with the save system
 
 ### 2.2 NPC & dialogue system
-- [ ] Dialogue schema: nodes, choices, conditions (quest state, corruption level), flags set
-- [ ] Dialogue UI: portrait, text crawl, choice buttons
-- [ ] NPC entities: idle wander, interaction prompt, quest indicator (! / ?)
+- [x] Dialogue schema: nodes, choices, conditions (quest state, corruption level), flags set
+- [x] Dialogue UI: portrait, text crawl, choice buttons
+- [x] NPC entities: idle wander, interaction prompt, quest indicator (! / ?)
 
 ### 2.3 First real town (Starter Plains)
-- [ ] Town map in Tiled: 6–10 buildings, enterable interiors or facades
-- [ ] **Vendor**: buy/sell UI, gold economy, stock refreshes on level-up
-- [ ] **Blacksmith**: repair (durability system) + crafting (recipes in JSON, materials drop from enemies)
-- [ ] **Trainer**: respec + class quest giver
-- [ ] **Stash**: shared storage chest (48 slots)
-- [ ] 5–8 quest NPCs forming the zone's quest chain
+- [x] Town map in Tiled: 6–10 buildings, enterable interiors or facades — Ashfall Village (6 building facades, gate from the plains, well)
+- [x] **Vendor**: buy/sell UI, gold economy, stock refreshes on level-up
+- [x] **Blacksmith**: repair (durability system) + crafting (recipes in JSON, materials drop from enemies) — Smith Bralla: repair worn gear for gold; forge items from dropped materials (data/recipes.json)
+- [x] **Trainer**: respec + class quest giver — Master Vane (free respec + The Trainer's Trial); per-class quest variants are future content
+- [x] **Stash**: shared storage chest — Stashkeeper Odd (save v7 stash array, bag↔stash)
+- [x] 5–8 quest NPCs forming the zone's quest chain — the **Ashfall** chain: 5 NPC-given quests (Wellkeeper Sena → Warden Kessa → Scout Doran → Herbalist Mira → Priest Halden), each gated behind the last
 
 ### 2.4 Zone 2 — Forest Kingdom (full production, sets the template)
-- [ ] Tileset + map (~3× Starter Plains size)
-- [ ] Town with all services
-- [ ] 4–5 new enemy types with distinct attack patterns
-- [ ] Dungeon with mini-boss + relic fragment
-- [ ] World boss (open-world, respawns, announced spawn)
-- [ ] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers)
-- [ ] Quest chain (8–12 quests) with a zone story
-- [ ] 2–3 secrets (hidden areas, optional boss, lore items)
-- [ ] **Write down the hours this zone took — it calibrates the rest of the plan**
+- [x] Tileset + map (~3× Starter Plains size) — the **Verdant Reach**: 100×72 (=3×) forest map, new forest tiles (dark floor, pines, mushrooms), reachable via an east gate from the plains
+- [x] Town with all services — **Thornhollow**: forest-floor town reachable via a north gate off the Reach, with vendor (Fennwick), blacksmith (Garrow), stash (Wren) + trainer/respec (Warden-Master Sylva)
+- [x] 4–5 new enemy types with distinct attack patterns
+  - [x] Attack-pattern engine: data-driven charge / ranged / explode / summon behaviors in Enemy.ts + enemy-projectile pool
+  - [x] 4–5 forest enemy types using them, wired into the Verdant Reach — thornwolf (charge), sporeling (explode), spitter (ranged+kite), grovewarden (summon)
+- [x] Dungeon with mini-boss + relic fragment — **Bramblewarren**: dark forest barrow off the Reach; **Mossmaw the Elder Bramble** (slam + summon) drops the **Verdant Heart** relic (save v10 `relics[]`)
+- [x] World boss (open-world, respawns, announced spawn) — **Greathorn, the Hollow Stag**: roams the Reach's central glade, banner-announced, charges + slams, drops the Hollow Antler relic, respawns ~120s after death
+- [x] Faction + reputation track (rep from quests/kills, vendor unlocks at rep tiers) — **Wardens of the Reach**: rep from Reach/Bramblewarren kills (bosses more) + quest `rep` rewards; save v11; Thornhollow's vendor stocks more per rep tier + shows your standing
+- [x] Quest chain (8–12 quests) with a zone story — **The Warden's Trials**: 9 linked quests (Aldric/Brenna/Fen in Thornhollow, Rangers Silt/Tamsin in the Reach) escalating cull → Barrow → Mossmaw → Greathorn, each granting Warden rep
+- [x] 2–3 secrets (hidden areas, optional boss, lore items) — a **hidden grove** behind a false-pine wall (Reach) with a lore cache, and a **sealed vault** behind a false-wall (Bramblewarren) with the optional boss **Oakheart** guarding a lore chest; both grant a relic (save v12 `secrets[]`)
+- [x] **Write down the hours this zone took — it calibrates the rest of the plan** — see the "Zone 2 cost retro" in PROGRESS.md (measured in build-boxes/sessions, not wall-clock, since this is an AI-paced build): ~8 feature boxes, systems-boxes ≈2× the cost of content-boxes
 
 ### 2.5 Zone template & tooling
-- [ ] Document the zone production checklist from 2.4 as a repeatable template
-- [ ] Debug tools: teleport, spawn item/enemy, set corruption, god mode (dev builds only)
+- [x] Document the zone production checklist from 2.4 as a repeatable template — `docs/ZONE_TEMPLATE.md`
+- [x] Debug tools: teleport, spawn item/enemy, set corruption, god mode (dev builds only) — on the `__AZER.debug` console handle (no player-facing UI)
 
 **Milestone complete when:** a new player can play Starter Plains → Forest Kingdom with quests carrying them, and you know your real cost-per-zone.
 
@@ -140,15 +157,17 @@ Nothing new for players here, but every later step gets 3× faster. Do not skip.
 
 Prototype this cheaply before building all 8 zones — it changes what assets every zone needs.
 
-- [ ] Global corruption value (0–100) driven by relic fragments collected
-- [ ] Corruption tiers (0/25/50/75/100) as world-state flags
-- [ ] Cheap visual layer first: palette/tint shifts per tier, particle ambience (ash, embers)
-- [ ] Dialogue variants per tier (conditions already supported by 2.2)
-- [ ] Spawn table variants per tier: corrupted enemy versions (recolor + 1 new move)
-- [ ] 1–2 scripted town changes per tier (an NPC disappears, a building boards up)
-- [ ] Music layer shifts with corruption
-- [ ] Ending branch: at max fragments, the three-way choice (Destroy / Control / Become) — 3 final quests + 3 ending sequences
-- [ ] Playtest: does rising corruption feel ominous or just cosmetic? Iterate before scaling to all zones.
+- [x] Global corruption value (0–100) — **the risk dial** (decided with user): raised by kills (bosses spike it), cleansed at heal wells. *(Was "driven by relic fragments collected"; per the user the driver is combat and relics stay collectibles. Relics could still nudge corruption later if wanted.)*
+- [x] Corruption tiers (0/25/50/75/100) drive gameplay, not just flags: tougher enemies (HP + damage) and better loot (drop chance + rarity "luck") at higher tiers — `src/systems/corruption.ts` (tuning table; movable to data/ later). HUD shows the dial + tier.
+- [x] Cheap visual layer: palette/tint shifts per tier, particle ambience (ash, embers) — a screen-fixed tint overlay + falling ash/ember emitter that ramp with the tier (off/clean at Pure → dark red-black + streaming embers at Abyssal); tuning on the tier table in `corruption.ts`
+- [x] Dialogue variants per tier (conditions already supported by 2.2) — NPCs react to your corruption via `corruptionMin/Max`-gated choices: Elder Maru (3 tier bands), Warden-Captain Aldric (wary → an order to cleanse), Priest Halden (a warning). Pure content.
+- [x] Spawn table variants per tier: corrupted enemy versions (recolor + 1 new move) — an optional `corrupt` block on an enemy def (tierMin + tint + overlaid pattern) applied by `makeEnemy` at high corruption. Thornwolf/grovewarden gain a slam, sporeling a bigger burst, spitter a faster barrage; all recolored magenta at Corrupt (50+).
+- [x] 1–2 scripted town changes per tier (an NPC disappears, a building boards up) — data-driven corruption gating on town entities (`hideAboveCorruption` / `showAboveCorruption` / `prop` on NpcSchema), evaluated at zone load: in Ashfall, Villager Rook flees and a boarded-up door appears at Corrupt (50+); services are untouched.
+- [x] Music layer shifts with corruption — an original **procedural WebAudio** ambient drone (`src/systems/audio.ts`, no asset files) that's silent at Pure and swells louder + more dissonant + brighter with each tier; resumes on first input, mute with **M**. (The game's first audio; a fuller music/SFX system with sourced tracks is a future `## Asset requests` item.)
+- [x] Ending branch: at max fragments, the three-way choice (Destroy / Control / Become) — 3 final quests + 3 ending sequences
+  - [x] Ending choice + 3 ending sequences: at all relics collected, a Shrine of Ashes offers Destroy/Control/Become → a styled end-screen per path
+  - [x] 3 final quests bridging the choice and each ending
+- [x] Playtest: does rising corruption feel ominous or just cosmetic? Iterate before scaling to all zones. *(Iteration applied: crossing up a corruption tier now fires a **surge** — a screen banner "THE CORRUPTION DEEPENS · <Tier>", a tint flash, and a brief camera shake — so a threshold reads as an event, not a silent stat tick. Trigger logic is pure + unit-tested (`corruptionTierRose`); the full kill→cross→banner path is smoke-verified. Final subjective sign-off + any further tuning is the user's — logged under `## Needs human playtest`.)*
 
 ---
 
@@ -156,7 +175,14 @@ Prototype this cheaply before building all 8 zones — it changes what assets ev
 
 Zones 3–8, one at a time, each shippable as a content update. Per zone, run the 2.5 template:
 
-- [ ] **Zone 3 — Haunted Marsh** (poison/DoT theme, undead roster)
+- [ ] **Zone 3 — Haunted Marsh** (poison/DoT theme, undead roster) — built via the 2.5 add-a-zone template; systems first, then content
+  - [x] **Systems: poison/DoT status** — the marsh's core mechanic. Pure `src/systems/status.ts` (refresh-not-stack poison, 0.5s ticks); the player takes ticking DoT (green numbers + flash + HUD "☣ PSN" pip), sourced by an optional `poison {dps,duration}` field on the enemy schema applied on any contact/slam hit (data-driven — undead set it in JSON, no code). God mode purges it; transient (no save field). Debug `__AZER.debug.poisonPlayer(dps,dur)`.
+  - [x] Tiles + marsh wilds map + register zone + wire gates from a neighbour (both directions) — 4 marsh tiles (bog floor/murk/dead tree/reed; `TILE_COUNT` 14→18 kept in sync across mapgen/pixelart/generate-maps), `genMarsh` 96×64 wilds (`The Mirefen`), registered in zones.json + BootScene, and a Verdant Reach ↔ Mirefen gate both ways (forest south spur). Enemy roster is placeholder (skel/bat) until the next box.
+  - [x] Undead enemy roster (data; the poison-touch field on the biters) — 4 data-only undead with sprites: **rotshambler** (poison-touch zombie), **bogwraith** (poison-touch shade), **fenspitter** (ranged), **drownhound** (charger). The marsh's `enemyTypes` now spawns them (placeholder skel/bat retired), and the poison DoT system fires in real play at last.
+  - [ ] Marsh town + services
+  - [ ] Quest chain (the marsh story)
+  - [ ] Dungeon + mini-boss (relic)
+  - [ ] Secrets
 - [ ] **Zone 4 — Desert Empire** (elite packs, faction conflict storyline)
 - [ ] **Zone 5 — Frozen Peaks** (frost enemies — synergy/counter to frost builds)
 - [ ] **Zone 6 — Volcanic Depths** (ground hazards, burning ground everywhere)

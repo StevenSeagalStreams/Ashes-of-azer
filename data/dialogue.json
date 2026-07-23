@@ -1,0 +1,1350 @@
+[
+  {
+    "id": "elder",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Well met, traveler. Azer's ashes stir on the wind again.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "Thin the bats plaguing the plains. (Accept)",
+            "condition": {
+              "questAvailable": "q_elder_hunt"
+            },
+            "action": {
+              "startsQuest": "q_elder_hunt"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The hunt goes on.",
+            "condition": {
+              "questActive": "q_elder_hunt"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "Do I seem changed to you, elder?",
+            "condition": {
+              "corruptionMin": 25,
+              "corruptionMax": 49
+            },
+            "nextNodeId": "corr_taint"
+          },
+          {
+            "text": "Do I seem changed to you, elder?",
+            "condition": {
+              "corruptionMin": 50,
+              "corruptionMax": 74
+            },
+            "nextNodeId": "corr_corrupt"
+          },
+          {
+            "text": "Do I seem changed to you, elder?",
+            "condition": {
+              "corruptionMin": 75
+            },
+            "nextNodeId": "corr_defiled"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "I have kept this waystone since the Sundering. Ash falls thickest where the corruption bites.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Bless your blade. Six of the vermin should quiet them.",
+        "choices": [
+          {
+            "text": "It is done."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "Return when the bats are silenced.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "corr_taint",
+        "text": "A little ash clings to you — nothing a clean well won't wash away. But it deepens if you feed it, and it is hungry.",
+        "choices": [
+          {
+            "text": "I'll remember that.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "corr_corrupt",
+        "text": "The corruption has its hooks in you now. It makes the wilds bare their teeth — and their treasures. A dangerous bargain, that.",
+        "choices": [
+          {
+            "text": "A bargain I'll weigh.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "corr_defiled",
+        "text": "You are half a shadow, traveler. Power drips from you, but so does ruin. Find a well and cleanse, before Azer's ash claims you whole.",
+        "choices": [
+          {
+            "text": "Before it's too late.",
+            "nextNodeId": "greet"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vendor",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Wares for a wanderer? Buy low, sell... well, low.",
+        "choices": [
+          {
+            "text": "Let's trade."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "trainer",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Skills grown crooked? I can unmake them. Or you can prove your mettle.",
+        "choices": [
+          {
+            "text": "Reset my skills (free).",
+            "action": {
+              "respec": true
+            },
+            "nextNodeId": "greet"
+          },
+          {
+            "text": "Give me a trial.",
+            "condition": {
+              "questAvailable": "q_trainer_trial"
+            },
+            "action": {
+              "startsQuest": "q_trainer_trial"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The trial goes on.",
+            "condition": {
+              "questActive": "q_trainer_trial"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Slay ten of the Barrow's dead and return changed.",
+        "choices": [
+          {
+            "text": "I will."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The dead still walk. Finish what you began.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "keeper",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Your things are safe with me.",
+        "choices": [
+          {
+            "text": "Let me sort my stash."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "smith",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Bring me your battered gear.",
+        "choices": [
+          {
+            "text": "Look it over."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "wellkeeper",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The well runs grey at the bottom. Something seeps in from the plains.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll thin the slimes at the seep. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_greywater"
+            },
+            "action": {
+              "startsQuest": "q_ash_greywater"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "Still working on it.",
+            "condition": {
+              "questActive": "q_ash_greywater"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The water clears yet?",
+            "condition": {
+              "questCompleted": "q_ash_greywater"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Sena. I've drawn Ashfall's water thirty years — never has it tasted of ash till now.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Five should stem the ooze. The well will thank you.",
+        "choices": [
+          {
+            "text": "Consider it done."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "Still the water darkens. The slimes yet gather.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "The water clears already — bless you. Warden Kessa should hear of this; she keeps the gate.",
+        "choices": [
+          {
+            "text": "I'll find her."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "warden",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Halt— ah, a fighting sort. Good. Dusk brings wings to my palisade.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll cut the bats down. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_watch"
+            },
+            "action": {
+              "startsQuest": "q_ash_watch"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The watch goes on.",
+            "condition": {
+              "questActive": "q_ash_watch"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The palisade is quiet now.",
+            "condition": {
+              "questCompleted": "q_ash_watch"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Kessa, Warden of Ashfall's gate. The Barrow's rot pushes its vermin our way, night on night.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Six of the winged things should ease the dusk. Watch your eyes.",
+        "choices": [
+          {
+            "text": "I will."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The wings still circle. Finish the count.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "The night's quieter — my thanks. But Doran, my scout, went to the Barrow and hasn't returned. Speak with him; he made it back at last.",
+        "choices": [
+          {
+            "text": "I'll seek him out."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "scout",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "You're the one Kessa sent? I crawled out of that Barrow — barely. My partner didn't.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll search the Barrow for her. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_lostscout"
+            },
+            "action": {
+              "startsQuest": "q_ash_lostscout"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "Not yet gone down.",
+            "condition": {
+              "questActive": "q_ash_lostscout"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "I walked the Barrow.",
+            "condition": {
+              "questCompleted": "q_ash_lostscout"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Doran. I scout the plains for the Warden. I've never seen the dark move the way it does down there.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Take the gate east, then down into the barrow. Any sign of her — I have to know.",
+        "choices": [
+          {
+            "text": "I'll go."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The Barrow mouth is east of the plains. Steel yourself before you enter.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "You walked the dark and came back. That's more than she did... thank you. Mira the herbalist studies what festers below — she'll want your help.",
+        "choices": [
+          {
+            "text": "I'll speak with her."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "herbalist",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The Barrow's roots drink the corruption and spread it. I would cut it at the source.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll put the dead down. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_barrowroots"
+            },
+            "action": {
+              "startsQuest": "q_ash_barrowroots"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The dead still walk.",
+            "condition": {
+              "questActive": "q_ash_barrowroots"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The roots have quieted.",
+            "condition": {
+              "questCompleted": "q_ash_barrowroots"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Mira. I read the soil the way Halden reads the ash. Both tell the same tale: the Barrow is bleeding into Ashfall.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Eight of the walking dead. Their unrest is what the roots feed on — still them.",
+        "choices": [
+          {
+            "text": "It will be done."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The soil still crawls. More of the dead must fall.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "The soil steadies at last. Only the thing that raised them remains. Priest Halden means to end it — he'll need a blade like yours.",
+        "choices": [
+          {
+            "text": "I'll find Halden."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foresttrainer",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The Wardens train here, under the old pines. Grown into the wrong shape? I can unmake your skills.",
+        "choices": [
+          {
+            "text": "Who trains here?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "Reset my skills (free).",
+            "action": {
+              "respec": true
+            },
+            "nextNodeId": "greet"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Warden-Master Sylva. The Reach's defenders learn the blade and the bow beneath this canopy. Return when your path needs re-cutting.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "priest",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Azer's ash falls thickest over the Barrow's heart. A master stirs there — the root of all this rot.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll slay the master. (Accept)",
+            "condition": {
+              "questAvailable": "q_ash_cleanse"
+            },
+            "action": {
+              "startsQuest": "q_ash_cleanse"
+            },
+            "nextNodeId": "accepted"
+          },
+          {
+            "text": "The master yet lives.",
+            "condition": {
+              "questActive": "q_ash_cleanse"
+            },
+            "nextNodeId": "inprogress"
+          },
+          {
+            "text": "The Barrow is cleansed.",
+            "condition": {
+              "questCompleted": "q_ash_cleanse"
+            },
+            "nextNodeId": "thanks"
+          },
+          {
+            "text": "Priest — am I becoming one of them?",
+            "condition": {
+              "corruptionMin": 50
+            },
+            "nextNodeId": "corr_bless"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Halden, last priest of the Ash. I have watched the corruption creep to our very well — but no longer, if you are willing.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "corr_bless",
+        "text": "Not yet — but the ash favours you, and that favour is a debt. It lends you strength and lends the wilds their teeth in equal measure. Kneel at a well and let the water take it; corruption is a loan the Barrow always calls in.",
+        "choices": [
+          {
+            "text": "I'll cleanse it.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "accepted",
+        "text": "Slay it in the deep of the Barrow, and Ashfall may breathe again. Go with the light.",
+        "choices": [
+          {
+            "text": "I will end it."
+          }
+        ]
+      },
+      {
+        "id": "inprogress",
+        "text": "The heart of the Barrow still beats black. Return when it is silenced.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "thanks",
+        "text": "It is done. Ashfall stands because you stood. Go with the light, Ashbreaker — you will always have a hearth here.",
+        "choices": [
+          {
+            "text": "Farewell, Halden."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "aldric",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Welcome to Thornhollow, recruit. The Reach tests everyone who'd wear the Warden's green.",
+        "choices": [
+          {
+            "text": "Who commands here?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll cull the spore-beasts. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_cull"
+            },
+            "action": {
+              "startsQuest": "q_wt_cull"
+            },
+            "nextNodeId": "a_cull"
+          },
+          {
+            "text": "The cull continues.",
+            "condition": {
+              "questActive": "q_wt_cull"
+            },
+            "nextNodeId": "p_cull"
+          },
+          {
+            "text": "I'm ready for the final trial. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_warden"
+            },
+            "action": {
+              "startsQuest": "q_wt_warden"
+            },
+            "nextNodeId": "a_warden"
+          },
+          {
+            "text": "It is finished.",
+            "condition": {
+              "questCompleted": "q_wt_warden"
+            },
+            "nextNodeId": "done_warden"
+          },
+          {
+            "text": "You eye me warily, Captain.",
+            "condition": {
+              "corruptionMin": 50,
+              "corruptionMax": 74
+            },
+            "nextNodeId": "corr_warn"
+          },
+          {
+            "text": "You reach for your blade, Captain.",
+            "condition": {
+              "corruptionMin": 75
+            },
+            "nextNodeId": "corr_hard"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "I am Aldric, Captain of the Wardens of the Reach. Prove yourself against the wilds, the Barrow, and the Stag, and you'll rise through our ranks.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "corr_warn",
+        "text": "I've seen that ash-shadow on Wardens before. It sharpens the hunt and fattens the spoils — but it turns the Reach against you, blade by blade. Cleanse at a well when you can, recruit.",
+        "choices": [
+          {
+            "text": "Noted, Captain.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "corr_hard",
+        "text": "Steady, now. You carry more corruption than most who walk out of the Barrow in a box. The green forgives much, but the ash forgives nothing. Go to a well — that is an order.",
+        "choices": [
+          {
+            "text": "Aye, Captain.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "a_cull",
+        "text": "Start with the sporelings fouling the glades — six should steady the Reach. Standing with the Wardens follows.",
+        "choices": [
+          {
+            "text": "Consider it done."
+          }
+        ]
+      },
+      {
+        "id": "p_cull",
+        "text": "The spore-beasts still burst underfoot. Keep at it.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_warden",
+        "text": "You've earned the right to the last trial: bring down Greathorn, then return to me. Do this and you are a Warden true.",
+        "choices": [
+          {
+            "text": "I will return."
+          }
+        ]
+      },
+      {
+        "id": "done_warden",
+        "text": "Rise, Warden of the Reach. The green is yours by right — and the Reach is safer for it. Well done.",
+        "choices": [
+          {
+            "text": "For the Wardens."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "brenna",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Supplies run thin with the wilds so restless. Lend the Wardens your blade?",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll silence the spitters. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_spitters"
+            },
+            "action": {
+              "startsQuest": "q_wt_spitters"
+            },
+            "nextNodeId": "a_spit"
+          },
+          {
+            "text": "The spitters still spit.",
+            "condition": {
+              "questActive": "q_wt_spitters"
+            },
+            "nextNodeId": "p_spit"
+          },
+          {
+            "text": "I'll thin the wolves. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_wolves"
+            },
+            "action": {
+              "startsQuest": "q_wt_wolves"
+            },
+            "nextNodeId": "a_wolf"
+          },
+          {
+            "text": "The pack still runs.",
+            "condition": {
+              "questActive": "q_wt_wolves"
+            },
+            "nextNodeId": "p_wolf"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Brenna, quartermaster of the Wardens. I keep us fed and armed — when the beasts let me.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "a_spit",
+        "text": "Five fungal spitters harry my foragers from the treeline. Put them down.",
+        "choices": [
+          {
+            "text": "Done."
+          }
+        ]
+      },
+      {
+        "id": "p_spit",
+        "text": "My foragers still take spores to the back. Hurry.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_wolf",
+        "text": "Six thornwolves prowl the paths. Break the pack and the roads open again.",
+        "choices": [
+          {
+            "text": "I'll break them."
+          }
+        ]
+      },
+      {
+        "id": "p_wolf",
+        "text": "The wolves still circle. The roads stay shut.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fen",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "The grovewardens raise the dead and their roots drink deep. Someone must break them.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll fell the grovewardens. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_grovewardens"
+            },
+            "action": {
+              "startsQuest": "q_wt_grovewardens"
+            },
+            "nextNodeId": "a_grove"
+          },
+          {
+            "text": "The wardens still stand.",
+            "condition": {
+              "questActive": "q_wt_grovewardens"
+            },
+            "nextNodeId": "p_grove"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Loremaster Fen. I read the Reach's sickness in its very wood — and the grovewardens are its worst symptom.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "a_grove",
+        "text": "Three grovewardens tend the corruption's roots. End them, and the spore-swarms thin with them.",
+        "choices": [
+          {
+            "text": "It will be done."
+          }
+        ]
+      },
+      {
+        "id": "p_grove",
+        "text": "The roots still spread. More grovewardens must fall.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "silt",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "A Warden recruit, out here? Good. The Barrow's mouth is close, and it's hungry.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll scout the Barrow. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_scout"
+            },
+            "action": {
+              "startsQuest": "q_wt_scout"
+            },
+            "nextNodeId": "a_scout"
+          },
+          {
+            "text": "Not gone down yet.",
+            "condition": {
+              "questActive": "q_wt_scout"
+            },
+            "nextNodeId": "p_scout"
+          },
+          {
+            "text": "I'll put the dead down. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_restless"
+            },
+            "action": {
+              "startsQuest": "q_wt_restless"
+            },
+            "nextNodeId": "a_rest"
+          },
+          {
+            "text": "The dead still rise.",
+            "condition": {
+              "questActive": "q_wt_restless"
+            },
+            "nextNodeId": "p_rest"
+          },
+          {
+            "text": "I'll face the Elder Bramble. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_mossmaw"
+            },
+            "action": {
+              "startsQuest": "q_wt_mossmaw"
+            },
+            "nextNodeId": "a_moss"
+          },
+          {
+            "text": "Mossmaw still lives.",
+            "condition": {
+              "questActive": "q_wt_mossmaw"
+            },
+            "nextNodeId": "p_moss"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Ranger Silt. I watch the deep wilds so Thornhollow can sleep. Lately I sleep little myself.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "a_scout",
+        "text": "Take the cave mouth east and walk the Barrow's halls. Learn what stirs down there.",
+        "choices": [
+          {
+            "text": "I'll go."
+          }
+        ]
+      },
+      {
+        "id": "p_scout",
+        "text": "The Barrow's mouth is east, past the pines. Steel yourself first.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_rest",
+        "text": "The dead crowd the Barrow thicker each day. Put eight of the sporelings back in the ground.",
+        "choices": [
+          {
+            "text": "It's done."
+          }
+        ]
+      },
+      {
+        "id": "p_rest",
+        "text": "Still they shamble in the dark. Keep at it.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_moss",
+        "text": "At the Barrow's heart sits Mossmaw, the Elder Bramble. Fell it, and the Warren dies with it.",
+        "choices": [
+          {
+            "text": "I'll end it."
+          }
+        ]
+      },
+      {
+        "id": "p_moss",
+        "text": "The Elder Bramble still breathes. The Warren still spreads.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tamsin",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "You hear that? The Hollow Stag walks the glade. Few who've seen it lived to say so.",
+        "choices": [
+          {
+            "text": "Who are you?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "I'll bring the Stag down. (Accept)",
+            "condition": {
+              "questAvailable": "q_wt_greathorn"
+            },
+            "action": {
+              "startsQuest": "q_wt_greathorn"
+            },
+            "nextNodeId": "a_great"
+          },
+          {
+            "text": "The Stag still runs.",
+            "condition": {
+              "questActive": "q_wt_greathorn"
+            },
+            "nextNodeId": "p_great"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Warden Ranger Tamsin. I've tracked Greathorn three seasons across the Reach. It's time the Hollow Stag fell.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "a_great",
+        "text": "It roams the central glade and charges like a landslide. Watch its horns, and end it. Aldric will want to hear of it.",
+        "choices": [
+          {
+            "text": "I'll hunt it."
+          }
+        ]
+      },
+      {
+        "id": "p_great",
+        "text": "The Stag still stamps the glade. Mind its charge.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "villager",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Fine day, isn't it? Though folk say the ash has been creeping closer of late. Gives me the shivers.",
+        "choices": [
+          {
+            "text": "The ash?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "You look frightened.",
+            "condition": {
+              "corruptionMin": 25
+            },
+            "nextNodeId": "afraid"
+          },
+          {
+            "text": "Stay well."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Corruption, the priests call it. When it thickens, the wise bar their doors and wait it out. I hope it never comes to that here.",
+        "choices": [
+          {
+            "text": "So do I.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "afraid",
+        "text": "Can't you feel it on the wind? If it gets much worse I'm boarding my windows and not coming out. You should cleanse yourself at the well while you still can.",
+        "choices": [
+          {
+            "text": "I'll be careful.",
+            "nextNodeId": "greet"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "shrine",
+    "startNodeId": "root",
+    "nodes": [
+      {
+        "id": "root",
+        "text": "The Shrine of Ashes. Four sockets ring a bowl of cold embers. With every relic in hand the stone waits — but it will not answer until you have earned the ending you would give the Reach.",
+        "choices": [
+          {
+            "text": "Scatter it. I will carry the relics to the ruin's heart and break them there.",
+            "condition": {
+              "flag": "all_relics",
+              "questAvailable": "q_end_destroy"
+            },
+            "action": {
+              "startsQuest": "q_end_destroy"
+            },
+            "nextNodeId": "rite"
+          },
+          {
+            "text": "Bind it. First I will master the ruin's own wardens.",
+            "condition": {
+              "flag": "all_relics",
+              "questAvailable": "q_end_control"
+            },
+            "action": {
+              "startsQuest": "q_end_control"
+            },
+            "nextNodeId": "rite"
+          },
+          {
+            "text": "Become it. I will descend to where the ash lies oldest.",
+            "condition": {
+              "flag": "all_relics",
+              "questAvailable": "q_end_become"
+            },
+            "action": {
+              "startsQuest": "q_end_become"
+            },
+            "nextNodeId": "rite"
+          },
+          {
+            "text": "Shatter the relics — the rite is done.",
+            "condition": {
+              "questCompleted": "q_end_destroy"
+            },
+            "nextNodeId": "ask_destroy"
+          },
+          {
+            "text": "Bind the corruption — the rite is done.",
+            "condition": {
+              "questCompleted": "q_end_control"
+            },
+            "nextNodeId": "ask_control"
+          },
+          {
+            "text": "Take the ash into yourself — the rite is done.",
+            "condition": {
+              "questCompleted": "q_end_become"
+            },
+            "nextNodeId": "ask_become"
+          },
+          {
+            "text": "The four sockets are empty. Step back.",
+            "condition": {
+              "notFlag": "all_relics"
+            }
+          },
+          {
+            "text": "Not yet.",
+            "condition": {
+              "flag": "all_relics"
+            }
+          }
+        ]
+      },
+      {
+        "id": "rite",
+        "text": "It is begun. Walk the rite to its end, then return to the shrine to seal what you have chosen.",
+        "choices": [
+          {
+            "text": "I will return."
+          }
+        ]
+      },
+      {
+        "id": "ask_destroy",
+        "text": "Break the relics against the shrine and the corruption unravels with them — the Reach saved, and made smaller. There is no undoing it. Are you certain?",
+        "choices": [
+          {
+            "text": "Shatter them.",
+            "action": {
+              "ending": "destroy"
+            }
+          },
+          {
+            "text": "Wait.",
+            "nextNodeId": "root"
+          }
+        ]
+      },
+      {
+        "id": "ask_control",
+        "text": "Gather the ruin into the shrine's heart and set the relics as its locks. It will answer to you, and to no one after. The leash is for life. Are you certain?",
+        "choices": [
+          {
+            "text": "Bind it.",
+            "action": {
+              "ending": "control"
+            }
+          },
+          {
+            "text": "Wait.",
+            "nextNodeId": "root"
+          }
+        ]
+      },
+      {
+        "id": "ask_become",
+        "text": "Open your hands and let the ash in. You will not be what you were — you will be more, and less, and Azer's own. There is no coming back from it. Are you certain?",
+        "choices": [
+          {
+            "text": "Take it into yourself.",
+            "action": {
+              "ending": "become"
+            }
+          },
+          {
+            "text": "Wait.",
+            "nextNodeId": "root"
+          }
+        ]
+      }
+    ]
+  }
+]
