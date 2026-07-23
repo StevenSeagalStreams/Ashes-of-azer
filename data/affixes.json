@@ -1,0 +1,13 @@
+[
+  { "key": "dmg", "labelTemplate": "+{v} Damage", "min": 2, "max": 8 },
+  { "key": "aspd", "labelTemplate": "+{v}% Attack Speed", "min": 8, "max": 25 },
+  { "key": "crit", "labelTemplate": "+{v}% Critical Chance", "min": 4, "max": 15 },
+  { "key": "hp", "labelTemplate": "+{v} Max Life", "min": 10, "max": 45 },
+  { "key": "ms", "labelTemplate": "+{v}% Movement Speed", "min": 5, "max": 15 },
+  { "key": "lifesteal", "labelTemplate": "{v}% Life Steal", "min": 3, "max": 10 },
+  { "key": "frost", "labelTemplate": "+{v}% Frost Damage (chills)", "min": 10, "max": 35 },
+  { "key": "manakill", "labelTemplate": "Gain {v} Mana on Kill", "min": 3, "max": 10 },
+  { "key": "cdr", "labelTemplate": "{v}% Cooldown Reduction", "min": 5, "max": 20 },
+  { "key": "vision", "labelTemplate": "+{v} Vision", "min": 15, "max": 45 },
+  { "key": "poison", "labelTemplate": "Critical Hits poison enemies", "min": 1, "max": 1, "flag": true }
+]

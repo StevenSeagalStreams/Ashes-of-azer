@@ -1,0 +1,34 @@
+{
+  "materials": [
+    { "id": "scrap", "name": "Iron Scrap", "color": "#b7b0a0", "weight": 50 },
+    { "id": "bone", "name": "Bone Dust", "color": "#e8e0c8", "weight": 32 },
+    { "id": "ember", "name": "Ember Shard", "color": "#e07830", "weight": 14 },
+    { "id": "sigil", "name": "Azure Sigil", "color": "#7fa8ee", "weight": 4 }
+  ],
+  "recipes": [
+    {
+      "id": "forge_fine_blade",
+      "name": "Forge a Fine Blade",
+      "description": "A dependable magic weapon, hammered from scrap.",
+      "inputs": [{ "material": "scrap", "count": 4 }, { "material": "bone", "count": 2 }],
+      "gold": 40,
+      "result": { "slot": "Weapon", "rarity": "magic" }
+    },
+    {
+      "id": "forge_warplate",
+      "name": "Beat a Warplate",
+      "description": "Rare chest armour for a hard road ahead.",
+      "inputs": [{ "material": "scrap", "count": 6 }, { "material": "bone", "count": 4 }],
+      "gold": 70,
+      "result": { "slot": "Chest", "rarity": "rare" }
+    },
+    {
+      "id": "forge_ember_ring",
+      "name": "Set an Ember Ring",
+      "description": "An epic ring wound around a burning shard.",
+      "inputs": [{ "material": "ember", "count": 3 }, { "material": "sigil", "count": 1 }],
+      "gold": 120,
+      "result": { "slot": "Ring", "rarity": "epic" }
+    }
+  ]
+}
