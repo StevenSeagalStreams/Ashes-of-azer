@@ -1,20 +1,21 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 3 IN PROGRESS** — boxes 1–4 done (risk dial + gameplay scaling +
-visual ambience + dialogue variants). **Next box (top-to-bottom): "Spawn table
-variants per tier: corrupted enemy versions (recolor + 1 new move)"** — a
-systems+content box: at higher corruption, spawn *corrupted* variants of the
-zone's enemies (a recolor/tint + one extra attack). Approach options: (a) a new
-optional `corrupt` block on an enemy def (tint + an added pattern) applied by
-`makeEnemy` when the tier is high enough, or (b) separate corrupted enemy entries
-the spawn table swaps in per tier. (a) is cheaper and keeps the roster small.
-Then: 1–2 scripted town changes per tier (an NPC disappears / a building boards
-up), music layer, and the **ending branch** (3 final quests + 3 endings —
-Destroy/Control/Become — a big design/content box that WILL need your input). The
-roadmap's **playtest box** ("does rising corruption feel ominous or cosmetic?")
-is the iterate-gate before scaling corruption to all zones. Still open from
-earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
+**MILESTONE 3 IN PROGRESS** — boxes 1–5 done (risk dial + gameplay scaling +
+visual ambience + dialogue variants + corrupted enemy variants). **Next box
+(top-to-bottom): "1–2 scripted town changes per tier (an NPC disappears, a
+building boards up)"** — make the towns visibly react to corruption. Approach:
+data-driven per-NPC/per-object corruption gating — e.g. an NPC gains an optional
+`hideAtCorruption` (min) so it despawns at high corruption, and/or a map tile
+swaps (a door → boards). Cheapest: an optional `hideAboveCorruption`/`showBelow`
+field on `NpcSchema` filtered when placing NPCs in `create()` (npcs are already
+placed from data there). A boarded-up building could be a tile swap driven the
+same way, but that needs a small map-overlay mechanic — start with the NPC
+vanish. Then: music layer, and the **ending branch** (3 final quests + 3 endings
+— Destroy/Control/Become — a big design/content box that WILL need your input).
+The roadmap's **playtest box** ("does rising corruption feel ominous or
+cosmetic?") is the iterate-gate before scaling corruption to all zones. Still open
+from earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
 
 Corruption design decision (recorded): per the user, corruption is a **risk dial**
 driven by *combat* (not relic fragments as the roadmap originally said). Relics
@@ -105,6 +106,21 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 3 corrupted enemy variants (box 5): recolor + 1 new move**
+  (headless-verified 7/7; 209 unit tests):
+  - Extracted the attack-pattern schemas (`SlamSchema`/`ChargeSchema`/`RangedSchema`/
+    `ExplodeSchema`/`SummonSchema`) so a new optional `corrupt` block on an enemy
+    def can reuse them: `{ tierMin, tint, + any pattern overrides }`.
+  - Pure `corruptedEnemy(def, corruption)` (corruption.ts, tested): at/above
+    `tierMin` returns the base def with the variant's pattern fields overlaid + the
+    tint; never mutates the base. `WorldScene.makeEnemy` applies it at every spawn.
+  - `Enemy` gained a `baseTint` ctor param + `restoreTint()` — telegraph flashes
+    restore the corrupt tint instead of clearing it, so the recolor survives combat.
+  - Data (Corrupt tier, 50+, magenta `#c060c0`): thornwolf + grovewarden gain a
+    slam, sporeling a bigger explode, spitter a faster/stronger barrage. Content
+    test now also checks corrupt-block summon minions resolve.
+  - Verified in-browser: plain at Pure, corrupted (slam/faster-ranged + magenta
+    baseTint) at Corrupt, plain again once cleansed below the threshold.
 - **Milestone 3 dialogue variants (box 4): NPCs react to corruption** (206 unit
   tests; pure content, no engine work — the m2.2 dialogue engine already evaluates
   `corruptionMin/Max`):

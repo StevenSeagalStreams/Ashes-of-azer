@@ -80,9 +80,11 @@ describe('the real /data/*.json content', () => {
     for (const z of data.zones)
       for (const et of z.enemyTypes) expect(enemyIds, `${z.id} enemyType`).toContain(et);
 
-    // A summoner's minion must be a real enemy id.
-    for (const e of data.enemies)
+    // A summoner's minion must be a real enemy id (base + corrupt-variant summons).
+    for (const e of data.enemies) {
       if (e.summon) expect(enemyIds, `${e.id} summon minion`).toContain(e.summon.minion);
+      if (e.corrupt?.summon) expect(enemyIds, `${e.id} corrupt summon minion`).toContain(e.corrupt.summon.minion);
+    }
 
     // Any relic-granting enemy carries a display name for its pickup toast.
     for (const e of data.enemies) if (e.relic) expect(e.relicName, `${e.id} relicName`).toBeTruthy();

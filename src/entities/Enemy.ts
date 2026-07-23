@@ -50,12 +50,17 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   // Corruption scales enemies at spawn (m3): HP and damage-dealt multipliers.
   private readonly dmgMult: number;
+  // A persistent tint for corrupted variants (m3); telegraph flashes restore to
+  // this instead of clearing outright, so the recolor survives combat.
+  private readonly baseTint: number | null;
 
-  constructor(scene: Phaser.Scene, def: EnemyData, x: number, y: number, playerLevel: number, hpMult = 1, dmgMult = 1) {
+  constructor(scene: Phaser.Scene, def: EnemyData, x: number, y: number, playerLevel: number, hpMult = 1, dmgMult = 1, baseTint: number | null = null) {
     addSpriteTexture(scene, def.sprite, spriteRowsFor(def.sprite));
     super(scene, x, y, def.sprite);
     this.def = def;
     this.dmgMult = dmgMult;
+    this.baseTint = baseTint;
+    if (baseTint !== null) this.setTint(baseTint);
     this.maxHp = Math.round(scaledEnemyHp(def.hp, playerLevel) * hpMult);
     this.hp = this.maxHp;
     scene.add.existing(this);
@@ -105,7 +110,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.windupT -= dt;
       this.setVelocity(0, 0);
       if (this.windupT <= 0) {
-        this.clearTint();
+        this.restoreTint();
         const reach = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
         if (reach < CONTACT_RANGE + 4) this.receiveThorns(this.hitPlayer(player, this.def.dmg, numbers), numbers);
       }
@@ -120,7 +125,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.chargeWindupT -= dt;
         this.setVelocity(0, 0);
         if (this.chargeWindupT <= 0) {
-          this.clearTint();
+          this.restoreTint();
           const dd = d || 1;
           this.chargeVX = ((player.x - this.x) / dd) * this.def.charge.speed;
           this.chargeVY = ((player.y - this.y) / dd) * this.def.charge.speed;
@@ -238,6 +243,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.scene.tweens.add({ targets: ring, alpha: 0, duration: seconds * 1000, onComplete: () => ring.destroy() });
   }
 
+  /** Clears a telegraph flash, restoring the persistent corrupt tint if any. */
+  private restoreTint(): void {
+    if (this.baseTint !== null) this.setTint(this.baseTint);
+    else this.clearTint();
+  }
+
   /** Deals `base` damage to the player, scaled by this enemy's corruption mult. */
   private hitPlayer(player: Player, base: number, numbers: DamageNumbers): number {
     return player.takeDamage(base * this.dmgMult, numbers);
@@ -317,7 +328,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.hp -= amount;
     numbers.spawn(this.x, this.y, amount, hit.crit ? '#ffd84a' : '#ffffff', hit.crit ? 'crit' : 'normal');
     this.setTintFill(0xffffff);
-    this.scene.time.delayedCall(120, () => this.clearTint());
+    this.scene.time.delayedCall(120, () => this.restoreTint());
     if (this.hp <= 0) this.die();
     return amount;
   }

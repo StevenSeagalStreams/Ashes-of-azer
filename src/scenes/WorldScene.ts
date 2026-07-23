@@ -21,7 +21,7 @@ import { StashUI } from '../ui/StashUI.ts';
 import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from '../ui/RepairUI.ts';
 import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
-import { cleanseCorruption, corruptionTier, gainCorruption } from '../systems/corruption.ts';
+import { cleanseCorruption, corruptedEnemy, corruptionTier, gainCorruption } from '../systems/corruption.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
 import {
@@ -623,10 +623,12 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- spawning ----------
 
-  /** Creates an enemy scaled by the current corruption tier and adds it to the group. */
+  /** Creates an enemy scaled + possibly corrupted by the current tier, and adds it. */
   private makeEnemy(def: EnemyData, x: number, y: number): Enemy {
-    const tier = corruptionTier(this.saveData.world.corruption);
-    const e = new Enemy(this, def, x, y, this.player.level, tier.enemyHpMult, tier.enemyDmgMult);
+    const corruption = this.saveData.world.corruption;
+    const tier = corruptionTier(corruption);
+    const variant = corruptedEnemy(def, corruption); // recolor + extra move at high tiers
+    const e = new Enemy(this, variant.def, x, y, this.player.level, tier.enemyHpMult, tier.enemyDmgMult, variant.tint);
     this.enemies.add(e);
     return e;
   }

@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   cleanseCorruption,
   clampCorruption,
+  corruptedEnemy,
   corruptionTier,
   gainCorruption,
   CORRUPTION_PER_BOSS,
   CORRUPTION_PER_KILL,
 } from './corruption.ts';
+import type { EnemyData } from '../data/schemas/index.ts';
 
 describe('corruptionTier', () => {
   it('returns the highest tier the value has reached', () => {
@@ -55,5 +57,35 @@ describe('clampCorruption', () => {
     expect(clampCorruption(-5)).toBe(0);
     expect(clampCorruption(150)).toBe(100);
     expect(clampCorruption(42)).toBe(42);
+  });
+});
+
+describe('corruptedEnemy', () => {
+  const wolf: EnemyData = {
+    id: 'w', sprite: 'w', hp: 30, dmg: 10, spd: 40, xp: 10, aggro: 100, width: 10, height: 8,
+    charge: { range: 130, windup: 0.5, speed: 240, duration: 0.45, cooldown: 3 },
+    corrupt: { tierMin: 50, tint: '#c060c0', slam: { interval: 4, damage: 10, radius: 42 } },
+  };
+
+  it('returns the base def unchanged below the variant threshold', () => {
+    const r = corruptedEnemy(wolf, 40);
+    expect(r.def).toBe(wolf);
+    expect(r.def.slam).toBeUndefined();
+    expect(r.tint).toBeNull();
+  });
+
+  it('overlays the extra move + tint once corruption reaches tierMin', () => {
+    const r = corruptedEnemy(wolf, 60);
+    expect(r.def.slam).toEqual({ interval: 4, damage: 10, radius: 42 }); // new move added
+    expect(r.def.charge).toEqual(wolf.charge); // base move kept
+    expect(r.tint).toBe(0xc060c0);
+    expect(wolf.slam).toBeUndefined(); // base def never mutated
+  });
+
+  it('leaves plain enemies (no corrupt block) untouched at any corruption', () => {
+    const plain: EnemyData = { id: 'p', sprite: 'p', hp: 10, dmg: 1, spd: 1, xp: 1, aggro: 1, width: 4, height: 4 };
+    const r = corruptedEnemy(plain, 100);
+    expect(r.def).toBe(plain);
+    expect(r.tint).toBeNull();
   });
 });

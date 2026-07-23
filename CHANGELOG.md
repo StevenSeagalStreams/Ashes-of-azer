@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **Corrupted foes.** Fight in a heavily corrupted zone (Corrupt tier and above)
+  and the wilds fight dirtier: enemies turn an unnatural **violet** and gain a new
+  attack. Thornwolves and grovewardens pulse a **ground shockwave**, sporelings
+  **burst wider and harder**, and fungal spitters loose a **faster barrage**.
+  Cleanse below the threshold and they return to normal.
 - **The world notices your corruption.** Let corruption climb and the people you
   talk to start to react. **Elder Maru** reads the ash on you and warns you as it
   deepens (three escalating warnings across the tiers), **Warden-Captain Aldric**

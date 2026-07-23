@@ -1,3 +1,5 @@
+import type { EnemyData } from '../data/schemas/index.ts';
+
 // Corruption — the risk dial (Milestone 3 prototype). Pure + unit-tested; the
 // scene owns the side effects (scaling spawns, biasing loot, cleansing at wells).
 //
@@ -56,3 +58,21 @@ export const gainCorruption = (corruption: number, boss: boolean): number =>
 /** Corruption after `dt` seconds of cleansing at a well. */
 export const cleanseCorruption = (corruption: number, dt: number): number =>
   clampCorruption(corruption - CORRUPTION_CLEANSE_RATE * dt);
+
+/**
+ * The def an enemy should actually spawn as at a given corruption level (m3
+ * corrupted variants). If the enemy has a `corrupt` block and corruption has
+ * reached its `tierMin`, returns the base def with the variant's pattern fields
+ * overlaid plus the tint to apply; otherwise the def unchanged and no tint.
+ */
+export function corruptedEnemy(def: EnemyData, corruption: number): { def: EnemyData; tint: number | null } {
+  const v = def.corrupt;
+  if (!v || corruption < v.tierMin) return { def, tint: null };
+  const merged: EnemyData = { ...def };
+  if (v.slam) merged.slam = v.slam;
+  if (v.charge) merged.charge = v.charge;
+  if (v.ranged) merged.ranged = v.ranged;
+  if (v.explode) merged.explode = v.explode;
+  if (v.summon) merged.summon = v.summon;
+  return { def: merged, tint: Number.parseInt(v.tint.replace('#', ''), 16) };
+}
