@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **Corruption you can feel.** As corruption climbs, the world darkens around you —
+  a creeping tint (violet at Tainted deepening to a bruised red-black at Abyssal)
+  and **ash and embers drifting across the screen**, thickening with each tier.
+  Cleanse at a well and the air clears again.
 - **Corruption — push your luck.** Every foe you kill feeds a **corruption dial**
   (top-left, under your XP), and bosses spike it hard. The more corrupt the ground
   you fight on, the **tougher the enemies** (more health, more damage) — but the

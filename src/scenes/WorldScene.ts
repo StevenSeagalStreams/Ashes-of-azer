@@ -134,6 +134,9 @@ export class WorldScene extends Phaser.Scene {
   private numbers!: DamageNumbers;
   private slash!: Phaser.GameObjects.Image;
   private fog!: FogOfWar;
+  // Corruption ambience (m3 visual layer): a screen tint + falling ash/embers.
+  private corruptionOverlay!: Phaser.GameObjects.Rectangle;
+  private corruptionEmber!: Phaser.GameObjects.Particles.ParticleEmitter;
   private spaceKey!: Phaser.Input.Keyboard.Key;
   // True while the left mouse button is held over the game canvas. Phaser's
   // pointerdown only fires for canvas clicks, so clicks on the DOM skill UI
@@ -459,6 +462,7 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player);
     this.fog = new FogOfWar(this, this.zoneDef.dark, this.player.visionBonus);
+    this.buildCorruptionAmbience();
 
     this.time.addEvent({ delay: AUTOSAVE_MS, loop: true, callback: () => this.saveNow() });
     this.publishHud();
@@ -505,6 +509,7 @@ export class WorldScene extends Phaser.Scene {
           this.saveData.world.corruption = Phaser.Math.Clamp(n, 0, 100);
           this.saveNow();
           this.publishHud();
+          this.updateCorruptionAmbience();
           return this.saveData.world.corruption;
         },
         godMode: (on) => {
@@ -573,6 +578,7 @@ export class WorldScene extends Phaser.Scene {
         if (this.saveData.world.corruption > 0) {
           this.saveData.world.corruption = cleanseCorruption(this.saveData.world.corruption, dt);
           this.publishHud();
+          this.updateCorruptionAmbience();
         }
       }
       if (trigger?.kind === 'secret' && !this.saveData.secrets.includes(trigger.secretId)) {
@@ -677,6 +683,46 @@ export class WorldScene extends Phaser.Scene {
       state.timer -= dt;
       if (state.timer <= 0) state.eid = this.spawnWorldBoss(state.spawn);
     }
+  }
+
+  /** Builds the screen-fixed corruption tint + ash/ember emitter (m3). */
+  private buildCorruptionAmbience(): void {
+    const cam = this.cameras.main;
+    if (!this.textures.exists('mote')) {
+      const g = this.make.graphics({ x: 0, y: 0 });
+      g.fillStyle(0xffffff, 1).fillRect(0, 0, 2, 2);
+      g.generateTexture('mote', 2, 2);
+      g.destroy();
+    }
+    this.corruptionOverlay = this.add
+      .rectangle(0, 0, cam.width, cam.height, 0x000000, 0)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(30);
+    // Motes drift down from above the screen, fading — ash at low corruption,
+    // embers at high (the tint blends toward orange). Screen-fixed ambience.
+    this.corruptionEmber = this.add.particles(0, 0, 'mote', {
+      x: { min: 0, max: cam.width },
+      y: -4,
+      lifespan: 4200,
+      speedY: { min: 10, max: 26 },
+      speedX: { min: -8, max: 8 },
+      scale: { min: 0.5, max: 1.4 },
+      alpha: { start: 0.85, end: 0 },
+      tint: [0xe07830, 0x9aa0b0, 0xc85030],
+      frequency: -1, // off until corruption rises
+      quantity: 1,
+    });
+    this.corruptionEmber.setScrollFactor(0).setDepth(31);
+    this.updateCorruptionAmbience();
+  }
+
+  /** Syncs the tint + ember rate to the current corruption tier. */
+  private updateCorruptionAmbience(): void {
+    if (!this.corruptionOverlay) return;
+    const tier = corruptionTier(this.saveData.world.corruption);
+    this.corruptionOverlay.setFillStyle(tier.tint, tier.overlayAlpha);
+    this.corruptionEmber.frequency = tier.emberRate > 0 ? 1000 / tier.emberRate : -1;
   }
 
   /** A brief screen-fixed banner heralding a world boss's (re)spawn. */
@@ -1193,6 +1239,7 @@ export class WorldScene extends Phaser.Scene {
       const after = corruptionTier(this.saveData.world.corruption);
       if (after.name !== before) this.numbers.spawn(this.player.x, this.player.y - 30, `☣ ${after.name}`, '#b06ad0');
       this.publishHud();
+      this.updateCorruptionAmbience();
     }
     this.gainXp(def.xp);
     this.questEvent('kill', def.id);

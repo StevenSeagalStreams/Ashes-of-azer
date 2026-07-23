@@ -17,13 +17,18 @@ describe('corruptionTier', () => {
     expect(corruptionTier(100).name).toBe('Abyssal');
   });
 
-  it('higher tiers are strictly nastier and more rewarding', () => {
+  it('higher tiers are strictly nastier, more rewarding, and more ominous', () => {
     const pure = corruptionTier(0);
     const abyssal = corruptionTier(100);
     expect(abyssal.enemyHpMult).toBeGreaterThan(pure.enemyHpMult);
     expect(abyssal.enemyDmgMult).toBeGreaterThan(pure.enemyDmgMult);
     expect(abyssal.dropChanceAdd).toBeGreaterThan(pure.dropChanceAdd);
     expect(abyssal.rarityBonus).toBeGreaterThan(pure.rarityBonus);
+    // Ambience ramps with the tier; the base tier is visually clean.
+    expect(pure.overlayAlpha).toBe(0);
+    expect(pure.emberRate).toBe(0);
+    expect(abyssal.overlayAlpha).toBeGreaterThan(pure.overlayAlpha);
+    expect(abyssal.emberRate).toBeGreaterThan(pure.emberRate);
   });
 });
 

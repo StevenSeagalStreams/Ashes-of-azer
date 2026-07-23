@@ -159,7 +159,7 @@ Prototype this cheaply before building all 8 zones — it changes what assets ev
 
 - [x] Global corruption value (0–100) — **the risk dial** (decided with user): raised by kills (bosses spike it), cleansed at heal wells. *(Was "driven by relic fragments collected"; per the user the driver is combat and relics stay collectibles. Relics could still nudge corruption later if wanted.)*
 - [x] Corruption tiers (0/25/50/75/100) drive gameplay, not just flags: tougher enemies (HP + damage) and better loot (drop chance + rarity "luck") at higher tiers — `src/systems/corruption.ts` (tuning table; movable to data/ later). HUD shows the dial + tier.
-- [ ] Cheap visual layer: palette/tint shifts per tier, particle ambience (ash, embers)
+- [x] Cheap visual layer: palette/tint shifts per tier, particle ambience (ash, embers) — a screen-fixed tint overlay + falling ash/ember emitter that ramp with the tier (off/clean at Pure → dark red-black + streaming embers at Abyssal); tuning on the tier table in `corruption.ts`
 - [ ] Dialogue variants per tier (conditions already supported by 2.2)
 - [ ] Spawn table variants per tier: corrupted enemy versions (recolor + 1 new move)
 - [ ] 1–2 scripted town changes per tier (an NPC disappears, a building boards up)

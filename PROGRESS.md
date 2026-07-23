@@ -1,20 +1,21 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 3 IN PROGRESS** — the corruption *risk-dial prototype* is done (boxes
-1–2). Corruption now DOES something: kills raise it, tiers scale enemies + loot,
-wells cleanse it (see below). **Next box (top-to-bottom): "Cheap visual layer:
-palette/tint shifts per tier, particle ambience (ash, embers)"** — make rising
-corruption *feel* ominous, not just a number. Approach: tint the camera / a
-fullscreen overlay per tier (subtle at Tainted → heavy red-black at Abyssal) +
-a light ash/ember particle emitter that intensifies with the tier. Then: dialogue
-variants per tier (conditions already support corruptionMin/Max), corrupted spawn
-variants (recolor + 1 move), scripted town changes, music layer, and the ending
-branch (3 final quests + 3 endings — that one is a big design/content box that
-will need your input). Also the roadmap's **playtest box** ("does rising
-corruption feel ominous or cosmetic?") is the key iterate-gate before scaling to
-all zones. Still open from earlier: 1.6 class sprite sheets (art), 2.1 objective
-markers (minimap).
+**MILESTONE 3 IN PROGRESS** — boxes 1–3 done (risk dial + gameplay scaling +
+visual ambience). Corruption raises with kills, scales enemies/loot, tints the
+screen + rains ash/embers per tier, and cleanses at wells. **Next box
+(top-to-bottom): "Dialogue variants per tier (conditions already supported by
+2.2)"** — pure content: add `corruptionMin/Max`-gated choices/nodes so NPCs react
+to how corrupt you are (e.g. townsfolk wary at high corruption). The dialogue
+engine already evaluates `corruptionMin/Max` (evalCondition) — this is just
+authoring content in dialogue.json. Then: corrupted spawn variants (recolor + 1
+move — a systems+content box), scripted town changes per tier, music layer, and
+the **ending branch** (3 final quests + 3 endings — a big design/content box that
+WILL need your input on the Destroy/Control/Become fantasy). The roadmap's
+**playtest box** ("does rising corruption feel ominous or cosmetic?") is the
+iterate-gate before scaling corruption to all zones — worth a human pass on the
+tuning now that the feel layer exists. Still open from earlier: 1.6 class sprite
+sheets (art), 2.1 objective markers (minimap).
 
 Corruption design decision (recorded): per the user, corruption is a **risk dial**
 driven by *combat* (not relic fragments as the roadmap originally said). Relics
@@ -105,6 +106,16 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 3 visual layer (box 3): corruption ambience** (headless-verified
+  7/7; 205 unit tests). Rising corruption now *reads at a glance*:
+  - Tier table (`corruption.ts`) gained `tint` / `overlayAlpha` / `emberRate`.
+  - WorldScene `buildCorruptionAmbience` makes a screen-fixed tint `Rectangle`
+    (depth 30) + a `mote` particle emitter (depth 31) of falling ash/embers;
+    `updateCorruptionAmbience` syncs the tint colour/alpha + emitter frequency to
+    the current tier, called on every corruption change (kill/cleanse/debug).
+  - Off + clean at Pure → violet at Tainted → dark red-black + streaming embers at
+    Abyssal. Verified in-browser: overlay alpha 0→0.3, tint 0x2a0510 at max,
+    emitter frequency ramps (off → ~21ms), cleansing clears it, no runtime errors.
 - **Milestone 3 corruption prototype (boxes 1–2): the risk dial**
   (headless-verified 6/6; 205 unit tests):
   - **Pure `src/systems/corruption.ts`**: 5 tiers (Pure/Tainted/Corrupt/Defiled/
@@ -882,13 +893,16 @@ Notes for the remaining 2.4 boxes:
   gating + rep — but **wants human eyes**: does the chain pace well across
   town↔Reach↔dungeon, are the givers easy to find (esp. the two rangers out in the
   wilds among enemies), and does earning Warden rank *feel* earned by the end?
-- **Corruption risk dial (m3)**: fight in the Reach/Bramblewarren and watch the
-  **purple corruption bar** (top-left, under XP) climb with each kill; enemies get
-  visibly tankier and hit harder, and loot drops more + rarer. Cleanse at a town
-  well. Smoke-verified the numbers — but the **core playtest question** (ROADMAP)
-  is human: does rising corruption feel *ominous / worth the risk*, or just a
-  number? Are the tier multipliers (up to 2.8× HP / 1.8× dmg at Abyssal) and the
-  +1.5/kill climb rate tuned right? This gates scaling corruption to all zones.
+- **Corruption risk dial + ambience (m3)**: fight in the Reach/Bramblewarren and
+  watch the **purple corruption bar** (top-left, under XP) climb with each kill;
+  the **screen tints darker and ash/embers start falling** as you rise through the
+  tiers, enemies get tankier and hit harder, and loot drops more + rarer. Cleanse
+  at a town well (the air clears). Smoke-verified the numbers + the visual ramp —
+  but the **core playtest question** (ROADMAP) is human: does rising corruption
+  feel *ominous / worth the risk*, or just a number? Are the tint/ember intensities
+  right (too subtle? too much?), and the tier multipliers (up to 2.8× HP / 1.8× dmg
+  at Abyssal) + the +1.5/kill climb rate tuned well? This gates scaling corruption
+  to all zones.
 - **Greathorn world boss (m2.4)**: enter the Verdant Reach and head to the **big
   central glade** — the Hollow Stag spawns there with a banner. Smoke-verified
   spawn/announce/kill/relic — but **wants human eyes**: is the banner readable and
