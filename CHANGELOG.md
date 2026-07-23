@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **The world notices your corruption.** Let corruption climb and the people you
+  talk to start to react. **Elder Maru** reads the ash on you and warns you as it
+  deepens (three escalating warnings across the tiers), **Warden-Captain Aldric**
+  grows wary and eventually *orders* you to a well, and **Priest Halden** cautions
+  that the ash's favour is a debt the Barrow always collects. New conversation
+  options appear as you corrupt — and vanish once you cleanse.
 - **Corruption you can feel.** As corruption climbs, the world darkens around you —
   a creeping tint (violet at Tainted deepening to a bruised red-black at Abyssal)
   and **ash and embers drifting across the screen**, thickening with each tier.

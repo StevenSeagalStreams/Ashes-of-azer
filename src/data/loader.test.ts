@@ -141,6 +141,30 @@ describe('the real /data/*.json content', () => {
     }
   });
 
+  it('per-tier corruption dialogue shows exactly one reaction per band', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const { visibleChoices } = await import('../systems/dialogue.ts');
+    const data = loadGameData();
+    const elder = data.dialogue.find((t) => t.id === 'elder')!;
+    const greet = elder.nodes.find((n) => n.id === 'greet')!;
+    const ctxAt = (corruption: number) => ({
+      flags: {},
+      quests: { active: [], completed: [], progress: {}, tracked: null },
+      catalog: data.quests,
+      corruption,
+    });
+    const changed = (c: number) => visibleChoices(greet, ctxAt(c)).filter((ch) => /seem changed/i.test(ch.text));
+    expect(changed(0)).toHaveLength(0); // Pure — no reaction
+    expect(changed(30)).toHaveLength(1); // Tainted band
+    expect(changed(60)).toHaveLength(1); // Corrupt band
+    expect(changed(90)).toHaveLength(1); // Defiled band
+    // Each band routes to a distinct, existing node.
+    const targets = [30, 60, 90].map((c) => changed(c)[0]!.nextNodeId);
+    expect(new Set(targets).size).toBe(3);
+    const nodeIds = new Set(elder.nodes.map((n) => n.id));
+    for (const t of targets) expect(nodeIds).toContain(t);
+  });
+
   it('the Bramblewarren mini-boss grants a relic fragment', async () => {
     const { loadGameData } = await import('./gameData.ts');
     const data = loadGameData();

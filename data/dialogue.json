@@ -29,6 +29,21 @@
             "nextNodeId": "inprogress"
           },
           {
+            "text": "Do I seem changed to you, elder?",
+            "condition": { "corruptionMin": 25, "corruptionMax": 49 },
+            "nextNodeId": "corr_taint"
+          },
+          {
+            "text": "Do I seem changed to you, elder?",
+            "condition": { "corruptionMin": 50, "corruptionMax": 74 },
+            "nextNodeId": "corr_corrupt"
+          },
+          {
+            "text": "Do I seem changed to you, elder?",
+            "condition": { "corruptionMin": 75 },
+            "nextNodeId": "corr_defiled"
+          },
+          {
             "text": "Farewell."
           }
         ]
@@ -60,6 +75,21 @@
             "text": "Soon."
           }
         ]
+      },
+      {
+        "id": "corr_taint",
+        "text": "A little ash clings to you — nothing a clean well won't wash away. But it deepens if you feed it, and it is hungry.",
+        "choices": [{ "text": "I'll remember that.", "nextNodeId": "greet" }]
+      },
+      {
+        "id": "corr_corrupt",
+        "text": "The corruption has its hooks in you now. It makes the wilds bare their teeth — and their treasures. A dangerous bargain, that.",
+        "choices": [{ "text": "A bargain I'll weigh.", "nextNodeId": "greet" }]
+      },
+      {
+        "id": "corr_defiled",
+        "text": "You are half a shadow, traveler. Power drips from you, but so does ruin. Find a well and cleanse, before Azer's ash claims you whole.",
+        "choices": [{ "text": "Before it's too late.", "nextNodeId": "greet" }]
       }
     ]
   },
@@ -558,6 +588,11 @@
             "nextNodeId": "thanks"
           },
           {
+            "text": "Priest — am I becoming one of them?",
+            "condition": { "corruptionMin": 50 },
+            "nextNodeId": "corr_bless"
+          },
+          {
             "text": "Farewell."
           }
         ]
@@ -571,6 +606,11 @@
             "nextNodeId": "greet"
           }
         ]
+      },
+      {
+        "id": "corr_bless",
+        "text": "Not yet — but the ash favours you, and that favour is a debt. It lends you strength and lends the wilds their teeth in equal measure. Kneel at a well and let the water take it; corruption is a loan the Barrow always calls in.",
+        "choices": [{ "text": "I'll cleanse it.", "nextNodeId": "greet" }]
       },
       {
         "id": "accepted",
@@ -614,10 +654,14 @@
           { "text": "The cull continues.", "condition": { "questActive": "q_wt_cull" }, "nextNodeId": "p_cull" },
           { "text": "I'm ready for the final trial. (Accept)", "condition": { "questAvailable": "q_wt_warden" }, "action": { "startsQuest": "q_wt_warden" }, "nextNodeId": "a_warden" },
           { "text": "It is finished.", "condition": { "questCompleted": "q_wt_warden" }, "nextNodeId": "done_warden" },
+          { "text": "You eye me warily, Captain.", "condition": { "corruptionMin": 50, "corruptionMax": 74 }, "nextNodeId": "corr_warn" },
+          { "text": "You reach for your blade, Captain.", "condition": { "corruptionMin": 75 }, "nextNodeId": "corr_hard" },
           { "text": "Farewell." }
         ]
       },
       { "id": "lore", "text": "I am Aldric, Captain of the Wardens of the Reach. Prove yourself against the wilds, the Barrow, and the Stag, and you'll rise through our ranks.", "choices": [{ "text": "I see.", "nextNodeId": "greet" }] },
+      { "id": "corr_warn", "text": "I've seen that ash-shadow on Wardens before. It sharpens the hunt and fattens the spoils — but it turns the Reach against you, blade by blade. Cleanse at a well when you can, recruit.", "choices": [{ "text": "Noted, Captain.", "nextNodeId": "greet" }] },
+      { "id": "corr_hard", "text": "Steady, now. You carry more corruption than most who walk out of the Barrow in a box. The green forgives much, but the ash forgives nothing. Go to a well — that is an order.", "choices": [{ "text": "Aye, Captain.", "nextNodeId": "greet" }] },
       { "id": "a_cull", "text": "Start with the sporelings fouling the glades — six should steady the Reach. Standing with the Wardens follows.", "choices": [{ "text": "Consider it done." }] },
       { "id": "p_cull", "text": "The spore-beasts still burst underfoot. Keep at it.", "choices": [{ "text": "Soon." }] },
       { "id": "a_warden", "text": "You've earned the right to the last trial: bring down Greathorn, then return to me. Do this and you are a Warden true.", "choices": [{ "text": "I will return." }] },

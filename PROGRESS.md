@@ -1,21 +1,20 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 3 IN PROGRESS** — boxes 1–3 done (risk dial + gameplay scaling +
-visual ambience). Corruption raises with kills, scales enemies/loot, tints the
-screen + rains ash/embers per tier, and cleanses at wells. **Next box
-(top-to-bottom): "Dialogue variants per tier (conditions already supported by
-2.2)"** — pure content: add `corruptionMin/Max`-gated choices/nodes so NPCs react
-to how corrupt you are (e.g. townsfolk wary at high corruption). The dialogue
-engine already evaluates `corruptionMin/Max` (evalCondition) — this is just
-authoring content in dialogue.json. Then: corrupted spawn variants (recolor + 1
-move — a systems+content box), scripted town changes per tier, music layer, and
-the **ending branch** (3 final quests + 3 endings — a big design/content box that
-WILL need your input on the Destroy/Control/Become fantasy). The roadmap's
-**playtest box** ("does rising corruption feel ominous or cosmetic?") is the
-iterate-gate before scaling corruption to all zones — worth a human pass on the
-tuning now that the feel layer exists. Still open from earlier: 1.6 class sprite
-sheets (art), 2.1 objective markers (minimap).
+**MILESTONE 3 IN PROGRESS** — boxes 1–4 done (risk dial + gameplay scaling +
+visual ambience + dialogue variants). **Next box (top-to-bottom): "Spawn table
+variants per tier: corrupted enemy versions (recolor + 1 new move)"** — a
+systems+content box: at higher corruption, spawn *corrupted* variants of the
+zone's enemies (a recolor/tint + one extra attack). Approach options: (a) a new
+optional `corrupt` block on an enemy def (tint + an added pattern) applied by
+`makeEnemy` when the tier is high enough, or (b) separate corrupted enemy entries
+the spawn table swaps in per tier. (a) is cheaper and keeps the roster small.
+Then: 1–2 scripted town changes per tier (an NPC disappears / a building boards
+up), music layer, and the **ending branch** (3 final quests + 3 endings —
+Destroy/Control/Become — a big design/content box that WILL need your input). The
+roadmap's **playtest box** ("does rising corruption feel ominous or cosmetic?")
+is the iterate-gate before scaling corruption to all zones. Still open from
+earlier: 1.6 class sprite sheets (art), 2.1 objective markers (minimap).
 
 Corruption design decision (recorded): per the user, corruption is a **risk dial**
 driven by *combat* (not relic fragments as the roadmap originally said). Relics
@@ -106,6 +105,19 @@ Notes for the remaining 2.4 boxes:
   backgrounded command failed here.
 
 ## Done
+- **Milestone 3 dialogue variants (box 4): NPCs react to corruption** (206 unit
+  tests; pure content, no engine work — the m2.2 dialogue engine already evaluates
+  `corruptionMin/Max`):
+  - **Elder Maru**: a "Do I seem changed?" choice with **3 mutually-exclusive tier
+    bands** (25–49 / 50–74 / 75+) → escalating warnings (corr_taint / corr_corrupt
+    / corr_defiled).
+  - **Warden-Captain Aldric**: wary at Corrupt (50–74), *orders you to a well* at
+    Defiled+ (75+).
+  - **Priest Halden**: at Corrupt+ (50+), warns the ash's favour is a debt.
+  - The reactions appear as corruption rises and vanish once cleansed (choices are
+    filtered by `visibleChoices`). Content test locks the per-tier exclusivity on
+    the real elder tree (exactly one reaction per band, each routing to a distinct
+    existing node); the content-graph test validates every new node link resolves.
 - **Milestone 3 visual layer (box 3): corruption ambience** (headless-verified
   7/7; 205 unit tests). Rising corruption now *reads at a glance*:
   - Tier table (`corruption.ts`) gained `tint` / `overlayAlpha` / `emberRate`.
