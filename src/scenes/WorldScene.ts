@@ -110,7 +110,10 @@ const RARITY_COLOR: Record<string, number> = {
   epic: 0xc88af5,
   legendary: 0xe07830,
 };
-const NORMAL_DROP_CHANCE = 0.4;
+// Diablo-2-sparse gear drops (m4.x): most kills drop nothing, so a drop — and
+// especially a rare/unique — feels earned. Bosses always drop; corruption luck
+// biases the rarity, not the frequency.
+const NORMAL_DROP_CHANCE = 0.15;
 // Crafting materials drop independently of gear (m2.3), a bit less often.
 const MATERIAL_DROP_CHANCE = 0.3;
 const PICKUP_RANGE = 16;
@@ -403,7 +406,7 @@ export class WorldScene extends Phaser.Scene {
       equip: (i) => this.equipFromBag(i),
       unequip: (slot) => this.unequipToBag(slot),
     });
-    this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random);
+    this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random, 8, this.player.level);
     this.shopUI = new ShopUI({
       affixes: this.gameData.affixes,
       gold: () => this.player.gold,
@@ -559,7 +562,7 @@ export class WorldScene extends Phaser.Scene {
 
   /** Debug: roll a loot item (optionally forcing slot/rarity) straight into the bag. */
   private debugSpawnItem(slot?: string, rarity?: string): string {
-    const opts: { slot?: ItemSlot; rarity?: string } = {};
+    const opts: { slot?: ItemSlot; rarity?: string; ilvl?: number } = { ilvl: this.player.level };
     if (slot) opts.slot = slot as ItemSlot;
     if (rarity) opts.rarity = rarity;
     const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, opts);
@@ -1330,7 +1333,7 @@ export class WorldScene extends Phaser.Scene {
       this.numbers.spawn(this.player.x, this.player.y - 12, `LEVEL ${res.level}!`, '#9bd44a');
       this.aoeRing(this.player.x, this.player.y, 50, '#9bd44a');
       // Vendor stock refreshes on level-up (roadmap).
-      this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random);
+      this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random, 8, this.player.level);
     }
     this.saveNow();
   }
@@ -1344,7 +1347,7 @@ export class WorldScene extends Phaser.Scene {
   private maybeDropLoot(def: EnemyData, x: number, y: number): void {
     const tier = corruptionTier(this.saveData.world.corruption);
     if (def.boss || Math.random() < NORMAL_DROP_CHANCE + tier.dropChanceAdd) {
-      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { luck: tier.rarityBonus });
+      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { luck: tier.rarityBonus, ilvl: this.player.level });
       this.spawnItemDrop(x, y, item);
     }
     if (Math.random() < MATERIAL_DROP_CHANCE) {
@@ -1456,7 +1459,7 @@ export class WorldScene extends Phaser.Scene {
     const faction = factionId ? this.gameData.factions.find((f) => f.id === factionId) : undefined;
     if (faction) {
       const bonus = repTier(faction, this.saveData.reputation[faction.id] ?? 0).vendorBonus;
-      this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random, 8 + bonus);
+      this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random, 8 + bonus, this.player.level);
     }
     this.shopUI.openShop();
   }
@@ -1645,7 +1648,7 @@ export class WorldScene extends Phaser.Scene {
     if (!recipe || !canCraft(recipe, this.saveData.materials, this.player.gold)) return;
     this.saveData.materials = spendInputs(recipe, this.saveData.materials);
     this.player.gold -= recipe.gold;
-    const item = craftItem(recipe, this.gameData.items, this.gameData.affixes, Math.random);
+    const item = craftItem(recipe, this.gameData.items, this.gameData.affixes, Math.random, this.player.level);
     this.saveData.bag.push(item);
     this.numbers.spawn(this.player.x, this.player.y - 14, `Forged ${item.name}`, `#${(RARITY_COLOR[item.rarity] ?? 0xffffff).toString(16).padStart(6, '0')}`);
     this.saveNow();

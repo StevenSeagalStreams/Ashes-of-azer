@@ -191,12 +191,19 @@ Zones 3–8, one at a time, each shippable as a content update. Per zone, run th
 
 Parallel tracks while building zones:
 
-### 4.x Itemization buildout
-- [ ] Grow legendary roster to 30–50, ~1/3 of them skill-modifying (add 4–6 per zone)
+### 4.x Itemization — Diablo 2 overhaul (user-directed; the core-loop priority)
+Heavy D2 fidelity: white bases matter, magic can roll extreme single stats, rares
+roll many affixes with rare high tiers, uniques have fixed signature stats, drops
+are sparse and un-accelerated. Built as a sequence, systems-first:
+- [x] **Item levels + tiered affixes + D2 drop rates** — every drop carries an item level; affixes roll from ilvl-gated **tiers** (higher tiers need higher ilvl and are rare), so magic (1–2 affixes) can hit an extreme single stat and rares (3–6 affixes) rarely roll a top tier. Retune drop rates sparse & un-accelerated (most kills drop nothing; uniques feel monumental). *(the foundation box)* — done: `AffixTier` schema + tiered `affixes.json`, `rollAffixTier` (ilvl-gated, weighted), variable `affixMin/affixMax` per rarity, `ilvl` on drops (= character level), gear drop chance 0.4→0.15, rarity weights white .58/magic .29/rare .09/epic .03/legendary .01.
+- [ ] **D2 rarity ladder**: normal / magic / rare / unique + **set** — rename the ladder (fold `epic`→a superior rare or drop it; `legendary`→`unique`, fixed signature stats + narrow ranges), add set items (partial-set bonuses). Save-migrate old rarity ids.
+- [ ] **Attribute requirements** (needs a call): add STR/DEX character attributes + per-base STR/DEX (and level) requirements, gating equip — *or* keep level-only requirements if a full attribute system is out of scope. **Ask the user before building.**
+- [ ] **Sockets + runewords**: white/gray bases roll socket counts (ilvl-gated); ordered rune inserts match runeword recipes for fixed powers. White/gray become chase bases, not trash.
+- [ ] **Unidentified drops**: magic+ items drop unidentified (base name only); an identify action (scroll/vendor) reveals the roll — the two-step reward loop.
+- [ ] Grow unique roster to 30–50, ~1/3 of them skill-modifying (add 4–6 per zone)
 - [ ] **Mythic tier**: ultra-rare, build-warping items (drop only from world bosses / endgame)
 - [ ] Remaining slots: belt, necklace, ring 2, offhand (shields, quivers, tomes)
 - [ ] Elite/champion enemy modifiers (Extra Fast, Frost-Enchanted, Shielded, Summoner…)
-- [ ] Set items (optional — cut if behind schedule)
 
 ### 4.x Boss design pass
 - [ ] Every zone boss gets 2–3 phases with distinct mechanics (not just bigger HP)

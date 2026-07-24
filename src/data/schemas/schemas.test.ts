@@ -46,14 +46,18 @@ describe('EnemiesFileSchema', () => {
 describe('AffixesFileSchema', () => {
   it('accepts a valid affix pool', () => {
     const affixes = [
-      { key: 'dmg', labelTemplate: '+{v} Damage', min: 2, max: 8 },
-      { key: 'poison', labelTemplate: 'Critical Hits poison enemies', min: 1, max: 1, flag: true },
+      { key: 'dmg', labelTemplate: '+{v} Damage', tiers: [{ ilvl: 1, min: 2, max: 8, weight: 100 }] },
+      { key: 'poison', labelTemplate: 'Critical Hits poison enemies', flag: true, tiers: [{ ilvl: 12, min: 1, max: 1, weight: 100 }] },
     ];
     expect(AffixesFileSchema.safeParse(affixes).success).toBe(true);
   });
 
   it('rejects an affix without a label template', () => {
-    expect(AffixesFileSchema.safeParse([{ key: 'dmg', min: 2, max: 8 }]).success).toBe(false);
+    expect(AffixesFileSchema.safeParse([{ key: 'dmg', tiers: [{ ilvl: 1, min: 2, max: 8, weight: 100 }] }]).success).toBe(false);
+  });
+
+  it('rejects an affix with no tiers', () => {
+    expect(AffixesFileSchema.safeParse([{ key: 'dmg', labelTemplate: '+{v} Damage', tiers: [] }]).success).toBe(false);
   });
 });
 
@@ -68,7 +72,7 @@ describe('ItemsFileSchema', () => {
         Boots: [{ name: 'Worn Boots', base: 2 }],
         Ring: [{ name: 'Copper Ring', base: 1 }],
       },
-      rarities: [{ id: 'white', dropChance: 0.42, affixCount: 0 }],
+      rarities: [{ id: 'white', dropChance: 0.42, affixMin: 0, affixMax: 0 }],
       legendaries: [
         {
           name: 'Frostheart',

@@ -85,28 +85,33 @@
   "rarities": [
     {
       "id": "white",
-      "dropChance": 0.42,
-      "affixCount": 0
+      "dropChance": 0.58,
+      "affixMin": 0,
+      "affixMax": 0
     },
     {
       "id": "magic",
-      "dropChance": 0.34,
-      "affixCount": 1
+      "dropChance": 0.29,
+      "affixMin": 1,
+      "affixMax": 2
     },
     {
       "id": "rare",
-      "dropChance": 0.16,
-      "affixCount": 2
+      "dropChance": 0.09,
+      "affixMin": 3,
+      "affixMax": 5
     },
     {
       "id": "epic",
-      "dropChance": 0.06,
-      "affixCount": 3
+      "dropChance": 0.03,
+      "affixMin": 4,
+      "affixMax": 6
     },
     {
       "id": "legendary",
-      "dropChance": 0.02,
-      "affixCount": 3
+      "dropChance": 0.01,
+      "affixMin": 0,
+      "affixMax": 0
     }
   ],
   "legendaries": [

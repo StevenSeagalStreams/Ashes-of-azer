@@ -4,11 +4,11 @@ import { DataValidationError, validateGameData } from './loader.ts';
 
 const validRaw = {
   enemies: [{ id: 'slime', sprite: 'slime', hp: 22, dmg: 6, spd: 26, xp: 8, aggro: 90, width: 10, height: 6 }],
-  affixes: [{ key: 'dmg', labelTemplate: '+{v} Damage', min: 2, max: 8 }],
+  affixes: [{ key: 'dmg', labelTemplate: '+{v} Damage', tiers: [{ ilvl: 1, min: 2, max: 8, weight: 100 }] }],
   items: {
     slots: ['Weapon'],
     bases: { Weapon: [{ name: 'Rusty Sword', base: 3 }] },
-    rarities: [{ id: 'white', dropChance: 1, affixCount: 0 }],
+    rarities: [{ id: 'white', dropChance: 1, affixMin: 0, affixMax: 0 }],
     legendaries: [],
   },
   skills: [],
@@ -38,7 +38,7 @@ describe('validateGameData', () => {
     const bad = {
       ...validRaw,
       enemies: [{ id: 'ghost' }], // missing required fields
-      affixes: [{ key: 'dmg' }], // missing labelTemplate/min/max
+      affixes: [{ key: 'dmg' }], // missing labelTemplate/tiers
     };
     try {
       validateGameData(bad);

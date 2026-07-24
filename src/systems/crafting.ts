@@ -22,9 +22,10 @@ export const spendInputs = (recipe: RecipeData, materials: MaterialCounts): Mate
   return out;
 };
 
-/** Forges the recipe's result as a normal rolled item (forced slot + rarity). */
-export const craftItem = (recipe: RecipeData, items: ItemsFile, affixes: AffixesFile, rng: Rng): ItemInstance =>
-  rollItem(items, affixes, rng, { slot: recipe.result.slot, rarity: recipe.result.rarity });
+/** Forges the recipe's result as a normal rolled item (forced slot + rarity) at
+ *  item level `ilvl` (the crafter's level — better tiers for higher characters). */
+export const craftItem = (recipe: RecipeData, items: ItemsFile, affixes: AffixesFile, rng: Rng, ilvl = 1): ItemInstance =>
+  rollItem(items, affixes, rng, { slot: recipe.result.slot, rarity: recipe.result.rarity, ilvl });
 
 /** Weighted pick of one material to drop (null if the table is empty). */
 export const pickMaterial = (materials: readonly MaterialDef[], rng: Rng): MaterialDef | null => {

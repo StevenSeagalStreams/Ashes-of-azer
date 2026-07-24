@@ -1,6 +1,15 @@
 # Changelog
 
 ## Unreleased
+- **Diablo-2-style itemization (part 1).** Loot now runs on **item levels and
+  affix tiers**: every drop carries an item level (your character level), and each
+  affix rolls from level-gated tiers — low tiers are common, the extreme top tiers
+  are rare and only appear on high-level gear. So a **magic** item (1–2 affixes)
+  can luck into one game-breaking stat, while a **rare** (3–6 affixes) only
+  occasionally rolls a top tier — a well-rolled rare can beat a unique. **Drops are
+  now sparse**: most kills drop nothing, and rares and uniques are genuinely rare,
+  so a good find feels earned. (More D2 fidelity — the rarity ladder, sockets and
+  runewords, attribute requirements, unidentified drops — is coming in stages.)
 - **A haven in the mire: Fenwatch.** A stilted town on a dry hummock at the
   marsh's edge, reached by the west causeway. Trade with Trader Sump, repair and
   craft at Smith Dregg's, bank your loot with Keeper Nyle, and reset your build

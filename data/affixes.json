@@ -1,13 +1,327 @@
 [
-  { "key": "dmg", "labelTemplate": "+{v} Damage", "min": 2, "max": 8 },
-  { "key": "aspd", "labelTemplate": "+{v}% Attack Speed", "min": 8, "max": 25 },
-  { "key": "crit", "labelTemplate": "+{v}% Critical Chance", "min": 4, "max": 15 },
-  { "key": "hp", "labelTemplate": "+{v} Max Life", "min": 10, "max": 45 },
-  { "key": "ms", "labelTemplate": "+{v}% Movement Speed", "min": 5, "max": 15 },
-  { "key": "lifesteal", "labelTemplate": "{v}% Life Steal", "min": 3, "max": 10 },
-  { "key": "frost", "labelTemplate": "+{v}% Frost Damage (chills)", "min": 10, "max": 35 },
-  { "key": "manakill", "labelTemplate": "Gain {v} Mana on Kill", "min": 3, "max": 10 },
-  { "key": "cdr", "labelTemplate": "{v}% Cooldown Reduction", "min": 5, "max": 20 },
-  { "key": "vision", "labelTemplate": "+{v} Vision", "min": 15, "max": 45 },
-  { "key": "poison", "labelTemplate": "Critical Hits poison enemies", "min": 1, "max": 1, "flag": true }
+  {
+    "key": "dmg",
+    "labelTemplate": "+{v} Damage",
+    "tiers": [
+      {
+        "ilvl": 1,
+        "min": 1,
+        "max": 3,
+        "weight": 100
+      },
+      {
+        "ilvl": 6,
+        "min": 3,
+        "max": 6,
+        "weight": 60
+      },
+      {
+        "ilvl": 14,
+        "min": 6,
+        "max": 10,
+        "weight": 28
+      },
+      {
+        "ilvl": 24,
+        "min": 10,
+        "max": 16,
+        "weight": 10
+      },
+      {
+        "ilvl": 36,
+        "min": 16,
+        "max": 26,
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "aspd",
+    "labelTemplate": "+{v}% Attack Speed",
+    "tiers": [
+      {
+        "ilvl": 1,
+        "min": 5,
+        "max": 10,
+        "weight": 100
+      },
+      {
+        "ilvl": 10,
+        "min": 10,
+        "max": 17,
+        "weight": 50
+      },
+      {
+        "ilvl": 20,
+        "min": 17,
+        "max": 25,
+        "weight": 20
+      },
+      {
+        "ilvl": 32,
+        "min": 25,
+        "max": 35,
+        "weight": 6
+      }
+    ]
+  },
+  {
+    "key": "crit",
+    "labelTemplate": "+{v}% Critical Chance",
+    "tiers": [
+      {
+        "ilvl": 1,
+        "min": 2,
+        "max": 5,
+        "weight": 100
+      },
+      {
+        "ilvl": 9,
+        "min": 5,
+        "max": 9,
+        "weight": 55
+      },
+      {
+        "ilvl": 18,
+        "min": 9,
+        "max": 14,
+        "weight": 24
+      },
+      {
+        "ilvl": 28,
+        "min": 14,
+        "max": 20,
+        "weight": 8
+      },
+      {
+        "ilvl": 40,
+        "min": 20,
+        "max": 28,
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "hp",
+    "labelTemplate": "+{v} Max Life",
+    "tiers": [
+      {
+        "ilvl": 1,
+        "min": 6,
+        "max": 15,
+        "weight": 100
+      },
+      {
+        "ilvl": 8,
+        "min": 15,
+        "max": 28,
+        "weight": 60
+      },
+      {
+        "ilvl": 16,
+        "min": 28,
+        "max": 45,
+        "weight": 28
+      },
+      {
+        "ilvl": 26,
+        "min": 45,
+        "max": 70,
+        "weight": 10
+      },
+      {
+        "ilvl": 38,
+        "min": 70,
+        "max": 110,
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "ms",
+    "labelTemplate": "+{v}% Movement Speed",
+    "tiers": [
+      {
+        "ilvl": 1,
+        "min": 3,
+        "max": 7,
+        "weight": 100
+      },
+      {
+        "ilvl": 12,
+        "min": 7,
+        "max": 12,
+        "weight": 45
+      },
+      {
+        "ilvl": 24,
+        "min": 12,
+        "max": 18,
+        "weight": 15
+      },
+      {
+        "ilvl": 36,
+        "min": 18,
+        "max": 25,
+        "weight": 5
+      }
+    ]
+  },
+  {
+    "key": "lifesteal",
+    "labelTemplate": "{v}% Life Steal",
+    "tiers": [
+      {
+        "ilvl": 6,
+        "min": 2,
+        "max": 4,
+        "weight": 100
+      },
+      {
+        "ilvl": 16,
+        "min": 4,
+        "max": 7,
+        "weight": 45
+      },
+      {
+        "ilvl": 28,
+        "min": 7,
+        "max": 11,
+        "weight": 15
+      },
+      {
+        "ilvl": 40,
+        "min": 11,
+        "max": 16,
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "frost",
+    "labelTemplate": "+{v}% Frost Damage (chills)",
+    "tiers": [
+      {
+        "ilvl": 4,
+        "min": 8,
+        "max": 18,
+        "weight": 100
+      },
+      {
+        "ilvl": 14,
+        "min": 18,
+        "max": 30,
+        "weight": 50
+      },
+      {
+        "ilvl": 26,
+        "min": 30,
+        "max": 45,
+        "weight": 18
+      },
+      {
+        "ilvl": 38,
+        "min": 45,
+        "max": 65,
+        "weight": 5
+      }
+    ]
+  },
+  {
+    "key": "manakill",
+    "labelTemplate": "Gain {v} Mana on Kill",
+    "tiers": [
+      {
+        "ilvl": 1,
+        "min": 2,
+        "max": 4,
+        "weight": 100
+      },
+      {
+        "ilvl": 12,
+        "min": 4,
+        "max": 7,
+        "weight": 45
+      },
+      {
+        "ilvl": 26,
+        "min": 7,
+        "max": 11,
+        "weight": 14
+      },
+      {
+        "ilvl": 38,
+        "min": 11,
+        "max": 15,
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "cdr",
+    "labelTemplate": "{v}% Cooldown Reduction",
+    "tiers": [
+      {
+        "ilvl": 6,
+        "min": 4,
+        "max": 9,
+        "weight": 100
+      },
+      {
+        "ilvl": 16,
+        "min": 9,
+        "max": 15,
+        "weight": 45
+      },
+      {
+        "ilvl": 28,
+        "min": 15,
+        "max": 22,
+        "weight": 15
+      },
+      {
+        "ilvl": 40,
+        "min": 22,
+        "max": 30,
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "vision",
+    "labelTemplate": "+{v} Vision",
+    "tiers": [
+      {
+        "ilvl": 1,
+        "min": 10,
+        "max": 25,
+        "weight": 100
+      },
+      {
+        "ilvl": 14,
+        "min": 25,
+        "max": 40,
+        "weight": 45
+      },
+      {
+        "ilvl": 30,
+        "min": 40,
+        "max": 60,
+        "weight": 14
+      }
+    ]
+  },
+  {
+    "key": "poison",
+    "labelTemplate": "Critical Hits poison enemies",
+    "flag": true,
+    "tiers": [
+      {
+        "ilvl": 12,
+        "min": 1,
+        "max": 1,
+        "weight": 100
+      }
+    ]
+  }
 ]

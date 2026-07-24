@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadGameData } from '../data/gameData.ts';
-import { gearStats, isBroken, itemValue, repairCost, rollItem, sellValue, type Rng } from './loot.ts';
+import { gearStats, isBroken, itemValue, repairCost, rollAffixTier, rollItem, sellValue, type Rng } from './loot.ts';
 import type { ItemInstance } from './save/schema.ts';
 
 const { items, affixes } = loadGameData();
@@ -12,14 +12,30 @@ const scriptRng = (values: number[]): Rng => {
   return () => values[i++ % values.length]!;
 };
 
+// A seeded PRNG for statistical assertions (many rolls) without Math.random.
+const seeded = (seed: number): Rng => () => {
+  seed |= 0;
+  seed = (seed + 0x6d2b79f5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+const rarityById = (id: string) => items.rarities.find((r) => r.id === id)!;
+
 describe('rollItem', () => {
-  it('rolls a base of the forced slot with the right number of affixes', () => {
-    // rarity 0.8 → 'rare' (cumulative 0.76..0.92, affixCount 2); base pick 0; then 2 affixes.
-    const item = rollItem(items, affixes, scriptRng([0.8, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Weapon' });
-    expect(item.slot).toBe('Weapon');
-    const rare = items.rarities.find((r) => r.id === 'rare')!;
-    expect(item.affixes.length).toBe(rare.affixCount);
-    expect(item.rarity).toBe('rare');
+  it('rolls a base of the forced slot with a rarity-appropriate affix count', () => {
+    const rng = seeded(1);
+    const rare = rarityById('rare');
+    for (let i = 0; i < 200; i++) {
+      const item = rollItem(items, affixes, rng, { slot: 'Weapon', rarity: 'rare', ilvl: 50 });
+      expect(item.slot).toBe('Weapon');
+      expect(item.rarity).toBe('rare');
+      // At a high ilvl every affix has an eligible tier, so the count lands in range.
+      expect(item.affixes.length).toBeGreaterThanOrEqual(rare.affixMin);
+      expect(item.affixes.length).toBeLessThanOrEqual(rare.affixMax);
+      expect(item.ilvl).toBe(50);
+    }
   });
 
   it('a white roll has no affixes', () => {
@@ -28,42 +44,104 @@ describe('rollItem', () => {
     expect(item.affixes).toEqual([]);
   });
 
-  it('rolls affix values within their declared min/max', () => {
-    const item = rollItem(items, affixes, scriptRng([0.8, 0, 0.1, 0.99, 0.2, 0.99]), { slot: 'Ring' });
-    for (const aff of item.affixes) {
-      const def = affixes.find((a) => a.key === aff.key)!;
-      expect(aff.value).toBeGreaterThanOrEqual(def.flag ? 1 : def.min);
-      expect(aff.value).toBeLessThanOrEqual(def.flag ? 1 : def.max);
+  it('rolls affix values within some eligible tier of the affix', () => {
+    const rng = seeded(7);
+    for (let i = 0; i < 200; i++) {
+      const item = rollItem(items, affixes, rng, { slot: 'Ring', rarity: 'epic', ilvl: 50 });
+      for (const aff of item.affixes) {
+        const def = affixes.find((a) => a.key === aff.key)!;
+        if (def.flag) { expect(aff.value).toBe(1); continue; }
+        const lo = Math.min(...def.tiers.map((t) => t.min));
+        const hi = Math.max(...def.tiers.map((t) => t.max));
+        expect(aff.value).toBeGreaterThanOrEqual(lo);
+        expect(aff.value).toBeLessThanOrEqual(hi);
+      }
     }
   });
 
   it('never rolls the same affix twice on one item', () => {
-    const item = rollItem(items, affixes, scriptRng([0.8, 0, 0.1, 0.3, 0.7, 0.7]), { slot: 'Chest' });
-    const keys = item.affixes.map((a) => a.key);
-    expect(new Set(keys).size).toBe(keys.length);
+    const rng = seeded(3);
+    for (let i = 0; i < 100; i++) {
+      const item = rollItem(items, affixes, rng, { slot: 'Chest', rarity: 'epic', ilvl: 50 });
+      const keys = item.affixes.map((a) => a.key);
+      expect(new Set(keys).size).toBe(keys.length);
+    }
   });
 
   it('luck (corruption) takes the best of extra rarity rolls', () => {
-    // luck 1 → best of two rarity rolls: a white (0.0) and a rare (0.8) → rare.
-    const item = rollItem(items, affixes, scriptRng([0.0, 0.8, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Helmet', luck: 1 });
-    expect(item.rarity).toBe('rare');
+    // luck 1 → best of two rarity rolls: a white (0.0) and a rare (0.95) → rare.
+    const item = rollItem(items, affixes, scriptRng([0.0, 0.95, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Helmet', luck: 1, ilvl: 30 });
+    expect(['rare', 'epic', 'legendary']).toContain(item.rarity);
+    expect(item.rarity).not.toBe('white');
   });
 
   it('honours a forced rarity (crafting) regardless of the rarity roll value', () => {
-    // First rng value would roll white by dropChance; opts.rarity overrides it.
-    const item = rollItem(items, affixes, scriptRng([0.0, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Weapon', rarity: 'rare' });
+    const item = rollItem(items, affixes, scriptRng([0.0, 0, 0.9, 0.1, 0.5, 0.2, 0.5]), { slot: 'Weapon', rarity: 'rare', ilvl: 40 });
     expect(item.rarity).toBe('rare');
-    const rare = items.rarities.find((r) => r.id === 'rare')!;
-    expect(item.affixes.length).toBe(rare.affixCount);
+    expect(item.affixes.length).toBeGreaterThanOrEqual(rarityById('rare').affixMin);
   });
 
   it('a legendary roll for a slot with a legendary yields it (power + forced affixes)', () => {
-    // Force the highest rarity roll (~0.99 → legendary). Ring has legendaries.
-    const item = rollItem(items, affixes, scriptRng([0.99, 0]), { slot: 'Ring' });
+    const item = rollItem(items, affixes, scriptRng([0.999, 0]), { slot: 'Ring', ilvl: 40 });
     expect(item.rarity).toBe('legendary');
     expect(item.power).toBeTruthy();
     const leg = items.legendaries.find((l) => l.power === item.power)!;
     expect(item.affixes).toEqual(leg.forcedAffixes);
+  });
+});
+
+describe('item levels + affix tiers (D2 itemization)', () => {
+  it('gates high tiers behind item level — a low-ilvl item never rolls a top tier', () => {
+    const dmg = affixes.find((a) => a.key === 'dmg')!;
+    const topTier = dmg.tiers.reduce((mx, t) => (t.ilvl > mx.ilvl ? t : mx));
+    const rng = seeded(11);
+    let sawTopBand = false;
+    for (let i = 0; i < 500; i++) {
+      // ilvl 1: only tiers with ilvl ≤ 1 are eligible, so a top-band value is impossible.
+      const tier = rollAffixTier(dmg, 1, rng);
+      expect(tier!.ilvl).toBeLessThanOrEqual(1);
+      if (tier!.max >= topTier.min) sawTopBand = true;
+    }
+    expect(sawTopBand).toBe(false);
+  });
+
+  it('lets a high-ilvl item reach the extreme top tier (rarely)', () => {
+    const dmg = affixes.find((a) => a.key === 'dmg')!;
+    const top = dmg.tiers.reduce((mx, t) => (t.ilvl > mx.ilvl ? t : mx));
+    const rng = seeded(5);
+    let hits = 0;
+    for (let i = 0; i < 4000; i++) {
+      const tier = rollAffixTier(dmg, 99, rng);
+      if (tier === top) hits++;
+    }
+    // Reachable but rare (top weight is a small fraction of the total).
+    expect(hits).toBeGreaterThan(0);
+    expect(hits).toBeLessThan(4000 * 0.1);
+  });
+
+  it('returns null when no tier is reachable at the item level', () => {
+    const poison = affixes.find((a) => a.key === 'poison')!; // lowest tier ilvl is 12
+    expect(rollAffixTier(poison, 1, seeded(1))).toBeNull();
+    expect(rollAffixTier(poison, 12, seeded(1))).not.toBeNull();
+  });
+
+  it('drops skew sparse & common: white/magic dominate, uniques are very rare', () => {
+    const rng = seeded(99);
+    const counts: Record<string, number> = {};
+    const N = 20000;
+    for (let i = 0; i < N; i++) {
+      const item = rollItem(items, affixes, rng, { ilvl: 40 });
+      counts[item.rarity] = (counts[item.rarity] ?? 0) + 1;
+    }
+    const frac = (id: string) => (counts[id] ?? 0) / N;
+    // Normal + magic are the overwhelming majority (D2: most drops are chaff).
+    expect(frac('white') + frac('magic')).toBeGreaterThan(0.8);
+    expect(frac('white')).toBeGreaterThan(frac('magic'));
+    expect(frac('magic')).toBeGreaterThan(frac('rare'));
+    expect(frac('rare')).toBeGreaterThan(frac('legendary'));
+    // A unique is a monumental ~1% of drops (before drop-frequency sparsity).
+    expect(frac('legendary')).toBeLessThan(0.03);
+    expect(frac('legendary')).toBeGreaterThan(0); // still possible
   });
 });
 

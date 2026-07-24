@@ -13,8 +13,11 @@ export type ItemBase = z.infer<typeof ItemBaseSchema>;
 
 export const RarityTierSchema = z.object({
   id: z.string(), // white/magic/rare/epic/legendary
-  dropChance: z.number().min(0).max(1),
-  affixCount: z.number().int().nonnegative(),
+  dropChance: z.number().min(0).max(1), // relative drop weight (not an absolute probability)
+  // D2-style variable affix count: an item rolls a random count in [affixMin, affixMax]
+  // — magic gets 1–2, a rare 3–5, etc. Legendaries ignore this (fixed forced affixes).
+  affixMin: z.number().int().nonnegative(),
+  affixMax: z.number().int().nonnegative(),
 });
 export type RarityTier = z.infer<typeof RarityTierSchema>;
 

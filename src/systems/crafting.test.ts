@@ -47,13 +47,14 @@ describe('spendInputs', () => {
 
 describe('craftItem', () => {
   it('forges an item of the recipe slot at the forced rarity, with full durability', () => {
-    const item = craftItem(recipe, items, affixes, scriptRng([0.1, 0.5, 0.5, 0.5]));
+    const item = craftItem(recipe, items, affixes, scriptRng([0.1, 0.5, 0.5, 0.5, 0.5, 0.5]), 40);
     expect(item.slot).toBe('Weapon');
     expect(item.rarity).toBe('rare');
     expect(item.durability).toBeGreaterThan(0);
     expect(item.durability).toBe(item.maxDurability);
     const rare = items.rarities.find((r) => r.id === 'rare')!;
-    expect(item.affixes.length).toBe(rare.affixCount);
+    expect(item.affixes.length).toBeGreaterThanOrEqual(rare.affixMin);
+    expect(item.affixes.length).toBeLessThanOrEqual(rare.affixMax);
   });
 });
 

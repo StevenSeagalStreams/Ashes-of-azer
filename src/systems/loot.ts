@@ -1,13 +1,34 @@
 // Loot roll engine + gear-stat aggregation (Milestone 1.7 — the loot loop).
 // Pure and unit-tested: an RNG is injected so rolls are deterministic in tests.
 
-import type { AffixesFile, ItemSlot, ItemsFile } from '../data/schemas/index.ts';
+import type { AffixData, AffixesFile, AffixTier, ItemSlot, ItemsFile } from '../data/schemas/index.ts';
 import type { ItemInstance } from './save/schema.ts';
 
 export type Rng = () => number; // [0, 1)
 
 const pick = <T>(arr: readonly T[], rng: Rng): T => arr[Math.floor(rng() * arr.length)] as T;
 const randInt = (min: number, max: number, rng: Rng): number => min + Math.floor(rng() * (max - min + 1));
+
+/** The default item level for rolls that don't specify one (tests, fallbacks). */
+export const DEFAULT_ILVL = 1;
+
+/**
+ * Chooses one affix tier for a given item level: only tiers with `ilvl` ≤ the
+ * item's level are eligible, and among those one is picked weighted by `weight`
+ * (low tiers common, high tiers rare — the D2 tier curve). Returns null when the
+ * affix has no tier the item level can reach yet.
+ */
+export function rollAffixTier(affix: AffixData, ilvl: number, rng: Rng): AffixTier | null {
+  const eligible = affix.tiers.filter((t) => ilvl >= t.ilvl);
+  if (eligible.length === 0) return null;
+  const total = eligible.reduce((s, t) => s + t.weight, 0);
+  let roll = rng() * total;
+  for (const t of eligible) {
+    roll -= t.weight;
+    if (roll < 0) return t;
+  }
+  return eligible[eligible.length - 1]!;
+}
 
 /** Weighted rarity pick by dropChance (falls back to the last tier). */
 function rollRarity(items: ItemsFile, rng: Rng): ItemsFile['rarities'][number] {
@@ -28,6 +49,7 @@ export interface RollOpts {
   slot?: ItemSlot; // force a slot; otherwise a random slot that has bases
   rarity?: string; // force a rarity id (crafting); otherwise rolled by dropChance
   luck?: number; // extra rarity rolls (corruption); the best of (1 + luck) wins
+  ilvl?: number; // item level of the drop — gates which affix tiers can roll
 }
 
 /** Best-of-(1+luck) rarity roll — higher luck biases toward rarer tiers. */
@@ -58,9 +80,10 @@ export const isBroken = (item: ItemInstance): boolean =>
   item.maxDurability !== undefined && item.durability !== undefined && item.maxDurability > 0 && item.durability <= 0;
 
 /**
- * Rolls one item instance. Legendary rarity with a matching legendary yields
- * that legendary (its forced affixes + power); otherwise a base of the slot
- * plus `affixCount` distinct rolled affixes.
+ * Rolls one item instance at item level `opts.ilvl`. Legendary rarity with a
+ * matching legendary yields that legendary (its forced affixes + power);
+ * otherwise a base of the slot plus a rarity-sized count of distinct affixes,
+ * each rolled from an ilvl-gated tier (the D2 curve).
  */
 export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts: RollOpts = {}): ItemInstance {
   const eligible = slotsWithBases(items);
@@ -68,6 +91,7 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
   const rarity = opts.rarity
     ? items.rarities.find((r) => r.id === opts.rarity) ?? rollRarity(items, rng)
     : rollRarityLucky(items, rng, opts.luck ?? 0);
+  const ilvl = Math.max(1, Math.floor(opts.ilvl ?? DEFAULT_ILVL));
 
   if (rarity.id === 'legendary') {
     const forSlot = items.legendaries.filter((l) => l.slot === slot);
@@ -76,25 +100,33 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
       const bases = items.bases[slot] ?? [];
       const base = bases.reduce((mx, b) => Math.max(mx, b.base), 0); // legendaries roll the best base
       const dur = durabilityFor(base, 'legendary');
-      return { slot, name: leg.name, base, rarity: 'legendary', affixes: [...leg.forcedAffixes], power: leg.power, durability: dur, maxDurability: dur };
+      return { slot, name: leg.name, base, rarity: 'legendary', ilvl, affixes: [...leg.forcedAffixes], power: leg.power, durability: dur, maxDurability: dur };
     }
   }
 
   const bases = items.bases[slot] ?? [];
   const baseItem = pick(bases, rng);
-  const rolled = rollAffixes(affixes, rarity.affixCount, rng);
+  const count = randInt(rarity.affixMin, rarity.affixMax, rng);
+  const rolled = rollAffixes(affixes, count, rng, ilvl);
   const dur = durabilityFor(baseItem.base, rarity.id);
-  return { slot, name: baseItem.name, base: baseItem.base, rarity: rarity.id, affixes: rolled, durability: dur, maxDurability: dur };
+  return { slot, name: baseItem.name, base: baseItem.base, rarity: rarity.id, ilvl, affixes: rolled, durability: dur, maxDurability: dur };
 }
 
-/** Rolls `count` distinct affixes (flag affixes are value 1, others min..max). */
-function rollAffixes(affixes: AffixesFile, count: number, rng: Rng): { key: string; value: number }[] {
+/**
+ * Rolls up to `count` distinct affixes for an item of level `ilvl`. Each affix's
+ * tier is chosen by `rollAffixTier` (ilvl-gated + weighted), so values follow the
+ * D2 curve. An affix whose lowest tier the item can't reach is skipped, so a
+ * low-ilvl item simply rolls from the shallow end of the pool.
+ */
+function rollAffixes(affixes: AffixesFile, count: number, rng: Rng, ilvl: number): { key: string; value: number }[] {
   const pool = [...affixes];
   const out: { key: string; value: number }[] = [];
   for (let i = 0; i < count && pool.length > 0; i++) {
     const idx = Math.floor(rng() * pool.length);
     const a = pool.splice(idx, 1)[0]!;
-    out.push({ key: a.key, value: a.flag ? 1 : randInt(a.min, a.max, rng) });
+    const tier = rollAffixTier(a, ilvl, rng);
+    if (!tier) continue; // no tier this item level can roll — skip this affix
+    out.push({ key: a.key, value: a.flag ? 1 : randInt(tier.min, tier.max, rng) });
   }
   return out;
 }
@@ -110,9 +142,9 @@ export const itemValue = (item: ItemInstance): number =>
 /** Sell price: a fraction of buy value (vendors low-ball you). */
 export const sellValue = (item: ItemInstance): number => Math.max(1, Math.floor(itemValue(item) * 0.4));
 
-/** A fresh vendor stock of `count` rolled items for a character level. */
-export function rollVendorStock(items: ItemsFile, affixes: AffixesFile, rng: Rng, count = 8): ItemInstance[] {
-  return Array.from({ length: count }, () => rollItem(items, affixes, rng));
+/** A fresh vendor stock of `count` rolled items at item level `ilvl`. */
+export function rollVendorStock(items: ItemsFile, affixes: AffixesFile, rng: Rng, count = 8, ilvl = DEFAULT_ILVL): ItemInstance[] {
+  return Array.from({ length: count }, () => rollItem(items, affixes, rng, { ilvl }));
 }
 
 // ---- gear → stats ----

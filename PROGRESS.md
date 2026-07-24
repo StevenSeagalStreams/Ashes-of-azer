@@ -1,10 +1,40 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 4 — Zone 3 (Haunted Marsh), in progress.** Four boxes done: poison/DoT
-system (1), marsh tiles+map+gates (2), undead roster (3), and now **the marsh town
-Fenwatch + services (box 4 — DONE, note below)**. **Next task (top-to-bottom): the
-marsh quest chain** — pure content (reuses the m2.1/2.2 quest+dialogue engines):
+**USER REDIRECT (this session): Diablo-2 itemization overhaul.** Mid-Zone-3, the
+user asked for heavy D2 fidelity on itemization + drop rates. I restructured the
+ROADMAP `4.x Itemization` track into a D2 sequence (foundation → rarity ladder →
+attribute requirements [needs a call] → sockets/runewords → unidentified drops →
+roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
+Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
+under Milestone 4 — but the user's itemization direction takes priority now.
+**Next task: decide with the user how to sequence** — continue the D2 itemization
+track (next box: the rarity ladder normal/magic/rare/unique + set items), or
+resume the Zone-3 marsh quest chain. The **attribute-requirements** box in the D2
+track needs an explicit user decision (adds a STR/DEX character-attribute system
+vs. level-only requirements) before it's built.
+
+### D2 itemization — foundation box (m4.x — DONE)
+Item levels + tiered affixes + sparse drop rates. Affix schema replaced flat
+min/max with **tiers** (`AffixTier`: `{ilvl,min,max,weight}`), and `affixes.json`
+was rewritten so each affix has 3–5 tiers — higher tiers need higher ilvl and
+carry lower weight (the D2 curve). `rollAffixTier(affix, ilvl, rng)` (pure,
+tested) picks an eligible tier weighted; returns null if none reachable.
+`RarityTier` swapped `affixCount` for `affixMin/affixMax` (magic 1–2, rare 3–5,
+epic 4–6; white/legendary 0), so magic can hit an extreme single stat and rares
+roll many with a rare top tier. Every drop now carries `ilvl` (optional on
+`ItemInstance` — additive, **no save-version bump**), set to the character level
+at `rollItem` (drops, vendor stock, crafting, debug all thread it). Drop rate
+`NORMAL_DROP_CHANCE` 0.4→**0.15** and rarity weights re-tuned sparse
+(white .58 / magic .29 / rare .09 / epic .03 / legendary .01). Tests: loot.test
+tier-gating + magic-reaches-top-tier + rarity-distribution; crafting/schema/loader
+fixtures updated to the new shapes. Smoke-verified in a real browser: debug rolls
+carry ilvl, affixes respect tier gating, legendaries keep their fixed power.
+NB: 'epic' still exists (a superior rare) — the rarity-ladder box renames the
+ladder to D2's normal/magic/rare/unique + sets.
+
+### (deferred) Zone-3 marsh quest chain
+Pure content (reuses the m2.1/2.2 quest+dialogue engines):
 NPC-given quests in `data/quests.json` (`autoOffer:false`, gated via `prerequisites`,
 shared `chain` id, objectives targeting real marsh enemy/zone/npc ids), quest-giver
 NPCs in `data/npcs.json` with `offersQuests`, and a dialogue tree per giver in
