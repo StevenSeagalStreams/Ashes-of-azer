@@ -65,6 +65,8 @@ export const MIGRATIONS: Record<number, Migration> = {
     const fixArr = (a: unknown): unknown[] => (Array.isArray(a) ? a.map(fixItem) : []);
     return { ...raw, gear, bag: fixArr(raw['bag']), stash: fixArr(raw['stash']) };
   },
+  // v13 → v14 (m4.x): a rune inventory for socketing; older saves start empty.
+  13: (raw) => ({ ...raw, runes: Array.isArray(raw['runes']) ? raw['runes'] : [] }),
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

@@ -34,6 +34,7 @@ import { ShopUI } from '../ui/ShopUI.ts';
 import { StashUI } from '../ui/StashUI.ts';
 import { RepairUI, type CraftEntry, type MaterialStock, type RepairEntry } from '../ui/RepairUI.ts';
 import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/crafting.ts';
+import { canSocket, pickRune, socketRune } from '../systems/sockets.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
 import { cleanseCorruption, corruptedEnemy, corruptionTier, corruptionTierRose, gainCorruption, npcVisibleAtCorruption, type CorruptionTier } from '../systems/corruption.ts';
 import { getCorruptionAudio } from '../systems/audio.ts';
@@ -73,7 +74,7 @@ import { parseMapObjects, triggerAt, type EnemyRegion, type MapObjects, type Sec
 import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 import { SkillUI } from '../ui/SkillUI.ts';
 import { QuestUI } from '../ui/QuestUI.ts';
-import { InventoryUI } from '../ui/InventoryUI.ts';
+import { InventoryUI, type SocketTarget } from '../ui/InventoryUI.ts';
 import type { ItemSlot, SkillData } from '../data/schemas/index.ts';
 
 declare global {
@@ -104,6 +105,7 @@ declare global {
         godMode: (on?: boolean) => boolean;
         grantAllRelics: () => string[];
         poisonPlayer: (dps?: number, duration?: number) => number;
+        grantRune: (id?: string) => number;
       };
     };
   }
@@ -135,6 +137,9 @@ const NORMAL_DROP_CHANCE = 0.15;
 const CORRUPTION_MAGIC_FIND = 60;
 // Crafting materials drop independently of gear (m2.3), a bit less often.
 const MATERIAL_DROP_CHANCE = 0.3;
+// Runes are rare (m4.x) — most kills won't yield one; bosses are far likelier.
+const RUNE_DROP_CHANCE = 0.03;
+const BOSS_RUNE_DROP_CHANCE = 0.5;
 const PICKUP_RANGE = 16;
 
 // A pickup lying on the ground: either a gear item (→ bag) or a stack of one
@@ -421,10 +426,13 @@ export class WorldScene extends Phaser.Scene {
     this.inventoryUI = new InventoryUI({
       affixes: this.gameData.affixes,
       sets: this.gameData.items.sets,
+      runes: this.gameData.items.runes,
       gear: () => this.saveData.gear,
       bag: () => this.saveData.bag,
+      heldRunes: () => this.saveData.runes,
       equip: (i) => this.equipFromBag(i),
       unequip: (slot) => this.unequipToBag(slot),
+      socketInto: (runeId, target) => this.socketRuneInto(runeId, target),
     });
     this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random, 8, this.player.level);
     this.shopUI = new ShopUI({
@@ -575,6 +583,16 @@ export class WorldScene extends Phaser.Scene {
         poisonPlayer: (dps = 20, duration = 3) => {
           this.player.poisonSelf(dps, duration);
           return this.player.poison.remaining;
+        },
+        grantRune: (id) => {
+          const rune = id
+            ? this.gameData.items.runes.find((r) => r.id === id)
+            : this.gameData.items.runes[0];
+          if (!rune) return this.saveData.runes.length;
+          this.saveData.runes.push(rune.id);
+          this.saveNow();
+          this.inventoryUI.refresh();
+          return this.saveData.runes.length;
         },
       },
     };
@@ -938,7 +956,7 @@ export class WorldScene extends Phaser.Scene {
       this.saveData.skillRanks,
       this.saveData.loadout.passives,
     );
-    const gs = gearStats(this.saveData.gear, this.gameData.items.sets); // equipped item bonuses + set bonuses (m1.7 / m4.x)
+    const gs = gearStats(this.saveData.gear, this.gameData.items.sets, this.gameData.items.runes); // gear + set + socketed-rune bonuses (m1.7 / m4.x)
     const p = this.player;
     const hpFrac = p.maxHp > 0 ? p.hp / p.maxHp : 1;
     p.maxHp = Math.round((90 + p.level * 10) * (1 + (mods.maxHpPct ?? 0) / 100)) + gs.maxHp;
@@ -1388,6 +1406,17 @@ export class WorldScene extends Phaser.Scene {
       // Nudge a co-dropped material aside so it doesn't stack under the gem.
       if (mat) this.spawnMaterialDrop(x + 8, y, mat.id, mat.name, Number.parseInt(mat.color.replace('#', ''), 16));
     }
+    // Runes are a rare find (m4.x) you socket into white bases; bosses drop them
+    // more often, and Magic Find nudges the odds. They go straight to your rune bag.
+    const runeChance = (def.boss ? BOSS_RUNE_DROP_CHANCE : RUNE_DROP_CHANCE) * (1 + magicFind / 400);
+    if (Math.random() < runeChance) {
+      const rune = pickRune(this.gameData.items.runes, Math.random);
+      if (rune) {
+        this.saveData.runes.push(rune.id);
+        this.numbers.spawn(x, y - 24, `⟡ ${rune.name}`, '#c8b48a');
+        this.saveNow();
+      }
+    }
   }
 
   private bob(gfx: Phaser.GameObjects.Rectangle, y: number): void {
@@ -1447,6 +1476,21 @@ export class WorldScene extends Phaser.Scene {
     this.saveData.gear[slot] = null;
     this.saveData.bag.push(item);
     this.onGearChanged();
+  }
+
+  /** Inserts a held rune into an item's open socket (m4.x). Consumes the rune;
+   *  socketing an equipped item re-derives stats immediately. */
+  private socketRuneInto(runeId: string, target: SocketTarget): void {
+    const item = target.kind === 'gear' ? this.saveData.gear[target.slot] : this.saveData.bag[target.index];
+    if (!item || !canSocket(item)) return;
+    const runeIdx = this.saveData.runes.indexOf(runeId);
+    if (runeIdx < 0) return;
+    const updated = socketRune(item, runeId);
+    if (target.kind === 'gear') this.saveData.gear[target.slot] = updated;
+    else this.saveData.bag[target.index] = updated;
+    this.saveData.runes.splice(runeIdx, 1);
+    this.numbers.spawn(this.player.x, this.player.y - 14, 'SOCKETED', '#c8a86a');
+    this.onGearChanged(); // recompute stats + refresh inventory
   }
 
   /** Gear changed: rebuild derived stats, item-mods/hooks, hotbar, and the UIs. */

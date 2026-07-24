@@ -8,7 +8,7 @@ const bat = { id: 'bat', sprite: 'bat', hp: 16, dmg: 5, spd: 52, xp: 10, aggro: 
 const baseData: GameData = {
   enemies: [slime, bat],
   affixes: [],
-  items: { slots: [], bases: {}, rarities: [], legendaries: [], sets: [] },
+  items: { slots: [], bases: {}, rarities: [], legendaries: [], sets: [], runes: [] },
   skills: [],
   zones: [{ id: 'overworld', name: 'Starter Plains', dark: false, enemyTypes: ['slime', 'bat'] }],
   quests: [],

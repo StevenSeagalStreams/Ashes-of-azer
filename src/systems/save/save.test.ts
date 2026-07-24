@@ -168,6 +168,14 @@ describe('migrateAndValidate (real chain)', () => {
     expect(out.bag[0]?.affixes).toEqual([{ key: 'dmg', value: 6 }]);
   });
 
+  it('adds an empty rune inventory when upgrading a v13 save (v13 → v14)', () => {
+    const v13 = { ...defaultSave(), saveVersion: 13 } as Record<string, unknown>;
+    delete v13['runes'];
+    const out = migrateAndValidate(v13);
+    expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(out.runes).toEqual([]);
+  });
+
   it('adds an empty quest log when upgrading a v5 save (v5 → v6)', () => {
     const v5 = { ...defaultSave(), saveVersion: 5 } as Record<string, unknown>;
     delete v5['quests'];

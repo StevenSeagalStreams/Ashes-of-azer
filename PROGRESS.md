@@ -8,11 +8,38 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**D2 drop pipeline is now DONE** (note below) — the user stressed that drop-rate
-feel is important, so I replaced the flat weighted rarity pick with a proper D2
-cascade + Magic Find + boss piles. Four D2 itemization boxes shipped this stretch:
-foundation (ilvl + tiers), set items, ladder rename, and the drop pipeline.
-**Next task (top-to-bottom in ROADMAP 4.x): sockets + runewords** (white/gray bases roll ilvl-gated socket counts; ordered rune
+**Sockets + runes is now DONE** (note below). Five D2 itemization boxes shipped:
+foundation (ilvl + tiers), set items, ladder rename, drop pipeline, and now
+sockets/runes. **Next task (top-to-bottom in ROADMAP 4.x): runewords** — an ordered
+rune sequence in a matching socketed base spells a runeword granting fixed powers
+that override the individual rune stats (the D2 chase; builds directly on sockets).
+After that: unidentified drops, then unique-roster growth / mythic / slots, then the
+still-pending Zone-3 marsh quest chain / dungeon / secrets. The
+**attribute-requirements** box still needs an explicit user decision (STR/DEX system
+vs. level-only) — do not build unprompted.
+
+### D2 itemization — sockets + runes (m4.x box 5 — DONE)
+Pure `src/systems/sockets.ts`: `maxSockets(ilvl)` (1/2/3 by level), `isSocketable`
+(Weapon/Helmet/Chest via `SOCKETABLE_SLOTS`), `rollSockets` (chain of decreasing
+odds, capped), `pickRune` (weighted), `openSockets`/`canSocket`/`socketRune`
+(immutable insert). ItemInstance gained optional `sockets`/`socketed` (rune ids in
+order); white bases roll sockets in `rollItem`. 5 runes in items.json
+(`RuneSchema`: id/name/letter/weight/affixes) — El/Tir/Ort/Thul/Amn, each one modest
+affix; weights bias the drop table (low common). Rune drops in `maybeDropLoot`
+(RUNE_DROP_CHANCE .03 / boss .5, ×MF) go straight to a new **save.runes** inventory
+(**save v13→v14** + migration). `gearStats(gear, sets, runes)` adds each socketed
+rune's affixes (refactored `applyAffix`). Socketing UI in InventoryUI: socket pips
+on item cells, a Runes section (grouped/counted chips), click a rune → select →
+click a highlighted socketable item → `socketInto` consumes the rune and re-derives
+stats (`WorldScene.socketRuneInto` → `onGearChanged`). Tooltip lists socketed runes
++ open sockets. Debug `__AZER.debug.grantRune(id?)`. Tests: sockets.test (caps,
+socketable slots, roll chain, weighted pick, insert/full), gearStats rune
+contribution, migration v13→v14, rune content integrity. Smoke: grant El →
+socket into an equipped white weapon → rune consumed + flatDamage 7→9, no errors.
+NB: runes grant flat stats now; **runewords** (ordered match → fixed powers) is the
+next box.
+
+### D2 itemization — drop pipeline (m4.x box 4 — DONE) (white/gray bases roll ilvl-gated socket counts; ordered rune
 inserts match runeword recipes for fixed powers — a systems box). After that:
 **unidentified drops** (magic+ drop unidentified, identify to reveal). Then the
 non-D2 4.x items (unique roster growth, mythic tier, remaining slots), and the

@@ -9,7 +9,7 @@ import { ClassSchema } from '../../data/schemas/skill.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 13; // v13 (m4.x): D2 rarity relabel (legendary→unique, epic→rare)
+export const CURRENT_SAVE_VERSION = 14; // v14 (m4.x): rune inventory for socketing
 
 // Per-character quest progress (m2.1). `progress[questId]` is a parallel array
 // of per-objective counts; `tracked` is the pinned quest for the HUD tracker.
@@ -34,6 +34,8 @@ export const ItemInstanceSchema = z.object({
   ilvl: z.number().optional(), // item level (m4.x): gates which affix tiers rolled; older items omit it
   power: z.string().optional(), // legendary power key, if any
   set: z.string().optional(), // set id (m4.x) when this is a set piece — drives partial-set bonuses
+  sockets: z.number().int().nonnegative().optional(), // total socket slots (m4.x); white bases only
+  socketed: z.array(z.string()).optional(), // rune ids filling the sockets, in insertion order
   // Durability (since v8): both optional so pre-v8 items are simply indestructible.
   durability: z.number().optional(),
   maxDurability: z.number().optional(),
@@ -59,6 +61,7 @@ export const SaveSchema = z.object({
   relics: z.array(z.string()), // collected relic-fragment ids (since v10)
   reputation: z.record(z.string(), z.number()), // faction id → rep points (since v11)
   secrets: z.array(z.string()), // discovered secret ids (since v12)
+  runes: z.array(z.string()), // held rune ids awaiting socketing (since v14)
   skillRanks: z.record(z.string(), z.number().int().min(0)),
   // Which skills sit in the 6 active slots (keys 1-6); null = empty slot.
   // All-null means "never customised" and the scene seeds the default bar.
@@ -89,6 +92,7 @@ export function defaultSave(now: number = Date.now()): SaveData {
     relics: [],
     reputation: {},
     secrets: [],
+    runes: [],
     skillRanks: {},
     loadout: {
       actives: [null, null, null, null, null, null],

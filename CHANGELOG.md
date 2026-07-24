@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Sockets & runes.** White items can now drop with **sockets** (weapons, chests
+  and helms; more likely at higher levels), and **runes** are a new rare find. Open
+  your inventory (**I**), pick a rune from your rune bag, and click a socketable
+  item to slot it in — each rune grants a stat (El adds damage, Thul adds life, and
+  so on). A plain white base with sockets is suddenly worth keeping. (Ordered rune
+  combos — runewords — come next.)
 - **Diablo-2 drop feel.** Loot rarity now cascades the way D2's does — each drop
   checks unique, then set, then rare, then magic, mostly falling through to a plain
   white. Ordinary monsters rarely give you anything special, so a **rare is a

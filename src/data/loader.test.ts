@@ -327,6 +327,18 @@ describe('the real /data/*.json content', () => {
     }
   });
 
+  it('runes reference real affixes and have positive drop weights', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const affixKeys = new Set(data.affixes.map((a) => a.key));
+    expect(data.items.runes.length).toBeGreaterThan(0);
+    for (const rune of data.items.runes) {
+      expect(rune.weight, `${rune.id} weight`).toBeGreaterThan(0);
+      expect(rune.letter.length, `${rune.id} letter`).toBeGreaterThan(0);
+      for (const aff of rune.affixes) expect(affixKeys, `${rune.id} affix`).toContain(aff.key);
+    }
+  });
+
   it('Fenwatch (marshtown) offers the full slate of services', async () => {
     const { loadGameData } = await import('./gameData.ts');
     const data = loadGameData();

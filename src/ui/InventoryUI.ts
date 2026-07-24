@@ -1,5 +1,9 @@
-import type { AffixesFile, ItemSlot, SetData } from '../data/schemas/index.ts';
+import type { AffixesFile, ItemSlot, RuneData, SetData } from '../data/schemas/index.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
+import { canSocket } from '../systems/sockets.ts';
+
+/** Where a rune is being socketed — an equipped slot or a bag index. */
+export type SocketTarget = { kind: 'gear'; slot: ItemSlot } | { kind: 'bag'; index: number };
 
 // Inventory & equipment overlay (Milestone 1.7), toggled with I. DOM per
 // CLAUDE.md, parchment-styled. Click a bag item to equip it (swapping whatever
@@ -9,10 +13,13 @@ import type { ItemInstance } from '../systems/save/schema.ts';
 export interface InventoryUIHost {
   affixes: AffixesFile;
   sets: readonly SetData[];
+  runes: readonly RuneData[];
   gear: () => Partial<Record<ItemSlot, ItemInstance | null>>;
   bag: () => ItemInstance[];
+  heldRunes: () => string[]; // rune ids awaiting socketing
   equip: (bagIndex: number) => void;
   unequip: (slot: ItemSlot) => void;
+  socketInto: (runeId: string, target: SocketTarget) => void;
 }
 
 const SLOTS: ItemSlot[] = ['Weapon', 'Helmet', 'Chest', 'Boots', 'Ring'];
@@ -43,6 +50,14 @@ const CSS = `
   #azer-inv .bagcell{border:2px solid #8a6d3b;border-radius:4px;padding:4px 6px;background:rgba(255,255,255,.5);
     font-size:11px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   #azer-inv .empty-bag{font-size:10px;color:#7a6a4a;font-style:italic;}
+  #azer-inv .sockets{color:#8a6d3b;letter-spacing:1px;}
+  #azer-inv .sockets .filled{color:#c8a86a;}
+  #azer-inv .cell.socketable,#azer-inv .bagcell.socketable{box-shadow:0 0 0 2px #c8a86a inset;}
+  #azer-inv .runes{display:flex;flex-wrap:wrap;gap:4px;}
+  #azer-inv .rune{border:2px solid #8a6d3b;border-radius:4px;padding:3px 6px;background:rgba(255,255,255,.5);
+    font-size:11px;cursor:pointer;color:#6a4a2a;}
+  #azer-inv .rune.sel{background:#f2c96a;border-color:#e07830;}
+  #azer-inv .hint{font-size:9px;color:#8a3b2a;margin:2px 0;}
   #azer-item-tip{position:absolute;pointer-events:none;z-index:60;background:#241a30;border:2px solid #8a6d3b;
     border-radius:6px;padding:6px 8px;font-family:"Courier New",monospace;font-size:11px;color:#e8e0cc;
     max-width:200px;display:none;box-shadow:0 4px 0 rgba(0,0,0,.4);}
@@ -55,6 +70,7 @@ export class InventoryUI {
   private readonly panel: HTMLElement;
   private readonly tip: HTMLElement;
   private open = false;
+  private selectedRune: string | null = null; // rune picked for socketing
 
   constructor(private readonly host: InventoryUIHost) {
     if (!document.getElementById(STYLE_ID)) {
@@ -87,14 +103,32 @@ export class InventoryUI {
     if (this.open) this.render();
   }
 
+  /** Socket pips for an item: filled sockets show the rune letter. */
+  private socketPips(item: ItemInstance): string {
+    const total = item.sockets ?? 0;
+    if (total === 0) return '';
+    const filled = item.socketed ?? [];
+    const pips = Array.from({ length: total }, (_, i) => {
+      const runeId = filled[i];
+      if (runeId) {
+        const rune = this.host.runes.find((r) => r.id === runeId);
+        return `<span class="filled">◆${rune?.letter ?? ''}</span>`;
+      }
+      return '◇';
+    }).join(' ');
+    return ` <span class="sockets">${pips}</span>`;
+  }
+
   private render(): void {
     const gear = this.host.gear();
     const bag = this.host.bag();
+    const socketing = this.selectedRune !== null;
+    const socketable = (item: ItemInstance | null): boolean => socketing && !!item && canSocket(item);
 
     const eqRows = SLOTS.map((slot) => {
       const item = gear[slot] ?? null;
       const cell = item
-        ? `<div class="cell" data-unequip="${slot}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${item.name}</div>`
+        ? `<div class="cell${socketable(item) ? ' socketable' : ''}" data-unequip="${slot}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${item.name}${this.socketPips(item)}</div>`
         : `<div class="cell empty">— empty —</div>`;
       return `<div class="eqrow"><span class="slotname">${slot}</span>${cell}</div>`;
     }).join('');
@@ -103,24 +137,62 @@ export class InventoryUI {
       ? bag
           .map(
             (item, i) =>
-              `<div class="bagcell" data-bag="${i}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${item.name}</div>`,
+              `<div class="bagcell${socketable(item) ? ' socketable' : ''}" data-bag="${i}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${item.name}${this.socketPips(item)}</div>`,
           )
           .join('')
       : '<div class="empty-bag">Your bag is empty. Slay something.</div>';
 
-    this.panel.innerHTML = `<h3>INVENTORY</h3><h5>Equipped</h5><div class="equip">${eqRows}</div><h5>Bag (${bag.length})</h5><div class="grid">${bagCells}</div>`;
+    // Runes the player holds, grouped and counted.
+    const held = this.host.heldRunes();
+    const counts = new Map<string, number>();
+    for (const id of held) counts.set(id, (counts.get(id) ?? 0) + 1);
+    const runeChips = [...counts.entries()]
+      .map(([id, n]) => {
+        const rune = this.host.runes.find((r) => r.id === id);
+        const label = rune ? rune.name : id;
+        const sel = this.selectedRune === id ? ' sel' : '';
+        return `<div class="rune${sel}" data-rune="${id}">⟡ ${label}${n > 1 ? ` ×${n}` : ''}</div>`;
+      })
+      .join('');
+    const runeSection = held.length
+      ? `<h5>Runes (${held.length})</h5>${socketing ? '<div class="hint">Click a socketable item (highlighted) to insert, or the rune again to cancel.</div>' : ''}<div class="runes">${runeChips}</div>`
+      : '';
+
+    this.panel.innerHTML = `<h3>INVENTORY</h3><h5>Equipped</h5><div class="equip">${eqRows}</div><h5>Bag (${bag.length})</h5><div class="grid">${bagCells}</div>${runeSection}`;
 
     this.panel.querySelectorAll<HTMLElement>('[data-bag]').forEach((el) => {
       const i = Number(el.dataset['bag']);
-      el.addEventListener('click', () => this.host.equip(i));
-      this.attachTip(el, bag[i]!);
+      const item = bag[i]!;
+      el.addEventListener('click', () => {
+        if (this.selectedRune && canSocket(item)) this.doSocket({ kind: 'bag', index: i });
+        else this.host.equip(i);
+      });
+      this.attachTip(el, item);
     });
     this.panel.querySelectorAll<HTMLElement>('[data-unequip]').forEach((el) => {
       const slot = el.dataset['unequip'] as ItemSlot;
-      el.addEventListener('click', () => this.host.unequip(slot));
       const item = gear[slot];
+      el.addEventListener('click', () => {
+        if (this.selectedRune && item && canSocket(item)) this.doSocket({ kind: 'gear', slot });
+        else this.host.unequip(slot);
+      });
       if (item) this.attachTip(el, item);
     });
+    this.panel.querySelectorAll<HTMLElement>('[data-rune]').forEach((el) => {
+      const id = el.dataset['rune']!;
+      el.addEventListener('click', () => {
+        this.selectedRune = this.selectedRune === id ? null : id;
+        this.render();
+      });
+    });
+  }
+
+  private doSocket(target: SocketTarget): void {
+    const runeId = this.selectedRune;
+    if (!runeId) return;
+    this.selectedRune = null;
+    this.host.socketInto(runeId, target);
+    // host applies the change + calls refresh(); render() re-runs from there.
   }
 
   private attachTip(el: HTMLElement, item: ItemInstance): void {
@@ -145,7 +217,30 @@ export class InventoryUI {
       })
       .join('');
     const ilvl = item.ilvl ? ` · ilvl ${item.ilvl}` : '';
-    return `<div class="nm" style="color:${color}">${item.name}</div><div class="sub">${item.rarity} ${item.slot} · base ${item.base}${ilvl}</div>${affLines}${this.setHtml(item)}`;
+    const socketLine = this.socketTipHtml(item);
+    return `<div class="nm" style="color:${color}">${item.name}</div><div class="sub">${item.rarity} ${item.slot} · base ${item.base}${ilvl}</div>${affLines}${socketLine}${this.setHtml(item)}`;
+  }
+
+  /** Tooltip line naming each socketed rune's granted affix + open sockets. */
+  private socketTipHtml(item: ItemInstance): string {
+    if (!item.sockets) return '';
+    const filled = (item.socketed ?? [])
+      .map((id) => {
+        const rune = this.host.runes.find((r) => r.id === id);
+        if (!rune) return id;
+        const stats = rune.affixes
+          .map((aff) => {
+            const def = this.host.affixes.find((a) => a.key === aff.key);
+            return def ? def.labelTemplate.replace('{v}', String(aff.value)) : `${aff.key} ${aff.value}`;
+          })
+          .join(', ');
+        return `${rune.letter}: ${stats}`;
+      })
+      .map((line) => `<div class="aff" style="color:#c8a86a">◆ ${line}</div>`)
+      .join('');
+    const open = (item.sockets ?? 0) - (item.socketed?.length ?? 0);
+    const openLine = open > 0 ? `<div class="sub">◇ ${open} open socket${open > 1 ? 's' : ''}</div>` : '';
+    return `${filled}${openLine}`;
   }
 
   /** Set block: names the set and lists each partial-set bonus, lit when active. */

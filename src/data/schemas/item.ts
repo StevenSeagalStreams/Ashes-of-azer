@@ -82,6 +82,22 @@ export const SetSchema = z.object({
 });
 export type SetData = z.infer<typeof SetSchema>;
 
+// Runes (m4.x, D2 itemization): rare drops you socket into white bases. Each
+// rune grants a modest affix on its own; ordered combinations spell runewords
+// (a later box). `weight` biases the drop table — low runes common, high rare.
+export const RuneSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  letter: z.string(), // 1–3 char glyph shown in a filled socket
+  weight: z.number().positive(), // drop weight (higher = more common)
+  affixes: z.array(z.object({ key: z.string(), value: z.number() })), // granted while socketed
+});
+export type RuneData = z.infer<typeof RuneSchema>;
+
+// Which slots can carry sockets (D2: weapons + body armor + helms). Rings/boots
+// never socket, so white bases there stay plain.
+export const SOCKETABLE_SLOTS: ItemSlot[] = ['Weapon', 'Helmet', 'Chest'];
+
 export const ItemsFileSchema = z.object({
   slots: z.array(ItemSlotSchema),
   // Not every slot needs bases yet (future slots from Milestone 4.x can be
@@ -90,5 +106,6 @@ export const ItemsFileSchema = z.object({
   rarities: z.array(RarityTierSchema),
   legendaries: z.array(LegendarySchema),
   sets: z.array(SetSchema).default([]),
+  runes: z.array(RuneSchema).default([]),
 });
 export type ItemsFile = z.infer<typeof ItemsFileSchema>;

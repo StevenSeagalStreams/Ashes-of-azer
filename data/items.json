@@ -395,5 +395,67 @@
         }
       ]
     }
+  ],
+  "runes": [
+    {
+      "id": "rune_el",
+      "name": "El Rune",
+      "letter": "El",
+      "weight": 100,
+      "affixes": [
+        {
+          "key": "dmg",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "rune_tir",
+      "name": "Tir Rune",
+      "letter": "Tir",
+      "weight": 60,
+      "affixes": [
+        {
+          "key": "manakill",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "rune_ort",
+      "name": "Ort Rune",
+      "letter": "Ort",
+      "weight": 30,
+      "affixes": [
+        {
+          "key": "frost",
+          "value": 12
+        }
+      ]
+    },
+    {
+      "id": "rune_thul",
+      "name": "Thul Rune",
+      "letter": "Thul",
+      "weight": 12,
+      "affixes": [
+        {
+          "key": "hp",
+          "value": 24
+        }
+      ]
+    },
+    {
+      "id": "rune_amn",
+      "name": "Amn Rune",
+      "letter": "Amn",
+      "weight": 4,
+      "affixes": [
+        {
+          "key": "lifesteal",
+          "value": 5
+        }
+      ]
+    }
   ]
 }

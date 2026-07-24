@@ -295,6 +295,30 @@ describe('set bonuses', () => {
   });
 });
 
+describe('socketed rune stats', () => {
+  it('adds each socketed rune’s affixes on top of the item’s own', () => {
+    const el = items.runes.find((r) => r.id === 'rune_el')!; // +dmg
+    const tir = items.runes.find((r) => r.id === 'rune_tir')!; // +mana on kill
+    const weapon: ItemInstance = {
+      slot: 'Weapon', name: 'Socketed Blade', base: 7, rarity: 'white', affixes: [],
+      sockets: 2, socketed: ['rune_el', 'rune_tir'],
+    };
+    const s = gearStats({ Weapon: weapon }, [], items.runes);
+    const elDmg = el.affixes.find((a) => a.key === 'dmg')?.value ?? 0;
+    const tirMana = tir.affixes.find((a) => a.key === 'manakill')?.value ?? 0;
+    expect(s.flatDamage).toBe(7 + elDmg); // weapon base + El's damage
+    expect(s.manaOnKill).toBe(tirMana); // Tir's mana-on-kill
+  });
+
+  it('an empty socket contributes nothing, and runes need the runes table', () => {
+    const weapon: ItemInstance = { slot: 'Weapon', name: 'Open Blade', base: 7, rarity: 'white', affixes: [], sockets: 2, socketed: [] };
+    expect(gearStats({ Weapon: weapon }, [], items.runes).flatDamage).toBe(7);
+    // Without the runes table, socketed ids can't resolve, so grant nothing extra.
+    const filled: ItemInstance = { ...weapon, socketed: ['rune_el'] };
+    expect(gearStats({ Weapon: filled }).flatDamage).toBe(7);
+  });
+});
+
 describe('pricing', () => {
   const white: ItemInstance = { slot: 'Ring', name: 'Copper', base: 5, rarity: 'white', affixes: [] };
   const unique: ItemInstance = { slot: 'Ring', name: 'Frostheart', base: 5, rarity: 'unique', affixes: [{ key: 'frost', value: 30 }] };

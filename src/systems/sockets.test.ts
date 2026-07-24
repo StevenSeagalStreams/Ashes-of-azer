@@ -1,0 +1,65 @@
+import { describe, expect, it } from 'vitest';
+import { loadGameData } from '../data/gameData.ts';
+import { canSocket, isSocketable, maxSockets, openSockets, pickRune, rollSockets, socketRune, type Rng } from './sockets.ts';
+import type { ItemInstance } from './save/schema.ts';
+
+const { items } = loadGameData();
+
+const scriptRng = (values: number[]): Rng => {
+  let i = 0;
+  return () => values[i++ % values.length]!;
+};
+
+describe('sockets', () => {
+  it('caps socket count by item level', () => {
+    expect(maxSockets(1)).toBe(1);
+    expect(maxSockets(15)).toBe(2);
+    expect(maxSockets(50)).toBe(3);
+  });
+
+  it('only weapons/body/helms can carry sockets', () => {
+    expect(isSocketable('Weapon')).toBe(true);
+    expect(isSocketable('Chest')).toBe(true);
+    expect(isSocketable('Helmet')).toBe(true);
+    expect(isSocketable('Ring')).toBe(false);
+    expect(isSocketable('Boots')).toBe(false);
+  });
+
+  it('never rolls sockets on a non-socketable slot', () => {
+    expect(rollSockets('Ring', 99, scriptRng([0, 0, 0]))).toBe(0);
+  });
+
+  it('rolls a level-capped socket count (low rolls stop the chain)', () => {
+    // All rolls pass, but ilvl caps the count.
+    expect(rollSockets('Weapon', 50, scriptRng([0, 0, 0]))).toBe(3);
+    expect(rollSockets('Weapon', 15, scriptRng([0, 0, 0]))).toBe(2); // capped at 2 by ilvl
+    // A high first roll means no sockets.
+    expect(rollSockets('Weapon', 50, scriptRng([0.99]))).toBe(0);
+  });
+
+  it('picks runes by weight (low runes are far commoner)', () => {
+    const rng = scriptRng([0.0]); // first slice of the weighted range → the heaviest rune
+    const r = pickRune(items.runes, rng);
+    const heaviest = items.runes.reduce((mx, x) => (x.weight > mx.weight ? x : mx));
+    expect(r?.id).toBe(heaviest.id);
+  });
+
+  it('inserts a rune into the next open socket, up to the socket count', () => {
+    const base: ItemInstance = { slot: 'Weapon', name: 'Blade', base: 7, rarity: 'white', affixes: [], sockets: 2, socketed: [] };
+    expect(openSockets(base)).toBe(2);
+    const one = socketRune(base, 'rune_el');
+    expect(one.socketed).toEqual(['rune_el']);
+    expect(openSockets(one)).toBe(1);
+    const two = socketRune(one, 'rune_tir');
+    expect(two.socketed).toEqual(['rune_el', 'rune_tir']);
+    expect(canSocket(two)).toBe(false);
+    // A full item rejects further runes (returns unchanged).
+    expect(socketRune(two, 'rune_ort')).toBe(two);
+  });
+
+  it('an item with no sockets cannot be socketed', () => {
+    const plain: ItemInstance = { slot: 'Weapon', name: 'Stick', base: 3, rarity: 'white', affixes: [] };
+    expect(canSocket(plain)).toBe(false);
+    expect(socketRune(plain, 'rune_el')).toBe(plain);
+  });
+});
