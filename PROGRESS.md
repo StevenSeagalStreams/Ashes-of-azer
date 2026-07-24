@@ -1,17 +1,32 @@
 # Progress — Ashes of Azer
 
 ## Current task
-**MILESTONE 4 — Zone 3 (Haunted Marsh), in progress.** Three boxes done: poison/DoT
-system (box 1), marsh tiles+map+gates (box 2), and now **the undead roster (box 3
-— DONE, note below)**. **Next task (top-to-bottom): the marsh town + services** —
-a marsh-floor town map (`genX` town template on MARSH tiles, well, gates), service
-NPCs placed in `data/npcs.json` (`service: vendor|blacksmith|stash` route to the
-shared UIs; a `respec` trainer via dialogue), wired to the marsh with a gate both
-ways. All service UIs + vendor stock are global, so a new town "just works" (see
-ZONE_TEMPLATE step 5 + the Thornhollow build). After that: quest chain, dungeon +
-mini-boss (relic), secrets. Budget ~8 boxes total per the Zone 2 retro. Still open:
-1.6 class sprite sheets (art), 2.1 objective markers (minimap). M3's corruption-feel
-sign-off remains the user's (Needs human playtest).
+**MILESTONE 4 — Zone 3 (Haunted Marsh), in progress.** Four boxes done: poison/DoT
+system (1), marsh tiles+map+gates (2), undead roster (3), and now **the marsh town
+Fenwatch + services (box 4 — DONE, note below)**. **Next task (top-to-bottom): the
+marsh quest chain** — pure content (reuses the m2.1/2.2 quest+dialogue engines):
+NPC-given quests in `data/quests.json` (`autoOffer:false`, gated via `prerequisites`,
+shared `chain` id, objectives targeting real marsh enemy/zone/npc ids), quest-giver
+NPCs in `data/npcs.json` with `offersQuests`, and a dialogue tree per giver in
+`data/dialogue.json` (accept gated by `questAvailable`, thanks by `questCompleted`,
+accept fires `action.startsQuest`). See ZONE_TEMPLATE step 7 + the Ashfall/Warden
+chains. After that: dungeon + mini-boss (relic), secrets. Budget ~8 boxes total.
+Still open: 1.6 class sprite sheets (art), 2.1 objective markers (minimap). M3's
+corruption-feel sign-off remains the user's (Needs human playtest).
+
+### Fenwatch town note (m4 Zone 3 box 4 — DONE)
+`genMarshTown` (60×40, seed 3131) reuses the standard town template on the MARSH
+floor (DEADTREE ring, REED decor, DWALL service buildings + doors, a clean WATER
+well) — the same building/path layout as Thornhollow, so the proven NPC coords
+transfer. Zone `marshtown`/`Fenwatch` registered (zones.json enemyTypes:[], BootScene,
+loader zone-list). Gated both ways: a **west spur** off the marsh's main causeway
+(`carveH(30,3,6)` + DOOR) with a `marshtown-gate`, and the town's `mire-gate` back.
+Four services placed data-only in `npcs.json` — mt_vendor/mt_smith/mt_keeper
+(service: vendor/blacksmith/stash → shared global UIs) + mt_trainer using a new
+`marshtrainer` respec dialogue tree. Tests: maps.test Fenwatch block (walkable
+spawn, gates both ways, bog floor + well) and a loader "full slate of services"
+test. Smoke-verified in a real browser: both gates cross, town is enemy-free, the
+shop/stash open and the trainer offers a respec, zero console errors.
 
 ### Marsh undead roster note (m4 Zone 3 box 3 — DONE)
 Four data-only undead in `data/enemies.json`, sprites in `pixelart.ts`

@@ -3,6 +3,7 @@ import forestMap from '../../assets/maps/forest.json' assert { type: 'json' };
 import forestTownMap from '../../assets/maps/foresttown.json' assert { type: 'json' };
 import forestDungeonMap from '../../assets/maps/forestdungeon.json' assert { type: 'json' };
 import marshMap from '../../assets/maps/marsh.json' assert { type: 'json' };
+import marshTownMap from '../../assets/maps/marshtown.json' assert { type: 'json' };
 import plains from '../../assets/maps/overworld.json' assert { type: 'json' };
 import { TILE } from './mapgen.ts';
 
@@ -204,5 +205,34 @@ describe('The Mirefen (marsh) map', () => {
   it('scatters enemies from a wilds region', () => {
     const region = (marsh.layers.find((l) => l.name === 'spawns')!.objects as { type: string }[]).find((o) => o.type === 'enemy_region');
     expect(region, 'marsh has a wilds enemy region').toBeTruthy();
+  });
+});
+
+describe('Fenwatch (marsh town) map', () => {
+  const marsh = marshMap as unknown as TiledMap;
+  const town = marshTownMap as unknown as TiledMap;
+
+  it('is a standard 60×40 town on the bog floor with a healing well', () => {
+    expect(town.width).toBe(60);
+    expect(town.height).toBe(40);
+    const data = town.layers.find((l) => l.name === 'ground')!.data as number[];
+    expect(data).toContain(TILE.MARSH + 1); // bog floor, not plains grass / forest
+    const heals = (town.layers.find((l) => l.name === 'triggers')!.objects as { type: string }[]).filter((o) => o.type === 'heal');
+    expect(heals.length).toBe(1);
+  });
+
+  it('spawns the player on a walkable tile', () => {
+    const s = playerSpawn(town);
+    expect(SOLID_GIDS.has(groundGid(town, s.x, s.y))).toBe(false);
+  });
+
+  it('links to the Mirefen and back, landing both ways on walkable ground', () => {
+    const toTown = transitions(marsh).find((t) => t.props['target'] === 'marshtown');
+    expect(toTown, 'marsh has a town gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(town, toTown!.props['targetX'] as number, toTown!.props['targetY'] as number))).toBe(false);
+
+    const toMarsh = transitions(town).find((t) => t.props['target'] === 'marsh');
+    expect(toMarsh, 'town has a mire gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(marsh, toMarsh!.props['targetX'] as number, toMarsh!.props['targetY'] as number))).toBe(false);
   });
 });

@@ -179,7 +179,7 @@ Zones 3–8, one at a time, each shippable as a content update. Per zone, run th
   - [x] **Systems: poison/DoT status** — the marsh's core mechanic. Pure `src/systems/status.ts` (refresh-not-stack poison, 0.5s ticks); the player takes ticking DoT (green numbers + flash + HUD "☣ PSN" pip), sourced by an optional `poison {dps,duration}` field on the enemy schema applied on any contact/slam hit (data-driven — undead set it in JSON, no code). God mode purges it; transient (no save field). Debug `__AZER.debug.poisonPlayer(dps,dur)`.
   - [x] Tiles + marsh wilds map + register zone + wire gates from a neighbour (both directions) — 4 marsh tiles (bog floor/murk/dead tree/reed; `TILE_COUNT` 14→18 kept in sync across mapgen/pixelart/generate-maps), `genMarsh` 96×64 wilds (`The Mirefen`), registered in zones.json + BootScene, and a Verdant Reach ↔ Mirefen gate both ways (forest south spur). Enemy roster is placeholder (skel/bat) until the next box.
   - [x] Undead enemy roster (data; the poison-touch field on the biters) — 4 data-only undead with sprites: **rotshambler** (poison-touch zombie), **bogwraith** (poison-touch shade), **fenspitter** (ranged), **drownhound** (charger). The marsh's `enemyTypes` now spawns them (placeholder skel/bat retired), and the poison DoT system fires in real play at last.
-  - [ ] Marsh town + services
+  - [x] Marsh town + services — **Fenwatch**, a 60×40 town on the bog floor (dead-tree ring, clean well) gated to the Mirefen both ways. Four services placed data-only in `npcs.json`: vendor/blacksmith/stash (route to the shared global UIs) + a `marshtrainer` respec dialogue. The shared services "just work".
   - [ ] Quest chain (the marsh story)
   - [ ] Dungeon + mini-boss (relic)
   - [ ] Secrets

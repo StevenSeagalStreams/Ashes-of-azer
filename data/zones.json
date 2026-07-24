@@ -64,5 +64,11 @@
       "fenspitter",
       "drownhound"
     ]
+  },
+  {
+    "id": "marshtown",
+    "name": "Fenwatch",
+    "dark": false,
+    "enemyTypes": []
   }
 ]

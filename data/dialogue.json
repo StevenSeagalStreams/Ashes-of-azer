@@ -1346,5 +1346,32 @@
         ]
       }
     ]
+  },
+  {
+    "id": "marshtrainer",
+    "startNodeId": "root",
+    "nodes": [
+      {
+        "id": "root",
+        "text": "The fen changes those who linger. If your path no longer fits you, I can unmake it — the marsh forgets, and so may you.",
+        "choices": [
+          {
+            "text": "Reset my skills.",
+            "action": {
+              "respec": true
+            },
+            "nextNodeId": "done"
+          },
+          {
+            "text": "Not today."
+          }
+        ]
+      },
+      {
+        "id": "done",
+        "text": "It is unwound. Choose again, and choose well — the mire is not forgiving twice.",
+        "choices": []
+      }
+    ]
   }
 ]

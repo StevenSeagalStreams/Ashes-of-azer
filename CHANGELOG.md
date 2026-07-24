@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **A haven in the mire: Fenwatch.** A stilted town on a dry hummock at the
+  marsh's edge, reached by the west causeway. Trade with Trader Sump, repair and
+  craft at Smith Dregg's, bank your loot with Keeper Nyle, and reset your build
+  with the Warden of the Fen — plus a clean well to mend at. Safe from the undead,
+  and a foothold for exploring deeper.
 - **The Mirefen's dead have risen.** The marsh is now home to its own undead: the
   shambling **rotshambler** and drifting **bogwraith** both leave you *poisoned* on
   contact, the bloated **fenspitter** lobs corrosive spores from range, and the

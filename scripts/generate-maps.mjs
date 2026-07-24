@@ -217,6 +217,10 @@ function genMarsh(rnd) {
   carveV(48, 3, 6);
   m[3][48] = TILE.DOOR;
   m[3][49] = TILE.DOOR;
+  // West gate spur to the marsh town (Fenwatch), a doorway at the mire's edge.
+  carveH(30, 3, 6);
+  m[30][3] = TILE.DOOR;
+  m[31][3] = TILE.DOOR;
   return m;
 }
 
@@ -297,6 +301,41 @@ function genForestTown(rnd) {
   m[12][6] = TILE.WATER; // healing well
   m[12][7] = TILE.WATER;
   m[37][29] = TILE.DOOR; // gate back to the Reach
+  m[37][30] = TILE.DOOR;
+  return m;
+}
+
+// Fenwatch (m4, Zone 3): the Haunted Marsh's town — a stilted haven on a dry
+// hummock, the same 60×40 town template on the bog floor, ringed by dead trees,
+// with the four services and a clean well.
+function genMarshTown(rnd) {
+  const m = [];
+  for (let y = 0; y < MAPH; y++) {
+    const row = [];
+    for (let x = 0; x < MAPW; x++) {
+      let t = TILE.MARSH;
+      if (x === 0 || y === 0 || x === MAPW - 1 || y === MAPH - 1) t = TILE.DEADTREE;
+      else if (rnd() < 0.03) t = TILE.REED;
+      row.push(t);
+    }
+    m.push(row);
+  }
+  for (let x = 6; x < 54; x++) {
+    m[20][x] = TILE.PATH;
+    m[21][x] = TILE.PATH;
+  }
+  for (let y = 6; y < 38; y++) {
+    m[y][29] = TILE.PATH;
+    m[y][30] = TILE.PATH;
+  }
+  // Four service buildings (vendor / blacksmith / stash / trainer), door on each front.
+  for (const [bx, by] of [[9, 8], [42, 8], [9, 27], [42, 27]]) {
+    for (let y = by; y < by + 4; y++) for (let x = bx; x < bx + 7; x++) m[y][x] = TILE.DWALL;
+    m[by + 3][bx + 3] = TILE.DOOR;
+  }
+  m[12][6] = TILE.WATER; // clean well on the hummock
+  m[12][7] = TILE.WATER;
+  m[37][29] = TILE.DOOR; // gate back into the mire
   m[37][30] = TILE.DOOR;
   return m;
 }
@@ -639,6 +678,48 @@ const marsh = tiledMap({
         prop('targetY', 'float', 68 * TS),
       ],
     },
+    {
+      name: 'marshtown-gate',
+      type: 'transition',
+      x: 3 * TS,
+      y: 30 * TS,
+      width: 2 * TS,
+      height: 2 * TS,
+      properties: [
+        prop('target', 'string', 'marshtown'),
+        prop('targetX', 'float', 29 * TS + 8),
+        prop('targetY', 'float', 34 * TS),
+      ],
+    },
+  ],
+});
+
+const marshtown = tiledMap({
+  grid: genMarshTown(mulberry32(3131)),
+  spawnObjects: [{ name: 'player', type: 'player_spawn', point: true, x: 29 * TS + 8, y: 34 * TS }],
+  triggerObjects: [
+    {
+      name: 'mire-gate',
+      type: 'transition',
+      x: 29 * TS,
+      y: 37 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'marsh'),
+        prop('targetX', 'float', 6 * TS + 8),
+        prop('targetY', 'float', 30 * TS + 8),
+      ],
+    },
+    {
+      name: 'town-well',
+      type: 'heal',
+      x: 6 * TS - 16 + 8,
+      y: 12 * TS - 16 + 8,
+      width: 40,
+      height: 40,
+      properties: [prop('rate', 'float', 20)],
+    },
   ],
 });
 
@@ -828,6 +909,7 @@ writeFileSync(join(out, 'forest.json'), JSON.stringify(forest));
 writeFileSync(join(out, 'foresttown.json'), JSON.stringify(foresttown));
 writeFileSync(join(out, 'forestdungeon.json'), JSON.stringify(forestdungeon));
 writeFileSync(join(out, 'marsh.json'), JSON.stringify(marsh));
+writeFileSync(join(out, 'marshtown.json'), JSON.stringify(marshtown));
 console.log('wrote', join(out, 'overworld.json'));
 console.log('wrote', join(out, 'dungeon.json'));
 console.log('wrote', join(out, 'town.json'));
@@ -835,3 +917,4 @@ console.log('wrote', join(out, 'forest.json'));
 console.log('wrote', join(out, 'foresttown.json'));
 console.log('wrote', join(out, 'forestdungeon.json'));
 console.log('wrote', join(out, 'marsh.json'));
+console.log('wrote', join(out, 'marshtown.json'));

@@ -64,7 +64,7 @@ describe('the real /data/*.json content', () => {
     expect(data.enemies.length).toBeGreaterThanOrEqual(4); // slime, bat, skel, boss
     expect(data.items.legendaries.length).toBeGreaterThanOrEqual(3);
     expect(data.skills.length).toBeGreaterThanOrEqual(5);
-    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest', 'foresttown', 'forestdungeon', 'marsh']);
+    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest', 'foresttown', 'forestdungeon', 'marsh', 'marshtown']);
   });
 
   // Cross-references are plain string ids; zod checks their shape, not that they
@@ -304,6 +304,22 @@ describe('the real /data/*.json content', () => {
         .flatMap((t) => t.nodes.flatMap((n) => n.choices.map((c) => c.action?.startsQuest)));
       expect(otherStarters, `${q.id} started only at shrine`).not.toContain(q.id);
     }
+  });
+
+  it('Fenwatch (marshtown) offers the full slate of services', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const npcs = data.npcs.filter((n) => n.zone === 'marshtown');
+    const services = new Set(npcs.map((n) => n.service).filter(Boolean));
+    expect(services).toEqual(new Set(['vendor', 'blacksmith', 'stash']));
+    // A dialogue trainer (respec), like Thornhollow's — its tree has a respec choice.
+    const trainer = data.dialogue.find((t) => t.id === 'marshtrainer');
+    expect(trainer, 'marshtrainer dialogue tree').toBeTruthy();
+    const hasRespec = trainer!.nodes.some((n) => n.choices.some((c) => c.action?.respec === true));
+    expect(hasRespec).toBe(true);
+    // Every marshtown NPC's dialogue tree resolves (no dangling service dialogue).
+    const treeIds = new Set(data.dialogue.map((t) => t.id));
+    for (const n of npcs) expect(treeIds, `${n.id} dialogue`).toContain(n.dialogue);
   });
 
   it('the Mirefen is stocked by an undead roster that carries poison', async () => {

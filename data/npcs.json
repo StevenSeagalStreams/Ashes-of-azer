@@ -278,5 +278,48 @@
     "y": 208,
     "dialogue": "shrine",
     "wander": false
+  },
+  {
+    "id": "mt_vendor",
+    "name": "Trader Sump",
+    "sprite": "vendor",
+    "zone": "marshtown",
+    "x": 200,
+    "y": 208,
+    "dialogue": "vendor",
+    "wander": false,
+    "service": "vendor"
+  },
+  {
+    "id": "mt_smith",
+    "name": "Smith Dregg",
+    "sprite": "vendor",
+    "zone": "marshtown",
+    "x": 728,
+    "y": 208,
+    "dialogue": "smith",
+    "wander": false,
+    "service": "blacksmith"
+  },
+  {
+    "id": "mt_keeper",
+    "name": "Keeper Nyle",
+    "sprite": "vendor",
+    "zone": "marshtown",
+    "x": 200,
+    "y": 512,
+    "dialogue": "keeper",
+    "wander": false,
+    "service": "stash"
+  },
+  {
+    "id": "mt_trainer",
+    "name": "Warden of the Fen",
+    "sprite": "elder",
+    "zone": "marshtown",
+    "x": 728,
+    "y": 512,
+    "dialogue": "marshtrainer",
+    "wander": false
   }
 ]
