@@ -306,6 +306,27 @@ describe('the real /data/*.json content', () => {
     }
   });
 
+  it('set items reference real slots + affixes and grant escalating bonuses', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const slots = new Set(data.items.slots);
+    const affixKeys = new Set(data.affixes.map((a) => a.key));
+    expect(data.items.sets.length).toBeGreaterThan(0);
+    for (const set of data.items.sets) {
+      for (const p of set.pieces) {
+        expect(slots, `${set.id} piece slot`).toContain(p.slot);
+        for (const aff of p.forcedAffixes) expect(affixKeys, `${set.id} piece affix`).toContain(aff.key);
+      }
+      // Bonus thresholds are ascending and never exceed the piece count.
+      const thresholds = set.bonuses.map((b) => b.pieces);
+      expect([...thresholds]).toEqual([...thresholds].sort((a, b) => a - b));
+      for (const b of set.bonuses) {
+        expect(b.pieces).toBeLessThanOrEqual(set.pieces.length);
+        for (const aff of b.affixes) expect(affixKeys, `${set.id} bonus affix`).toContain(aff.key);
+      }
+    }
+  });
+
   it('Fenwatch (marshtown) offers the full slate of services', async () => {
     const { loadGameData } = await import('./gameData.ts');
     const data = loadGameData();

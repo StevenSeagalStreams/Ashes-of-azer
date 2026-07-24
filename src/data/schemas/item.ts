@@ -58,6 +58,30 @@ export const LegendarySchema = z.object({
 });
 export type LegendaryData = z.infer<typeof LegendarySchema>;
 
+// Set items (m4.x, D2 itemization): a named set of pieces, each with its own
+// fixed signature affixes, that grant escalating **partial-set bonuses** as you
+// wear more of them — the D2 hook where collecting the set is the reward.
+export const SetPieceSchema = z.object({
+  name: z.string(),
+  slot: ItemSlotSchema,
+  forcedAffixes: z.array(z.object({ key: z.string(), value: z.number() })),
+});
+export type SetPiece = z.infer<typeof SetPieceSchema>;
+
+export const SetBonusSchema = z.object({
+  pieces: z.number().int().min(2), // active once this many set pieces are equipped
+  affixes: z.array(z.object({ key: z.string(), value: z.number() })),
+});
+export type SetBonus = z.infer<typeof SetBonusSchema>;
+
+export const SetSchema = z.object({
+  id: z.string(), // stable set id (an equipped set-piece ItemInstance references it)
+  name: z.string(),
+  pieces: z.array(SetPieceSchema).min(2),
+  bonuses: z.array(SetBonusSchema).default([]), // cumulative thresholds (e.g. 2-pc, 3-pc)
+});
+export type SetData = z.infer<typeof SetSchema>;
+
 export const ItemsFileSchema = z.object({
   slots: z.array(ItemSlotSchema),
   // Not every slot needs bases yet (future slots from Milestone 4.x can be
@@ -65,5 +89,6 @@ export const ItemsFileSchema = z.object({
   bases: z.partialRecord(ItemSlotSchema, z.array(ItemBaseSchema)),
   rarities: z.array(RarityTierSchema),
   legendaries: z.array(LegendarySchema),
+  sets: z.array(SetSchema).default([]),
 });
 export type ItemsFile = z.infer<typeof ItemsFileSchema>;

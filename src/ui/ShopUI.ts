@@ -22,6 +22,7 @@ const RARITY_HEX: Record<string, string> = {
   magic: '#7fa8ee',
   rare: '#e8b64c',
   epic: '#c88af5',
+  set: '#8bd06a',
   legendary: '#e07830',
 };
 

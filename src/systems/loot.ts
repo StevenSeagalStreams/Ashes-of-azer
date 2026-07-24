@@ -1,7 +1,7 @@
 // Loot roll engine + gear-stat aggregation (Milestone 1.7 — the loot loop).
 // Pure and unit-tested: an RNG is injected so rolls are deterministic in tests.
 
-import type { AffixData, AffixesFile, AffixTier, ItemSlot, ItemsFile } from '../data/schemas/index.ts';
+import type { AffixData, AffixesFile, AffixTier, ItemSlot, ItemsFile, SetData } from '../data/schemas/index.ts';
 import type { ItemInstance } from './save/schema.ts';
 
 export type Rng = () => number; // [0, 1)
@@ -63,7 +63,7 @@ function rollRarityLucky(items: ItemsFile, rng: Rng, luck: number): ItemsFile['r
   return best;
 }
 
-const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, epic: 30, legendary: 50 };
+const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, epic: 30, legendary: 50, set: 50 };
 
 /** Full durability a freshly-rolled item spawns with (sturdier when better). */
 export const durabilityFor = (base: number, rarity: string): number =>
@@ -104,6 +104,18 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
     }
   }
 
+  if (rarity.id === 'set') {
+    // Gather every set piece for this slot (tagged with its set id), pick one.
+    const forSlot = items.sets.flatMap((s) => s.pieces.filter((p) => p.slot === slot).map((p) => ({ p, setId: s.id })));
+    if (forSlot.length > 0) {
+      const { p, setId } = pick(forSlot, rng);
+      const bases = items.bases[slot] ?? [];
+      const base = bases.reduce((mx, b) => Math.max(mx, b.base), 0); // set pieces roll the best base
+      const dur = durabilityFor(base, 'set');
+      return { slot, name: p.name, base, rarity: 'set', ilvl, set: setId, affixes: [...p.forcedAffixes], durability: dur, maxDurability: dur };
+    }
+  }
+
   const bases = items.bases[slot] ?? [];
   const baseItem = pick(bases, rng);
   const count = randInt(rarity.affixMin, rarity.affixMax, rng);
@@ -133,7 +145,7 @@ function rollAffixes(affixes: AffixesFile, count: number, rng: Rng, ilvl: number
 
 // ---- pricing (m2.3 vendor) ----
 
-const RARITY_VALUE_MULT: Record<string, number> = { white: 1, magic: 2, rare: 4, epic: 8, legendary: 16 };
+const RARITY_VALUE_MULT: Record<string, number> = { white: 1, magic: 2, rare: 4, epic: 8, legendary: 16, set: 14 };
 
 /** Buy price: base value scaled by rarity, plus a little per affix. */
 export const itemValue = (item: ItemInstance): number =>
@@ -190,19 +202,55 @@ const emptyGearStats = (): GearStats => ({
   poison: false,
 });
 
-/** Sums the stat contribution of every equipped item (base value + affixes). */
-export function gearStats(gear: Partial<Record<ItemSlot, ItemInstance | null>>): GearStats {
+/** Adds one affix's contribution into a GearStats accumulator. */
+function applyAffix(out: GearStats, key: string, value: number): void {
+  if (key === 'poison') {
+    out.poison = true;
+    return;
+  }
+  const stat = AFFIX_TO_STAT[key];
+  if (stat && stat !== 'poison') (out[stat] as number) += value;
+}
+
+/**
+ * Sums the stat contribution of every equipped item (base value + affixes), plus
+ * any active **partial-set bonuses**: for each set, once you wear ≥ a bonus's
+ * `pieces` count, that bonus's affixes are added too (cumulatively). Broken gear
+ * contributes nothing and doesn't count toward a set.
+ */
+export function gearStats(
+  gear: Partial<Record<ItemSlot, ItemInstance | null>>,
+  sets: readonly SetData[] = [],
+): GearStats {
   const out = emptyGearStats();
+  const setCounts = new Map<string, number>();
   for (const [slot, item] of Object.entries(gear) as [ItemSlot, ItemInstance | null][]) {
     if (!item || isBroken(item)) continue; // broken gear contributes nothing until repaired
     // Base value: a Weapon's base is flat damage; other slots contribute life×3.
     if (slot === 'Weapon') out.flatDamage += item.base;
     else out.maxHp += item.base * 3;
-    for (const aff of item.affixes) {
-      if (aff.key === 'poison') out.poison = true;
-      const stat = AFFIX_TO_STAT[aff.key];
-      if (stat && stat !== 'poison') (out[stat] as number) += aff.value;
+    for (const aff of item.affixes) applyAffix(out, aff.key, aff.value);
+    if (item.set) setCounts.set(item.set, (setCounts.get(item.set) ?? 0) + 1);
+  }
+  // Partial-set bonuses: every threshold you meet stacks.
+  for (const set of sets) {
+    const worn = setCounts.get(set.id) ?? 0;
+    for (const bonus of set.bonuses) {
+      if (worn >= bonus.pieces) for (const aff of bonus.affixes) applyAffix(out, aff.key, aff.value);
     }
   }
   return out;
+}
+
+/** The active set bonuses for the equipped gear — for tooltip/HUD display. */
+export function activeSetBonuses(
+  gear: Partial<Record<ItemSlot, ItemInstance | null>>,
+  sets: readonly SetData[],
+): { set: SetData; worn: number }[] {
+  const setCounts = new Map<string, number>();
+  for (const item of Object.values(gear)) {
+    if (!item || isBroken(item) || !item.set) continue;
+    setCounts.set(item.set, (setCounts.get(item.set) ?? 0) + 1);
+  }
+  return sets.filter((s) => setCounts.has(s.id)).map((s) => ({ set: s, worn: setCounts.get(s.id) ?? 0 }));
 }

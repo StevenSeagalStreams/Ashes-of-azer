@@ -109,6 +109,7 @@ const RARITY_COLOR: Record<string, number> = {
   rare: 0xe8b64c,
   epic: 0xc88af5,
   legendary: 0xe07830,
+  set: 0x8bd06a, // D2 set green
 };
 // Diablo-2-sparse gear drops (m4.x): most kills drop nothing, so a drop — and
 // especially a rare/unique — feels earned. Bosses always drop; corruption luck
@@ -401,6 +402,7 @@ export class WorldScene extends Phaser.Scene {
     });
     this.inventoryUI = new InventoryUI({
       affixes: this.gameData.affixes,
+      sets: this.gameData.items.sets,
       gear: () => this.saveData.gear,
       bag: () => this.saveData.bag,
       equip: (i) => this.equipFromBag(i),
@@ -918,7 +920,7 @@ export class WorldScene extends Phaser.Scene {
       this.saveData.skillRanks,
       this.saveData.loadout.passives,
     );
-    const gs = gearStats(this.saveData.gear); // equipped item bonuses (m1.7)
+    const gs = gearStats(this.saveData.gear, this.gameData.items.sets); // equipped item bonuses + set bonuses (m1.7 / m4.x)
     const p = this.player;
     const hpFrac = p.maxHp > 0 ? p.hp / p.maxHp : 1;
     p.maxHp = Math.round((90 + p.level * 10) * (1 + (mods.maxHpPct ?? 0) / 100)) + gs.maxHp;

@@ -33,6 +33,7 @@ export const ItemInstanceSchema = z.object({
   affixes: z.array(z.object({ key: z.string(), value: z.number() })),
   ilvl: z.number().optional(), // item level (m4.x): gates which affix tiers rolled; older items omit it
   power: z.string().optional(), // legendary power key, if any
+  set: z.string().optional(), // set id (m4.x) when this is a set piece — drives partial-set bonuses
   // Durability (since v8): both optional so pre-v8 items are simply indestructible.
   durability: z.number().optional(),
   maxDurability: z.number().optional(),

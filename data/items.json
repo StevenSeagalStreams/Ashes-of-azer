@@ -112,6 +112,12 @@
       "dropChance": 0.01,
       "affixMin": 0,
       "affixMax": 0
+    },
+    {
+      "id": "set",
+      "dropChance": 0.008,
+      "affixMin": 0,
+      "affixMax": 0
     }
   ],
   "legendaries": [
@@ -322,6 +328,76 @@
           "effect": "burn",
           "value": 8,
           "duration": 3
+        }
+      ]
+    }
+  ],
+  "sets": [
+    {
+      "id": "mirekeeper",
+      "name": "Mirekeeper's Vigil",
+      "pieces": [
+        {
+          "name": "Mirekeeper's Cowl",
+          "slot": "Helmet",
+          "forcedAffixes": [
+            {
+              "key": "hp",
+              "value": 22
+            },
+            {
+              "key": "vision",
+              "value": 25
+            }
+          ]
+        },
+        {
+          "name": "Mirekeeper's Shroud",
+          "slot": "Chest",
+          "forcedAffixes": [
+            {
+              "key": "hp",
+              "value": 34
+            }
+          ]
+        },
+        {
+          "name": "Mirekeeper's Treads",
+          "slot": "Boots",
+          "forcedAffixes": [
+            {
+              "key": "ms",
+              "value": 10
+            },
+            {
+              "key": "hp",
+              "value": 18
+            }
+          ]
+        }
+      ],
+      "bonuses": [
+        {
+          "pieces": 2,
+          "affixes": [
+            {
+              "key": "crit",
+              "value": 8
+            }
+          ]
+        },
+        {
+          "pieces": 3,
+          "affixes": [
+            {
+              "key": "lifesteal",
+              "value": 6
+            },
+            {
+              "key": "hp",
+              "value": 30
+            }
+          ]
         }
       ]
     }

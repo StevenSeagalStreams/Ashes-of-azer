@@ -1,4 +1,4 @@
-import type { AffixesFile, ItemSlot } from '../data/schemas/index.ts';
+import type { AffixesFile, ItemSlot, SetData } from '../data/schemas/index.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
 
 // Inventory & equipment overlay (Milestone 1.7), toggled with I. DOM per
@@ -8,6 +8,7 @@ import type { ItemInstance } from '../systems/save/schema.ts';
 
 export interface InventoryUIHost {
   affixes: AffixesFile;
+  sets: readonly SetData[];
   gear: () => Partial<Record<ItemSlot, ItemInstance | null>>;
   bag: () => ItemInstance[];
   equip: (bagIndex: number) => void;
@@ -20,6 +21,7 @@ const RARITY_HEX: Record<string, string> = {
   magic: '#7fa8ee',
   rare: '#e8b64c',
   epic: '#c88af5',
+  set: '#8bd06a',
   legendary: '#e07830',
 };
 
@@ -141,7 +143,29 @@ export class InventoryUI {
         return `<div class="aff">${label}</div>`;
       })
       .join('');
-    return `<div class="nm" style="color:${color}">${item.name}</div><div class="sub">${item.rarity} ${item.slot} · base ${item.base}</div>${affLines}`;
+    const ilvl = item.ilvl ? ` · ilvl ${item.ilvl}` : '';
+    return `<div class="nm" style="color:${color}">${item.name}</div><div class="sub">${item.rarity} ${item.slot} · base ${item.base}${ilvl}</div>${affLines}${this.setHtml(item)}`;
+  }
+
+  /** Set block: names the set and lists each partial-set bonus, lit when active. */
+  private setHtml(item: ItemInstance): string {
+    if (!item.set) return '';
+    const set = this.host.sets.find((s) => s.id === item.set);
+    if (!set) return '';
+    const worn = Object.values(this.host.gear()).filter((g) => g && g.set === set.id).length;
+    const bonusLines = set.bonuses
+      .map((b) => {
+        const on = worn >= b.pieces;
+        const labels = b.affixes
+          .map((aff) => {
+            const def = this.host.affixes.find((a) => a.key === aff.key);
+            return def ? def.labelTemplate.replace('{v}', String(aff.value)) : `${aff.key} ${aff.value}`;
+          })
+          .join(', ');
+        return `<div class="setb" style="color:${on ? '#8bd06a' : '#6a7a52'}">(${b.pieces}) ${labels}</div>`;
+      })
+      .join('');
+    return `<div class="setname" style="color:#8bd06a">◈ ${set.name} (${worn}/${set.pieces.length})</div>${bonusLines}`;
   }
 
   destroy(): void {

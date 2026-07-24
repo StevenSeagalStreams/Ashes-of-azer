@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Set items (Diablo-2-style itemization, part 2).** A new green **set** rarity:
+  items that belong to a named set and grant **escalating bonuses the more pieces
+  you wear**. The first set — **Mirekeeper's Vigil** (Cowl, Shroud, Treads) —
+  grants crit at 2 pieces and life-steal + extra life at 3. Hover a set piece in
+  your inventory to see the set and which bonuses are lit. Collecting the whole
+  set, not just one drop, is the reward.
 - **Diablo-2-style itemization (part 1).** Loot now runs on **item levels and
   affix tiers**: every drop carries an item level (your character level), and each
   affix rolls from level-gated tiers — low tiers are common, the extreme top tiers

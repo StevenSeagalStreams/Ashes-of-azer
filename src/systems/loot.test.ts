@@ -82,11 +82,22 @@ describe('rollItem', () => {
   });
 
   it('a legendary roll for a slot with a legendary yields it (power + forced affixes)', () => {
-    const item = rollItem(items, affixes, scriptRng([0.999, 0]), { slot: 'Ring', ilvl: 40 });
+    const item = rollItem(items, affixes, scriptRng([0, 0]), { slot: 'Ring', rarity: 'legendary', ilvl: 40 });
     expect(item.rarity).toBe('legendary');
     expect(item.power).toBeTruthy();
     const leg = items.legendaries.find((l) => l.power === item.power)!;
     expect(item.affixes).toEqual(leg.forcedAffixes);
+  });
+
+  it('a set roll yields a set piece tagged with its set id + fixed affixes', () => {
+    const helmetPieces = items.sets.flatMap((s) => s.pieces.filter((p) => p.slot === 'Helmet').map((p) => ({ p, setId: s.id })));
+    expect(helmetPieces.length).toBeGreaterThan(0); // there is a Helmet set piece to roll
+    const item = rollItem(items, affixes, scriptRng([0, 0]), { slot: 'Helmet', rarity: 'set', ilvl: 40 });
+    expect(item.rarity).toBe('set');
+    expect(item.set).toBeTruthy();
+    const set = items.sets.find((s) => s.id === item.set)!;
+    const piece = set.pieces.find((p) => p.name === item.name)!;
+    expect(item.affixes).toEqual(piece.forcedAffixes);
   });
 });
 
@@ -174,6 +185,44 @@ describe('gearStats', () => {
     expect(s.flatDamage).toBe(0);
     expect(s.maxHp).toBe(0);
     expect(s.poison).toBe(false);
+  });
+});
+
+describe('set bonuses', () => {
+  const set = items.sets[0]!; // Mirekeeper's Vigil (Helmet/Chest/Boots)
+  const pieceFor = (slot: 'Helmet' | 'Chest' | 'Boots'): ItemInstance => {
+    const p = set.pieces.find((x) => x.slot === slot)!;
+    return { slot, name: p.name, base: 4, rarity: 'set', set: set.id, affixes: [...p.forcedAffixes] };
+  };
+  const bonusAt = (n: number) => set.bonuses.find((b) => b.pieces === n);
+
+  it('a lone set piece grants only its own affixes, no set bonus', () => {
+    const two = bonusAt(2);
+    const critFromBonus = two?.affixes.find((a) => a.key === 'crit')?.value ?? 0;
+    const s = gearStats({ Helmet: pieceFor('Helmet') }, items.sets);
+    expect(s.critPct).toBe(0); // the 2-pc crit bonus is not active with one piece
+    expect(critFromBonus).toBeGreaterThan(0); // sanity: the 2-pc bonus does grant crit
+  });
+
+  it('wearing the threshold count activates the partial-set bonus (cumulatively)', () => {
+    const gear = { Helmet: pieceFor('Helmet'), Chest: pieceFor('Chest'), Boots: pieceFor('Boots') };
+    const full = gearStats(gear, items.sets);
+    // Every declared bonus threshold (2-pc, 3-pc) is met at 3 pieces, so all apply.
+    let expectedCrit = 0;
+    let expectedLifesteal = 0;
+    for (const b of set.bonuses) {
+      expectedCrit += b.affixes.find((a) => a.key === 'crit')?.value ?? 0;
+      expectedLifesteal += b.affixes.find((a) => a.key === 'lifesteal')?.value ?? 0;
+    }
+    // Set bonuses stack on top of the pieces' own affixes; check the bonus-only stats.
+    expect(full.critPct).toBe(expectedCrit);
+    expect(full.lifestealPct).toBe(expectedLifesteal);
+  });
+
+  it('ignores set bonuses when the sets table is not supplied', () => {
+    const gear = { Helmet: pieceFor('Helmet'), Chest: pieceFor('Chest') };
+    const s = gearStats(gear); // no sets arg
+    expect(s.critPct).toBe(0);
   });
 });
 

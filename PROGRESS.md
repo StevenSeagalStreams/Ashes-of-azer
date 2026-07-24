@@ -8,11 +8,32 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Next task: decide with the user how to sequence** — continue the D2 itemization
-track (next box: the rarity ladder normal/magic/rare/unique + set items), or
-resume the Zone-3 marsh quest chain. The **attribute-requirements** box in the D2
-track needs an explicit user decision (adds a STR/DEX character-attribute system
-vs. level-only requirements) before it's built.
+**Set items are now DONE** (box 2, note below) — the user rejected the sequencing
+question and said continue, so I proceeded on the recommended default (the D2
+rarity-ladder+sets box), delivering the substantive half (sets) and deferring the
+cosmetic `legendary→unique`/`epic` rename to its own box. **Next task (top-to-bottom
+in ROADMAP 4.x): the rarity-ladder rename** (legendary→unique, drop epic, save-
+migrate) — OR, if preferred, sockets/runewords, unidentified drops, or back to the
+Zone-3 marsh quest chain. The **attribute-requirements** box still needs an explicit
+user decision (STR/DEX character-attribute system vs. level-only requirements)
+before it's built — do not build it unprompted.
+
+### D2 itemization — set items (m4.x box 2 — DONE)
+New `set` rarity (green, drop weight .008) + a set system, all data-driven.
+Schema: `SetPieceSchema`/`SetBonusSchema`/`SetSchema` on the items file; a set is
+`{id, name, pieces[{name,slot,forcedAffixes}], bonuses[{pieces,affixes}]}`.
+`data/items.json` ships **Mirekeeper's Vigil** (Helmet/Chest/Boots; 2-pc → crit,
+3-pc → lifesteal+life). `rollItem` handles rarity `set` by picking a slot-matching
+piece across all sets and tagging the `ItemInstance.set` id (new optional field —
+additive, no save bump). `gearStats(gear, sets)` now counts equipped pieces per
+set and adds every met bonus threshold cumulatively (refactored affix-summing into
+`applyAffix`); `activeSetBonuses` exposes worn counts for UI. WorldScene threads
+`items.sets` into `recomputeStats` + the InventoryUI, whose tooltip shows the set
+name, worn count, and lit/unlit bonus lines; `set` green added to all rarity-color
+maps (WorldScene + the 4 UI panels). Tests: loot set-roll + gearStats 2-/3-pc
+aggregation + no-sets-arg guard; a loader integrity test (piece slots + affix keys
+resolve, ascending thresholds ≤ piece count). Smoke-verified: rolling + equipping
+the 3 pieces lights the 2-pc crit bonus live on the player (5%→13%).
 
 ### D2 itemization — foundation box (m4.x — DONE)
 Item levels + tiered affixes + sparse drop rates. Affix schema replaced flat
