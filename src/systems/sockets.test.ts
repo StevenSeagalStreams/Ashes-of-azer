@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadGameData } from '../data/gameData.ts';
-import { canSocket, isSocketable, maxSockets, openSockets, pickRune, rollSockets, socketRune, type Rng } from './sockets.ts';
+import { canSocket, isSocketable, matchRuneword, maxSockets, openSockets, pickRune, rollSockets, socketRune, type Rng } from './sockets.ts';
 import type { ItemInstance } from './save/schema.ts';
 
 const { items } = loadGameData();
@@ -61,5 +61,34 @@ describe('sockets', () => {
     const plain: ItemInstance = { slot: 'Weapon', name: 'Stick', base: 3, rarity: 'white', affixes: [] };
     expect(canSocket(plain)).toBe(false);
     expect(socketRune(plain, 'rune_el')).toBe(plain);
+  });
+});
+
+describe('matchRuneword', () => {
+  const rws = items.runewords;
+  const steel = rws.find((w) => w.id === 'rw_steel')!; // [tir, el] in a Weapon
+  const weapon = (socketed: string[], sockets = socketed.length): ItemInstance => ({
+    slot: 'Weapon', name: 'Base', base: 7, rarity: 'white', sockets, socketed, affixes: [],
+  });
+
+  it('matches an exact ordered rune sequence in an allowed, fully-socketed base', () => {
+    expect(matchRuneword(weapon([...steel.runes]), rws)?.id).toBe('rw_steel');
+  });
+
+  it('rejects the wrong rune order (runewords are order-exact)', () => {
+    expect(matchRuneword(weapon([...steel.runes].reverse()), rws)).toBeNull();
+  });
+
+  it('rejects an item that is not fully socketed', () => {
+    expect(matchRuneword(weapon([steel.runes[0]!], 2), rws)).toBeNull(); // one open socket
+  });
+
+  it('rejects the right runes in the wrong base slot', () => {
+    const helmet: ItemInstance = { slot: 'Helmet', name: 'Helm', base: 4, rarity: 'white', sockets: 2, socketed: [...steel.runes], affixes: [] };
+    expect(matchRuneword(helmet, rws)).toBeNull(); // Steel only forms in a Weapon
+  });
+
+  it('an unsocketed item spells nothing', () => {
+    expect(matchRuneword(weapon([], 0), rws)).toBeNull();
   });
 });

@@ -3,7 +3,7 @@
 // into an item. Runeword matching lands in a later box; for now a socketed rune
 // simply grants its own affixes (see gearStats). RNG is injected for tests.
 
-import type { ItemSlot, RuneData } from '../data/schemas/index.ts';
+import type { ItemSlot, RuneData, RunewordData } from '../data/schemas/index.ts';
 import { SOCKETABLE_SLOTS } from '../data/schemas/index.ts';
 import type { ItemInstance } from './save/schema.ts';
 
@@ -60,4 +60,19 @@ export const canSocket = (item: ItemInstance): boolean => openSockets(item) > 0;
 export function socketRune(item: ItemInstance, runeId: string): ItemInstance {
   if (!canSocket(item)) return item;
   return { ...item, socketed: [...(item.socketed ?? []), runeId] };
+}
+
+/**
+ * The runeword an item currently spells, or null. A match requires the item's
+ * slot to be allowed, the item to be *fully* socketed (sockets === rune count),
+ * and its socketed runes to equal the runeword's sequence in order (D2-exact).
+ */
+export function matchRuneword(item: ItemInstance, runewords: readonly RunewordData[]): RunewordData | null {
+  const socketed = item.socketed ?? [];
+  if (socketed.length === 0 || socketed.length !== (item.sockets ?? 0)) return null;
+  for (const rw of runewords) {
+    if (!rw.slots.includes(item.slot)) continue;
+    if (rw.runes.length === socketed.length && rw.runes.every((r, i) => r === socketed[i])) return rw;
+  }
+  return null;
 }

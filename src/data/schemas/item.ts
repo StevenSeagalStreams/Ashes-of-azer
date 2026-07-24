@@ -98,6 +98,19 @@ export type RuneData = z.infer<typeof RuneSchema>;
 // never socket, so white bases there stay plain.
 export const SOCKETABLE_SLOTS: ItemSlot[] = ['Weapon', 'Helmet', 'Chest'];
 
+// Runewords (m4.x, D2 itemization): an exact ordered sequence of runes socketed
+// into a matching base "spells" a runeword, granting fixed powers that override
+// the runes' individual affixes — the D2 chase. The base must be one of `slots`,
+// have exactly `runes.length` sockets, and all filled in this order.
+export const RunewordSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  runes: z.array(z.string()).min(2), // ordered rune ids
+  slots: z.array(ItemSlotSchema).min(1), // which base slots this runeword can form in
+  affixes: z.array(z.object({ key: z.string(), value: z.number() })),
+});
+export type RunewordData = z.infer<typeof RunewordSchema>;
+
 export const ItemsFileSchema = z.object({
   slots: z.array(ItemSlotSchema),
   // Not every slot needs bases yet (future slots from Milestone 4.x can be
@@ -107,5 +120,6 @@ export const ItemsFileSchema = z.object({
   legendaries: z.array(LegendarySchema),
   sets: z.array(SetSchema).default([]),
   runes: z.array(RuneSchema).default([]),
+  runewords: z.array(RunewordSchema).default([]),
 });
 export type ItemsFile = z.infer<typeof ItemsFileSchema>;

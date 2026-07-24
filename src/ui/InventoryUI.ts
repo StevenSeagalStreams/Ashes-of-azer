@@ -1,6 +1,6 @@
-import type { AffixesFile, ItemSlot, RuneData, SetData } from '../data/schemas/index.ts';
+import type { AffixesFile, ItemSlot, RuneData, RunewordData, SetData } from '../data/schemas/index.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
-import { canSocket } from '../systems/sockets.ts';
+import { canSocket, matchRuneword } from '../systems/sockets.ts';
 
 /** Where a rune is being socketed — an equipped slot or a bag index. */
 export type SocketTarget = { kind: 'gear'; slot: ItemSlot } | { kind: 'bag'; index: number };
@@ -14,6 +14,7 @@ export interface InventoryUIHost {
   affixes: AffixesFile;
   sets: readonly SetData[];
   runes: readonly RuneData[];
+  runewords: readonly RunewordData[];
   gear: () => Partial<Record<ItemSlot, ItemInstance | null>>;
   bag: () => ItemInstance[];
   heldRunes: () => string[]; // rune ids awaiting socketing
@@ -221,9 +222,25 @@ export class InventoryUI {
     return `<div class="nm" style="color:${color}">${item.name}</div><div class="sub">${item.rarity} ${item.slot} · base ${item.base}${ilvl}</div>${affLines}${socketLine}${this.setHtml(item)}`;
   }
 
-  /** Tooltip line naming each socketed rune's granted affix + open sockets. */
+  /** Renders affix lines from a {key,value} list using the affix templates. */
+  private affixLabels(affixes: readonly { key: string; value: number }[], color: string): string {
+    return affixes
+      .map((aff) => {
+        const def = this.host.affixes.find((a) => a.key === aff.key);
+        const label = def ? def.labelTemplate.replace('{v}', String(aff.value)) : `${aff.key} ${aff.value}`;
+        return `<div class="aff" style="color:${color}">${label}</div>`;
+      })
+      .join('');
+  }
+
+  /** Tooltip block for sockets: the runeword (if complete) or each rune's stat. */
   private socketTipHtml(item: ItemInstance): string {
     if (!item.sockets) return '';
+    // A completed runeword replaces the per-rune stats with its fixed powers.
+    const runeword = matchRuneword(item, this.host.runewords);
+    if (runeword) {
+      return `<div class="setname" style="color:#c8a86a">◆ ${runeword.name} (Runeword)</div>${this.affixLabels(runeword.affixes, '#c8a86a')}`;
+    }
     const filled = (item.socketed ?? [])
       .map((id) => {
         const rune = this.host.runes.find((r) => r.id === id);

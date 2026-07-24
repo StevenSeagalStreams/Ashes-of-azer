@@ -8,15 +8,29 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Sockets + runes is now DONE** (note below). Five D2 itemization boxes shipped:
-foundation (ilvl + tiers), set items, ladder rename, drop pipeline, and now
-sockets/runes. **Next task (top-to-bottom in ROADMAP 4.x): runewords** — an ordered
-rune sequence in a matching socketed base spells a runeword granting fixed powers
-that override the individual rune stats (the D2 chase; builds directly on sockets).
-After that: unidentified drops, then unique-roster growth / mythic / slots, then the
-still-pending Zone-3 marsh quest chain / dungeon / secrets. The
-**attribute-requirements** box still needs an explicit user decision (STR/DEX system
-vs. level-only) — do not build unprompted.
+**Runewords are now DONE** (note below). Six D2 itemization boxes shipped:
+foundation (ilvl + tiers), set items, ladder rename, drop pipeline, sockets/runes,
+and now runewords. **Next task (top-to-bottom in ROADMAP 4.x): unidentified drops**
+— magic+ items drop unidentified (base name only); an identify action (scroll/
+vendor/right-click) reveals the roll, the two-step reward loop. After that:
+unique-roster growth / mythic tier / remaining slots, then the still-pending Zone-3
+marsh quest chain / dungeon / secrets. The **attribute-requirements** box still needs
+an explicit user decision (STR/DEX system vs. level-only) — do not build unprompted.
+
+### D2 itemization — runewords (m4.x box 6 — DONE)
+`matchRuneword(item, runewords)` in sockets.ts: returns the runeword an item spells,
+requiring the slot to be allowed, the item **fully** socketed (`socketed.length ===
+sockets`), and the socketed rune ids to equal the runeword's sequence **in order**
+(D2-exact). `RunewordSchema` (id/name/runes[]/slots[]/affixes[]) + `items.runewords`
+with 3 words: Steel (Tir+El, Weapon → dmg+10/aspd+18), Malice (Ort+Thul, Weapon →
+frost+35/lifesteal+6), Nadir (Amn+El, Helmet → hp+50/crit+12). `gearStats(gear,
+sets, runes, runewords)`: a matched runeword applies its affixes **instead of** the
+individual socketed-rune affixes (wrong order/slot/incomplete → falls back to per-
+rune stats). InventoryUI tooltip shows "◆ <Name> (Runeword)" + its powers in gold
+when complete (via `matchRuneword`), else the per-rune list. Tests: matchRuneword
+(order-exact, wrong order/slot/incomplete/empty → null), gearStats override +
+fallback, runeword content integrity. Smoke: socket Tir→El into a 2-socket weapon →
+Steel → flatDamage 7→17 + aspd 18%, Tir's mana suppressed, tooltip names it.
 
 ### D2 itemization — sockets + runes (m4.x box 5 — DONE)
 Pure `src/systems/sockets.ts`: `maxSockets(ilvl)` (1/2/3 by level), `isSocketable`

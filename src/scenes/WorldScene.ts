@@ -427,6 +427,7 @@ export class WorldScene extends Phaser.Scene {
       affixes: this.gameData.affixes,
       sets: this.gameData.items.sets,
       runes: this.gameData.items.runes,
+      runewords: this.gameData.items.runewords,
       gear: () => this.saveData.gear,
       bag: () => this.saveData.bag,
       heldRunes: () => this.saveData.runes,
@@ -956,7 +957,7 @@ export class WorldScene extends Phaser.Scene {
       this.saveData.skillRanks,
       this.saveData.loadout.passives,
     );
-    const gs = gearStats(this.saveData.gear, this.gameData.items.sets, this.gameData.items.runes); // gear + set + socketed-rune bonuses (m1.7 / m4.x)
+    const gs = gearStats(this.saveData.gear, this.gameData.items.sets, this.gameData.items.runes, this.gameData.items.runewords); // gear + set + rune/runeword bonuses (m1.7 / m4.x)
     const p = this.player;
     const hpFrac = p.maxHp > 0 ? p.hp / p.maxHp : 1;
     p.maxHp = Math.round((90 + p.level * 10) * (1 + (mods.maxHpPct ?? 0) / 100)) + gs.maxHp;

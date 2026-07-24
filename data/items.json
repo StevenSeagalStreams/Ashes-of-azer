@@ -457,5 +457,70 @@
         }
       ]
     }
+  ],
+  "runewords": [
+    {
+      "id": "rw_steel",
+      "name": "Steel",
+      "runes": [
+        "rune_tir",
+        "rune_el"
+      ],
+      "slots": [
+        "Weapon"
+      ],
+      "affixes": [
+        {
+          "key": "dmg",
+          "value": 10
+        },
+        {
+          "key": "aspd",
+          "value": 18
+        }
+      ]
+    },
+    {
+      "id": "rw_malice",
+      "name": "Malice",
+      "runes": [
+        "rune_ort",
+        "rune_thul"
+      ],
+      "slots": [
+        "Weapon"
+      ],
+      "affixes": [
+        {
+          "key": "frost",
+          "value": 35
+        },
+        {
+          "key": "lifesteal",
+          "value": 6
+        }
+      ]
+    },
+    {
+      "id": "rw_nadir",
+      "name": "Nadir",
+      "runes": [
+        "rune_amn",
+        "rune_el"
+      ],
+      "slots": [
+        "Helmet"
+      ],
+      "affixes": [
+        {
+          "key": "hp",
+          "value": 50
+        },
+        {
+          "key": "crit",
+          "value": 12
+        }
+      ]
+    }
   ]
 }

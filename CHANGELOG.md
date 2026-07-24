@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **Runewords.** Socket the right runes **in the right order** into the right kind
+  of base and they spell a **runeword** — a named item with fixed, powerful stats
+  that replace what the individual runes would give. Three to chase so far: **Steel**
+  (Tir + El in a weapon → damage + attack speed), **Malice** (Ort + Thul in a weapon
+  → frost + life-steal), and **Nadir** (Amn + El in a helm → life + crit). Order and
+  base matter — get it wrong and you just get the plain rune stats. The inventory
+  tooltip names the runeword once it's complete.
 - **Sockets & runes.** White items can now drop with **sockets** (weapons, chests
   and helms; more likely at higher levels), and **runes** are a new rare find. Open
   your inventory (**I**), pick a rune from your rune bag, and click a socketable

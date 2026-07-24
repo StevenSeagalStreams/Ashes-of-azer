@@ -1,9 +1,9 @@
 // Loot roll engine + gear-stat aggregation (Milestone 1.7 — the loot loop).
 // Pure and unit-tested: an RNG is injected so rolls are deterministic in tests.
 
-import type { AffixData, AffixesFile, AffixTier, ItemSlot, ItemsFile, RuneData, SetData } from '../data/schemas/index.ts';
+import type { AffixData, AffixesFile, AffixTier, ItemSlot, ItemsFile, RuneData, RunewordData, SetData } from '../data/schemas/index.ts';
 import type { ItemInstance } from './save/schema.ts';
-import { rollSockets } from './sockets.ts';
+import { matchRuneword, rollSockets } from './sockets.ts';
 
 export type Rng = () => number; // [0, 1)
 
@@ -288,6 +288,7 @@ export function gearStats(
   gear: Partial<Record<ItemSlot, ItemInstance | null>>,
   sets: readonly SetData[] = [],
   runes: readonly RuneData[] = [],
+  runewords: readonly RunewordData[] = [],
 ): GearStats {
   const out = emptyGearStats();
   const setCounts = new Map<string, number>();
@@ -298,10 +299,16 @@ export function gearStats(
     if (slot === 'Weapon') out.flatDamage += item.base;
     else out.maxHp += item.base * 3;
     for (const aff of item.affixes) applyAffix(out, aff.key, aff.value);
-    // Socketed runes each grant their own affixes (runewords land in a later box).
-    for (const runeId of item.socketed ?? []) {
-      const rune = runeById.get(runeId);
-      if (rune) for (const aff of rune.affixes) applyAffix(out, aff.key, aff.value);
+    // A completed runeword grants its fixed powers *instead of* the individual
+    // rune affixes; an incomplete/mismatched set of runes grants each rune's own.
+    const runeword = matchRuneword(item, runewords);
+    if (runeword) {
+      for (const aff of runeword.affixes) applyAffix(out, aff.key, aff.value);
+    } else {
+      for (const runeId of item.socketed ?? []) {
+        const rune = runeById.get(runeId);
+        if (rune) for (const aff of rune.affixes) applyAffix(out, aff.key, aff.value);
+      }
     }
     if (item.set) setCounts.set(item.set, (setCounts.get(item.set) ?? 0) + 1);
   }

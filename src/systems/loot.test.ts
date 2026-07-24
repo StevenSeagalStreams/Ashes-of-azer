@@ -317,6 +317,33 @@ describe('socketed rune stats', () => {
     const filled: ItemInstance = { ...weapon, socketed: ['rune_el'] };
     expect(gearStats({ Weapon: filled }).flatDamage).toBe(7);
   });
+
+  it('a completed runeword grants its fixed powers instead of the rune stats', () => {
+    const steel = items.runewords.find((w) => w.id === 'rw_steel')!; // [tir, el] → dmg + aspd
+    const weapon: ItemInstance = {
+      slot: 'Weapon', name: 'Steel Blade', base: 7, rarity: 'white', affixes: [],
+      sockets: 2, socketed: [...steel.runes],
+    };
+    const s = gearStats({ Weapon: weapon }, [], items.runes, items.runewords);
+    const rwDmg = steel.affixes.find((a) => a.key === 'dmg')?.value ?? 0;
+    const rwAspd = steel.affixes.find((a) => a.key === 'aspd')?.value ?? 0;
+    expect(s.flatDamage).toBe(7 + rwDmg); // runeword damage, NOT El's +2
+    expect(s.aspdPct).toBe(rwAspd); // runeword attack speed
+    // Tir's mana-on-kill (an individual-rune stat) is suppressed by the runeword.
+    expect(s.manaOnKill).toBe(0);
+  });
+
+  it('falls back to individual rune stats when the runes don’t spell a runeword', () => {
+    const el = items.runes.find((r) => r.id === 'rune_el')!;
+    // Right runes, wrong order → not a runeword → each rune grants its own.
+    const weapon: ItemInstance = {
+      slot: 'Weapon', name: 'Mis-order', base: 7, rarity: 'white', affixes: [],
+      sockets: 2, socketed: ['rune_el', 'rune_tir'],
+    };
+    const s = gearStats({ Weapon: weapon }, [], items.runes, items.runewords);
+    expect(s.flatDamage).toBe(7 + (el.affixes.find((a) => a.key === 'dmg')?.value ?? 0)); // El's own +dmg
+    expect(s.aspdPct).toBe(0); // no runeword aspd
+  });
 });
 
 describe('pricing', () => {
