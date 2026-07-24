@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- **Diablo-2 drop feel.** Loot rarity now cascades the way D2's does — each drop
+  checks unique, then set, then rare, then magic, mostly falling through to a plain
+  white. Ordinary monsters rarely give you anything special, so a **rare is a
+  treat and a set or unique is an event**. **Bosses now drop a pile** of 3–5 items
+  from a much richer table (always at least magic, often better) — a real payday.
+  And **corruption is Magic Find**: the more corrupt the ground, the better your
+  odds at the top of the cascade — with D2's diminishing returns, so uniques stay
+  rare no matter how hard you push.
 - **The Diablo-2 rarity ladder.** Item rarities are now **White → Magic → Rare →
   Unique → Set**, matching D2. "Legendary" items are now called **Unique** (gold),
   and the old "Epic" tier is gone (folded into Rare). Your existing gear is

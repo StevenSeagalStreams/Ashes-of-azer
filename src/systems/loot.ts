@@ -12,6 +12,59 @@ const randInt = (min: number, max: number, rng: Rng): number => min + Math.floor
 /** The default item level for rolls that don't specify one (tests, fallbacks). */
 export const DEFAULT_ILVL = 1;
 
+// ---- Diablo-2-style drop pipeline ----------------------------------------
+// D2's loot feel comes from a rarity *cascade*, not a flat weighted pick: each
+// drop checks unique → set → rare → magic in turn, each a low-probability roll
+// that mostly fails and falls through to a common white. Magic Find pushes the
+// top of the cascade with diminishing returns, and bosses roll a better table
+// several times over — so trash is mostly white/magic, and a set or unique is a
+// genuine event you remember. Values are tuned for this game's kill cadence
+// (sparser than a flat table, generous enough for a browser session), and kept
+// here as movable tuning (not data/) like the corruption curve.
+
+export interface RarityChances {
+  unique: number; // base probability (0..1) at 0 Magic Find
+  set: number;
+  rare: number;
+  magic: number;
+  floorMagic?: boolean; // never fall through to white (boss piles are ≥ magic)
+}
+
+/** A normal monster: mostly nothing special, the odd blue, rare yellows. */
+export const NORMAL_DROP_CHANCES: RarityChances = { unique: 0.004, set: 0.006, rare: 0.045, magic: 0.28 };
+/** A boss/champion: a better table rolled several times (see BOSS_DROP_MIN/MAX). */
+export const BOSS_DROP_CHANCES: RarityChances = { unique: 0.05, set: 0.07, rare: 0.32, magic: 1, floorMagic: true };
+export const BOSS_DROP_MIN = 3;
+export const BOSS_DROP_MAX = 5;
+/** Extra Magic Find every boss/champion drop enjoys on top of the player's. */
+export const BOSS_MAGIC_FIND = 100;
+
+// D2 Magic Find diminishing-returns factors (higher = flatter falloff). Rarer
+// tiers scale slower, so MF never trivialises uniques.
+const MF_FACTOR: Record<'unique' | 'set' | 'rare', number> = { unique: 250, set: 500, rare: 600 };
+
+/** Effective Magic Find after D2's diminishing-returns curve for a rarity. */
+export const effectiveMagicFind = (mf: number, rarity: 'unique' | 'set' | 'rare'): number => {
+  if (mf <= 0) return 0;
+  const f = MF_FACTOR[rarity];
+  return (mf * f) / (mf + f);
+};
+
+/**
+ * Rolls a drop's rarity via the D2 cascade: unique, then set, then rare, then
+ * magic — each a single probability check improved by Magic Find (diminishing) —
+ * falling through to white. `floorMagic` stops the fall at magic (boss piles).
+ */
+export function rollDropRarity(rng: Rng, chances: RarityChances, magicFind = 0): string {
+  const scaled = (base: number, rarity: 'unique' | 'set' | 'rare'): number =>
+    base * (1 + effectiveMagicFind(magicFind, rarity) / 100);
+  if (rng() < scaled(chances.unique, 'unique')) return 'unique';
+  if (rng() < scaled(chances.set, 'set')) return 'set';
+  if (rng() < scaled(chances.rare, 'rare')) return 'rare';
+  if (rng() < chances.magic) return 'magic';
+  return chances.floorMagic ? 'magic' : 'white';
+}
+
 /**
  * Chooses one affix tier for a given item level: only tiers with `ilvl` ≤ the
  * item's level are eligible, and among those one is picked weighted by `weight`

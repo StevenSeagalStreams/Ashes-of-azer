@@ -8,16 +8,36 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Rarity-ladder rename is now DONE** (note below), completing the D2 ladder. Three
-D2 itemization boxes shipped this stretch: foundation (ilvl + tiers + drop rates),
-set items, and the ladder rename. **Next task (top-to-bottom in ROADMAP 4.x):
-sockets + runewords** (white/gray bases roll ilvl-gated socket counts; ordered rune
+**D2 drop pipeline is now DONE** (note below) — the user stressed that drop-rate
+feel is important, so I replaced the flat weighted rarity pick with a proper D2
+cascade + Magic Find + boss piles. Four D2 itemization boxes shipped this stretch:
+foundation (ilvl + tiers), set items, ladder rename, and the drop pipeline.
+**Next task (top-to-bottom in ROADMAP 4.x): sockets + runewords** (white/gray bases roll ilvl-gated socket counts; ordered rune
 inserts match runeword recipes for fixed powers — a systems box). After that:
 **unidentified drops** (magic+ drop unidentified, identify to reveal). Then the
 non-D2 4.x items (unique roster growth, mythic tier, remaining slots), and the
 still-pending **Zone-3 marsh quest chain / dungeon / secrets**. The
 **attribute-requirements** box still needs an explicit user decision (STR/DEX
 character-attribute system vs. level-only requirements) — do not build it unprompted.
+
+### D2 itemization — drop pipeline (m4.x box 4 — DONE)
+Replaced the flat weighted rarity pick with a D2 **cascade** in `loot.ts`:
+`rollDropRarity(rng, chances, magicFind)` checks unique→set→rare→magic in turn
+(each a low-prob roll), falling through to white — or floored at magic for boss
+piles (`floorMagic`). Magic Find scales the top tiers with D2 **diminishing
+returns** via `effectiveMagicFind(mf, rarity)` = `mf*f/(mf+f)` (f = 250/500/600
+for unique/set/rare). Tuning consts exported: `NORMAL_DROP_CHANCES`
+(unique .004/set .006/rare .045/magic .28) and `BOSS_DROP_CHANCES`
+(.05/.07/.32/1, floorMagic). `WorldScene.maybeDropLoot` rewritten: a normal kill
+gates on `NORMAL_DROP_CHANCE` (0.15) + corruption `dropChanceAdd`, then rolls the
+cascade; a **boss drops `BOSS_DROP_MIN..MAX` (3–5)** items each from the boss table
+with `+BOSS_MAGIC_FIND` (100), jittered so they don't stack. Corruption →
+`CORRUPTION_MAGIC_FIND` (60) × rarityBonus, so pushing corruption is real MF. The
+old per-roll `luck` (best-of) is unused by drops now (still on `rollItem` for other
+callers). Tests: cascade order, floorMagic, MF diminishing returns, normal
+distribution (>60% white, set+unique <2%), MF raises unique but <4×. Smoke (town
+lab, god mode): 16 slime kills → 3 sparse white drops; a boss dropped a pile of 4
+(unique/set/magic/rare), all ≥ magic, no console errors.
 
 ### D2 itemization — rarity-ladder rename (m4.x box 3 — DONE)
 The ladder is now D2's **white / magic / rare / unique / set**. `legendary`→`unique`

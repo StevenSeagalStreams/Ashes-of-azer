@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { loadGameData } from '../data/gameData.ts';
-import { gearStats, isBroken, itemValue, repairCost, rollAffixTier, rollItem, sellValue, type Rng } from './loot.ts';
+import {
+  BOSS_DROP_CHANCES,
+  NORMAL_DROP_CHANCES,
+  effectiveMagicFind,
+  gearStats,
+  isBroken,
+  itemValue,
+  repairCost,
+  rollAffixTier,
+  rollDropRarity,
+  rollItem,
+  sellValue,
+  type Rng,
+} from './loot.ts';
 import type { ItemInstance } from './save/schema.ts';
 
 const { items, affixes } = loadGameData();
@@ -153,6 +166,62 @@ describe('item levels + affix tiers (D2 itemization)', () => {
     // A unique is a monumental ~1% of drops (before drop-frequency sparsity).
     expect(frac('unique')).toBeLessThan(0.03);
     expect(frac('unique')).toBeGreaterThan(0); // still possible
+  });
+});
+
+describe('D2 drop cascade', () => {
+  it('Magic Find has diminishing returns and never trivialises uniques', () => {
+    expect(effectiveMagicFind(0, 'unique')).toBe(0);
+    // Monotonic increasing but sub-linear, and always below the MF value itself.
+    const a = effectiveMagicFind(100, 'unique');
+    const b = effectiveMagicFind(300, 'unique');
+    expect(b).toBeGreaterThan(a);
+    expect(a).toBeLessThan(100);
+    // Rarer tiers scale slower than commoner ones at the same MF.
+    expect(effectiveMagicFind(200, 'unique')).toBeLessThan(effectiveMagicFind(200, 'rare'));
+  });
+
+  it('cascades unique → set → rare → magic → white', () => {
+    // Each rng value is compared in turn; a tiny value passes the first check.
+    expect(rollDropRarity(scriptRng([0.0]), NORMAL_DROP_CHANCES)).toBe('unique');
+    expect(rollDropRarity(scriptRng([1, 0.0]), NORMAL_DROP_CHANCES)).toBe('set');
+    expect(rollDropRarity(scriptRng([1, 1, 0.0]), NORMAL_DROP_CHANCES)).toBe('rare');
+    expect(rollDropRarity(scriptRng([1, 1, 1, 0.0]), NORMAL_DROP_CHANCES)).toBe('magic');
+    expect(rollDropRarity(scriptRng([1, 1, 1, 1]), NORMAL_DROP_CHANCES)).toBe('white');
+  });
+
+  it('a boss table never falls through to white (floorMagic)', () => {
+    expect(rollDropRarity(scriptRng([1, 1, 1, 1]), BOSS_DROP_CHANCES)).toBe('magic');
+  });
+
+  it('normal drops are overwhelmingly white/magic; set+unique are a rounding error', () => {
+    const rng = seeded(42);
+    const counts: Record<string, number> = {};
+    const N = 50000;
+    for (let i = 0; i < N; i++) {
+      const r = rollDropRarity(rng, NORMAL_DROP_CHANCES);
+      counts[r] = (counts[r] ?? 0) + 1;
+    }
+    const frac = (id: string) => (counts[id] ?? 0) / N;
+    expect(frac('white')).toBeGreaterThan(0.6);
+    expect(frac('white') + frac('magic')).toBeGreaterThan(0.9);
+    expect(frac('rare')).toBeLessThan(0.06);
+    expect(frac('unique') + frac('set')).toBeLessThan(0.02); // monumental
+    expect(frac('unique')).toBeGreaterThan(0); // but still possible
+  });
+
+  it('Magic Find raises the unique rate (with diminishing returns)', () => {
+    const rate = (mf: number) => {
+      const rng = seeded(7 + mf);
+      let u = 0;
+      const N = 40000;
+      for (let i = 0; i < N; i++) if (rollDropRarity(rng, NORMAL_DROP_CHANCES, mf) === 'unique') u++;
+      return u / N;
+    };
+    const base = rate(0);
+    const high = rate(240);
+    expect(high).toBeGreaterThan(base); // MF helps
+    expect(high).toBeLessThan(base * 4); // but diminishing — not runaway
   });
 });
 

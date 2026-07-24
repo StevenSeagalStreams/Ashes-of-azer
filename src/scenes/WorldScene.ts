@@ -15,7 +15,20 @@ import { recordEvent, startAvailable, startQuest } from '../systems/quests.ts';
 import type { DialogueChoice, DialogueTreeData } from '../data/schemas/index.ts';
 import { fanAngles } from '../systems/projectiles.ts';
 import { applySkillModsAll, equippedLegendaries, equippedSkillMods } from '../systems/skillMods.ts';
-import { gearStats, itemValue, repairCost, rollItem, rollVendorStock, sellValue } from '../systems/loot.ts';
+import {
+  BOSS_DROP_CHANCES,
+  BOSS_DROP_MAX,
+  BOSS_DROP_MIN,
+  BOSS_MAGIC_FIND,
+  NORMAL_DROP_CHANCES,
+  gearStats,
+  itemValue,
+  repairCost,
+  rollDropRarity,
+  rollItem,
+  rollVendorStock,
+  sellValue,
+} from '../systems/loot.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
 import { ShopUI } from '../ui/ShopUI.ts';
 import { StashUI } from '../ui/StashUI.ts';
@@ -113,9 +126,13 @@ const RARITY_COLOR: Record<string, number> = {
   set: 0x8bd06a, // D2 set green
 };
 // Diablo-2-sparse gear drops (m4.x): most kills drop nothing, so a drop — and
-// especially a rare/unique — feels earned. Bosses always drop; corruption luck
-// biases the rarity, not the frequency.
+// especially a rare/unique — feels earned. Bosses always drop a pile; the rarity
+// then comes from the D2 cascade (loot.ts). Corruption acts as Magic Find.
 const NORMAL_DROP_CHANCE = 0.15;
+// Each corruption "rarity bonus" step is worth this much Magic Find in the drop
+// cascade (Tainted→Abyssal ≈ 60→240 MF), so pushing corruption really does pull
+// better loot — with D2's diminishing returns keeping uniques rare.
+const CORRUPTION_MAGIC_FIND = 60;
 // Crafting materials drop independently of gear (m2.3), a bit less often.
 const MATERIAL_DROP_CHANCE = 0.3;
 const PICKUP_RANGE = 16;
@@ -1345,12 +1362,25 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- loot ----------
 
-  /** Bosses always drop gear; normal enemies roll a chance. Both may drop a
-   *  material. Corruption raises the drop chance and the rarity "luck" (m3). */
+  /** Bosses drop a pile from a better table (D2-style); normal enemies roll a
+   *  single sparse chance. Rarity comes from the D2 cascade, and corruption acts
+   *  as Magic Find (raising the top of the cascade) + a small drop-frequency
+   *  nudge (m3). Both may also drop a crafting material. */
   private maybeDropLoot(def: EnemyData, x: number, y: number): void {
     const tier = corruptionTier(this.saveData.world.corruption);
-    if (def.boss || Math.random() < NORMAL_DROP_CHANCE + tier.dropChanceAdd) {
-      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { luck: tier.rarityBonus, ilvl: this.player.level });
+    const ilvl = this.player.level;
+    const magicFind = tier.rarityBonus * CORRUPTION_MAGIC_FIND; // corruption → Magic Find
+    if (def.boss) {
+      // A boss drops several items from the boss table, each with bonus MF.
+      const count = BOSS_DROP_MIN + Math.floor(Math.random() * (BOSS_DROP_MAX - BOSS_DROP_MIN + 1));
+      for (let i = 0; i < count; i++) {
+        const rarity = rollDropRarity(Math.random, BOSS_DROP_CHANCES, magicFind + BOSS_MAGIC_FIND);
+        const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { rarity, ilvl });
+        this.spawnItemDrop(x + (Math.random() - 0.5) * 28, y + (Math.random() - 0.5) * 20, item);
+      }
+    } else if (Math.random() < NORMAL_DROP_CHANCE + tier.dropChanceAdd) {
+      const rarity = rollDropRarity(Math.random, NORMAL_DROP_CHANCES, magicFind);
+      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { rarity, ilvl });
       this.spawnItemDrop(x, y, item);
     }
     if (Math.random() < MATERIAL_DROP_CHANCE) {
