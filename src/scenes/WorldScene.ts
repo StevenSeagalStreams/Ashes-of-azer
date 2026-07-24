@@ -109,6 +109,7 @@ const RARITY_COLOR: Record<string, number> = {
   rare: 0xe8b64c,
   epic: 0xc88af5,
   legendary: 0xe07830,
+  unique: 0xe07830,
   set: 0x8bd06a, // D2 set green
 };
 // Diablo-2-sparse gear drops (m4.x): most kills drop nothing, so a drop — and

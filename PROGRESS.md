@@ -8,15 +8,29 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Set items are now DONE** (box 2, note below) — the user rejected the sequencing
-question and said continue, so I proceeded on the recommended default (the D2
-rarity-ladder+sets box), delivering the substantive half (sets) and deferring the
-cosmetic `legendary→unique`/`epic` rename to its own box. **Next task (top-to-bottom
-in ROADMAP 4.x): the rarity-ladder rename** (legendary→unique, drop epic, save-
-migrate) — OR, if preferred, sockets/runewords, unidentified drops, or back to the
-Zone-3 marsh quest chain. The **attribute-requirements** box still needs an explicit
-user decision (STR/DEX character-attribute system vs. level-only requirements)
-before it's built — do not build it unprompted.
+**Rarity-ladder rename is now DONE** (note below), completing the D2 ladder. Three
+D2 itemization boxes shipped this stretch: foundation (ilvl + tiers + drop rates),
+set items, and the ladder rename. **Next task (top-to-bottom in ROADMAP 4.x):
+sockets + runewords** (white/gray bases roll ilvl-gated socket counts; ordered rune
+inserts match runeword recipes for fixed powers — a systems box). After that:
+**unidentified drops** (magic+ drop unidentified, identify to reveal). Then the
+non-D2 4.x items (unique roster growth, mythic tier, remaining slots), and the
+still-pending **Zone-3 marsh quest chain / dungeon / secrets**. The
+**attribute-requirements** box still needs an explicit user decision (STR/DEX
+character-attribute system vs. level-only requirements) — do not build it unprompted.
+
+### D2 itemization — rarity-ladder rename (m4.x box 3 — DONE)
+The ladder is now D2's **white / magic / rare / unique / set**. `legendary`→`unique`
+(the fixed-signature tier), and `epic` was dropped (folded into rare). Changes:
+items.json rarities (epic removed, legendary→unique); recipes.json (epic result→rare);
+loot.ts (`rarity.id === 'unique'` branch — the internal data array is still named
+`legendaries`, each entry a Unique, documented); RARITY value/durability maps gained
+`unique`/`set` (kept `epic`/`legendary` as harmless aliases); `unique` colour added
+to WorldScene + all 4 UI rarity-colour maps. **Save bumped v12→v13** with a migration
+that relabels stored item rarities in gear/bag/stash (legendary→unique, epic→rare) —
+display-only, affixes/base/durability preserved. Tests: migration test + all
+loot/skillMods/save fixtures moved off epic/legendary. Smoke-verified: ladder has no
+epic/legendary, uniques roll their power, and an imported v12 save relabels correctly.
 
 ### D2 itemization — set items (m4.x box 2 — DONE)
 New `set` rarity (green, drop weight .008) + a set system, all data-driven.

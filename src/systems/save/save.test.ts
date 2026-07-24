@@ -26,7 +26,7 @@ describe('SaveSchema / defaultSave', () => {
         slot: 'Ring',
         name: 'Frostheart',
         base: 5,
-        rarity: 'legendary',
+        rarity: 'unique',
         affixes: [{ key: 'frost', value: 30 }],
         power: 'frostheart',
       },
@@ -147,6 +147,25 @@ describe('migrateAndValidate (real chain)', () => {
     const out = migrateAndValidate(v11);
     expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
     expect(out.secrets).toEqual([]);
+  });
+
+  it('relabels old item rarities to the D2 ladder when upgrading a v12 save (v12 → v13)', () => {
+    const v12 = { ...defaultSave(), saveVersion: 12 } as Record<string, unknown>;
+    v12['gear'] = {
+      Ring: { slot: 'Ring', name: 'Frostheart', base: 5, rarity: 'legendary', affixes: [{ key: 'frost', value: 30 }], power: 'frostheart' },
+    };
+    v12['bag'] = [
+      { slot: 'Weapon', name: 'Old Blade', base: 7, rarity: 'epic', affixes: [{ key: 'dmg', value: 6 }] },
+      { slot: 'Helmet', name: 'Cap', base: 2, rarity: 'magic', affixes: [] },
+    ];
+    const out = migrateAndValidate(v12);
+    expect(out.saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(out.gear.Ring?.rarity).toBe('unique'); // legendary → unique
+    expect(out.bag[0]?.rarity).toBe('rare'); // epic → rare
+    expect(out.bag[1]?.rarity).toBe('magic'); // untouched
+    // The relabel is display-only; everything else is preserved.
+    expect(out.gear.Ring?.power).toBe('frostheart');
+    expect(out.bag[0]?.affixes).toEqual([{ key: 'dmg', value: 6 }]);
   });
 
   it('adds an empty quest log when upgrading a v5 save (v5 → v6)', () => {

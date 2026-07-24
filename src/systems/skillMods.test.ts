@@ -93,7 +93,7 @@ describe('equippedSkillMods', () => {
       slot: withMods.slot,
       name: withMods.name,
       base: 5,
-      rarity: 'legendary',
+      rarity: 'unique',
       affixes: [],
       power: withMods.power,
     };

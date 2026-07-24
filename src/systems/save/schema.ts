@@ -9,7 +9,7 @@ import { ClassSchema } from '../../data/schemas/skill.ts';
 // the format never needs to change shape when the systems arrive, only new
 // migrations when it genuinely evolves.
 
-export const CURRENT_SAVE_VERSION = 12; // v12 (m2.4): discovered secrets
+export const CURRENT_SAVE_VERSION = 13; // v13 (m4.x): D2 rarity relabel (legendary→unique, epic→rare)
 
 // Per-character quest progress (m2.1). `progress[questId]` is a parallel array
 // of per-objective counts; `tracked` is the pinned quest for the HUD tracker.

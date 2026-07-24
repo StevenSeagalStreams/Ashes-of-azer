@@ -47,7 +47,7 @@ describe('rollItem', () => {
   it('rolls affix values within some eligible tier of the affix', () => {
     const rng = seeded(7);
     for (let i = 0; i < 200; i++) {
-      const item = rollItem(items, affixes, rng, { slot: 'Ring', rarity: 'epic', ilvl: 50 });
+      const item = rollItem(items, affixes, rng, { slot: 'Ring', rarity: 'rare', ilvl: 50 });
       for (const aff of item.affixes) {
         const def = affixes.find((a) => a.key === aff.key)!;
         if (def.flag) { expect(aff.value).toBe(1); continue; }
@@ -62,7 +62,7 @@ describe('rollItem', () => {
   it('never rolls the same affix twice on one item', () => {
     const rng = seeded(3);
     for (let i = 0; i < 100; i++) {
-      const item = rollItem(items, affixes, rng, { slot: 'Chest', rarity: 'epic', ilvl: 50 });
+      const item = rollItem(items, affixes, rng, { slot: 'Chest', rarity: 'rare', ilvl: 50 });
       const keys = item.affixes.map((a) => a.key);
       expect(new Set(keys).size).toBe(keys.length);
     }
@@ -71,7 +71,7 @@ describe('rollItem', () => {
   it('luck (corruption) takes the best of extra rarity rolls', () => {
     // luck 1 → best of two rarity rolls: a white (0.0) and a rare (0.95) → rare.
     const item = rollItem(items, affixes, scriptRng([0.0, 0.95, 0, 0.1, 0.5, 0.2, 0.5]), { slot: 'Helmet', luck: 1, ilvl: 30 });
-    expect(['rare', 'epic', 'legendary']).toContain(item.rarity);
+    expect(['rare', 'unique', 'set']).toContain(item.rarity);
     expect(item.rarity).not.toBe('white');
   });
 
@@ -81,9 +81,9 @@ describe('rollItem', () => {
     expect(item.affixes.length).toBeGreaterThanOrEqual(rarityById('rare').affixMin);
   });
 
-  it('a legendary roll for a slot with a legendary yields it (power + forced affixes)', () => {
-    const item = rollItem(items, affixes, scriptRng([0, 0]), { slot: 'Ring', rarity: 'legendary', ilvl: 40 });
-    expect(item.rarity).toBe('legendary');
+  it('a unique roll for a slot with a unique yields it (power + forced affixes)', () => {
+    const item = rollItem(items, affixes, scriptRng([0, 0]), { slot: 'Ring', rarity: 'unique', ilvl: 40 });
+    expect(item.rarity).toBe('unique');
     expect(item.power).toBeTruthy();
     const leg = items.legendaries.find((l) => l.power === item.power)!;
     expect(item.affixes).toEqual(leg.forcedAffixes);
@@ -149,10 +149,10 @@ describe('item levels + affix tiers (D2 itemization)', () => {
     expect(frac('white') + frac('magic')).toBeGreaterThan(0.8);
     expect(frac('white')).toBeGreaterThan(frac('magic'));
     expect(frac('magic')).toBeGreaterThan(frac('rare'));
-    expect(frac('rare')).toBeGreaterThan(frac('legendary'));
+    expect(frac('rare')).toBeGreaterThan(frac('unique'));
     // A unique is a monumental ~1% of drops (before drop-frequency sparsity).
-    expect(frac('legendary')).toBeLessThan(0.03);
-    expect(frac('legendary')).toBeGreaterThan(0); // still possible
+    expect(frac('unique')).toBeLessThan(0.03);
+    expect(frac('unique')).toBeGreaterThan(0); // still possible
   });
 });
 
@@ -169,7 +169,7 @@ describe('gearStats', () => {
 
   it('maps each affix key to its stat and flags poison', () => {
     const ring: ItemInstance = {
-      slot: 'Ring', name: 'Loop', base: 3, rarity: 'epic',
+      slot: 'Ring', name: 'Loop', base: 3, rarity: 'rare',
       affixes: [{ key: 'aspd', value: 12 }, { key: 'ms', value: 8 }, { key: 'lifesteal', value: 4 }, { key: 'poison', value: 1 }],
     };
     const s = gearStats({ Ring: ring });
@@ -228,16 +228,16 @@ describe('set bonuses', () => {
 
 describe('pricing', () => {
   const white: ItemInstance = { slot: 'Ring', name: 'Copper', base: 5, rarity: 'white', affixes: [] };
-  const legendary: ItemInstance = { slot: 'Ring', name: 'Frostheart', base: 5, rarity: 'legendary', affixes: [{ key: 'frost', value: 30 }] };
+  const unique: ItemInstance = { slot: 'Ring', name: 'Frostheart', base: 5, rarity: 'unique', affixes: [{ key: 'frost', value: 30 }] };
 
   it('scales value by rarity and affix count', () => {
     expect(itemValue(white)).toBe(5); // base 5 × ×1, no affixes
-    expect(itemValue(legendary)).toBe((5 + 3) * 16); // (base + 1 affix×3) × ×16
-    expect(itemValue(legendary)).toBeGreaterThan(itemValue(white));
+    expect(itemValue(unique)).toBe((5 + 3) * 16); // (base + 1 affix×3) × ×16
+    expect(itemValue(unique)).toBeGreaterThan(itemValue(white));
   });
 
   it('sell value is a fraction of buy value and at least 1', () => {
-    expect(sellValue(legendary)).toBe(Math.floor(itemValue(legendary) * 0.4));
+    expect(sellValue(unique)).toBe(Math.floor(itemValue(unique) * 0.4));
     expect(sellValue(white)).toBeGreaterThanOrEqual(1);
   });
 });

@@ -20,6 +20,7 @@ const RARITY_HEX: Record<string, string> = {
   epic: '#c88af5',
   set: '#8bd06a',
   legendary: '#e07830',
+  unique: '#e07830',
 };
 
 const STYLE_ID = 'azer-stash-ui-style';

@@ -52,6 +52,19 @@ export const MIGRATIONS: Record<number, Migration> = {
   10: (raw) => ({ ...raw, reputation: (raw['reputation'] ?? {}) as Record<string, unknown> }),
   // v11 → v12 (m2.4): discovered secrets; older saves have found none.
   11: (raw) => ({ ...raw, secrets: Array.isArray(raw['secrets']) ? raw['secrets'] : [] }),
+  // v12 → v13 (m4.x): D2 rarity ladder — relabel stored items so old drops match
+  // the new ladder (legendary → unique, the dropped epic tier → rare). Purely a
+  // display relabel; affixes/base/durability are untouched.
+  12: (raw) => {
+    const remapRarity = (r: unknown): unknown => (r === 'legendary' ? 'unique' : r === 'epic' ? 'rare' : r);
+    const fixItem = (it: unknown): unknown =>
+      it && typeof it === 'object' ? { ...(it as Record<string, unknown>), rarity: remapRarity((it as Record<string, unknown>)['rarity']) } : it;
+    const gearRaw = (raw['gear'] ?? {}) as Record<string, unknown>;
+    const gear: Record<string, unknown> = {};
+    for (const [slot, item] of Object.entries(gearRaw)) gear[slot] = fixItem(item);
+    const fixArr = (a: unknown): unknown[] => (Array.isArray(a) ? a.map(fixItem) : []);
+    return { ...raw, gear, bag: fixArr(raw['bag']), stash: fixArr(raw['stash']) };
+  },
 };
 
 /** Walks a raw save from its own version up to targetVersion. Pure. */

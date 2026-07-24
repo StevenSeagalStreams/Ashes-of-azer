@@ -63,7 +63,8 @@ function rollRarityLucky(items: ItemsFile, rng: Rng, luck: number): ItemsFile['r
   return best;
 }
 
-const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, epic: 30, legendary: 50, set: 50 };
+// Keys cover the current D2 ladder; legacy epic/legendary kept as harmless aliases.
+const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, unique: 50, set: 50, epic: 30, legendary: 50 };
 
 /** Full durability a freshly-rolled item spawns with (sturdier when better). */
 export const durabilityFor = (base: number, rarity: string): number =>
@@ -93,14 +94,16 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
     : rollRarityLucky(items, rng, opts.luck ?? 0);
   const ilvl = Math.max(1, Math.floor(opts.ilvl ?? DEFAULT_ILVL));
 
-  if (rarity.id === 'legendary') {
+  // Unique rarity (D2 'unique' — the fixed-signature tier). The data array is
+  // still named `legendaries` internally; each entry is a Unique item.
+  if (rarity.id === 'unique') {
     const forSlot = items.legendaries.filter((l) => l.slot === slot);
     if (forSlot.length > 0) {
       const leg = pick(forSlot, rng);
       const bases = items.bases[slot] ?? [];
-      const base = bases.reduce((mx, b) => Math.max(mx, b.base), 0); // legendaries roll the best base
-      const dur = durabilityFor(base, 'legendary');
-      return { slot, name: leg.name, base, rarity: 'legendary', ilvl, affixes: [...leg.forcedAffixes], power: leg.power, durability: dur, maxDurability: dur };
+      const base = bases.reduce((mx, b) => Math.max(mx, b.base), 0); // uniques roll the best base
+      const dur = durabilityFor(base, 'unique');
+      return { slot, name: leg.name, base, rarity: 'unique', ilvl, affixes: [...leg.forcedAffixes], power: leg.power, durability: dur, maxDurability: dur };
     }
   }
 
@@ -145,7 +148,7 @@ function rollAffixes(affixes: AffixesFile, count: number, rng: Rng, ilvl: number
 
 // ---- pricing (m2.3 vendor) ----
 
-const RARITY_VALUE_MULT: Record<string, number> = { white: 1, magic: 2, rare: 4, epic: 8, legendary: 16, set: 14 };
+const RARITY_VALUE_MULT: Record<string, number> = { white: 1, magic: 2, rare: 4, unique: 16, set: 14, epic: 8, legendary: 16 };
 
 /** Buy price: base value scaled by rarity, plus a little per affix. */
 export const itemValue = (item: ItemInstance): number =>

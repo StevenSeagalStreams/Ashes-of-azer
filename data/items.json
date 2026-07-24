@@ -102,13 +102,7 @@
       "affixMax": 5
     },
     {
-      "id": "epic",
-      "dropChance": 0.03,
-      "affixMin": 4,
-      "affixMax": 6
-    },
-    {
-      "id": "legendary",
+      "id": "unique",
       "dropChance": 0.01,
       "affixMin": 0,
       "affixMax": 0

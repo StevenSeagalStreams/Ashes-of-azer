@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **The Diablo-2 rarity ladder.** Item rarities are now **White → Magic → Rare →
+  Unique → Set**, matching D2. "Legendary" items are now called **Unique** (gold),
+  and the old "Epic" tier is gone (folded into Rare). Your existing gear is
+  relabelled automatically to the new ladder — nothing is lost.
 - **Set items (Diablo-2-style itemization, part 2).** A new green **set** rarity:
   items that belong to a named set and grant **escalating bonuses the more pieces
   you wear**. The first set — **Mirekeeper's Vigil** (Cowl, Shroud, Treads) —
