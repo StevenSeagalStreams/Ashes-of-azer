@@ -134,6 +134,16 @@ export const repairCost = (item: ItemInstance): number => {
 export const isBroken = (item: ItemInstance): boolean =>
   item.maxDurability !== undefined && item.durability !== undefined && item.maxDurability > 0 && item.durability <= 0;
 
+// Unidentified drops (m4.x, D2): rare/unique/set gear drops hidden until identified.
+// Magic + white are legible on the ground (D2 auto-ids them).
+const UNIDENTIFIED_RARITIES = new Set(['rare', 'unique', 'set']);
+
+/** Whether a rarity drops unidentified (rare and above). */
+export const dropsUnidentified = (rarity: string): boolean => UNIDENTIFIED_RARITIES.has(rarity);
+
+/** True unless the item is explicitly unidentified (absent flag = identified). */
+export const isIdentified = (item: ItemInstance): boolean => item.identified !== false;
+
 /**
  * Rolls one item instance at item level `opts.ilvl`. Legendary rarity with a
  * matching legendary yields that legendary (its forced affixes + power);
@@ -294,7 +304,7 @@ export function gearStats(
   const setCounts = new Map<string, number>();
   const runeById = new Map(runes.map((r) => [r.id, r]));
   for (const [slot, item] of Object.entries(gear) as [ItemSlot, ItemInstance | null][]) {
-    if (!item || isBroken(item)) continue; // broken gear contributes nothing until repaired
+    if (!item || isBroken(item) || !isIdentified(item)) continue; // broken/unidentified gear contributes nothing
     // Base value: a Weapon's base is flat damage; other slots contribute life×3.
     if (slot === 'Weapon') out.flatDamage += item.base;
     else out.maxHp += item.base * 3;

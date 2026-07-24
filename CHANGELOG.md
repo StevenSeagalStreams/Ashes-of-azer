@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Unidentified drops.** Rare, unique, and set items now drop **unidentified** —
+  in your bag they read only as "Unidentified Ring / Weapon / …", hiding the roll
+  (and a unique's name) until you reveal it. **Click an unidentified item to
+  identify it**, then equip. So finding a gold or a well-rolled yellow is now a
+  two-beat thrill: the drop, then the reveal. (You can't equip an item until it's
+  identified.)
 - **Runewords.** Socket the right runes **in the right order** into the right kind
   of base and they spell a **runeword** — a named item with fixed, powerful stats
   that replace what the individual runes would give. Three to chase so far: **Steel**

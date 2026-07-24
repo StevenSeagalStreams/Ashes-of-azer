@@ -1,5 +1,6 @@
 import type { AffixesFile, ItemSlot, RuneData, RunewordData, SetData } from '../data/schemas/index.ts';
 import type { ItemInstance } from '../systems/save/schema.ts';
+import { isIdentified } from '../systems/loot.ts';
 import { canSocket, matchRuneword } from '../systems/sockets.ts';
 
 /** Where a rune is being socketed — an equipped slot or a bag index. */
@@ -20,6 +21,7 @@ export interface InventoryUIHost {
   heldRunes: () => string[]; // rune ids awaiting socketing
   equip: (bagIndex: number) => void;
   unequip: (slot: ItemSlot) => void;
+  identify: (bagIndex: number) => void;
   socketInto: (runeId: string, target: SocketTarget) => void;
 }
 
@@ -59,6 +61,7 @@ const CSS = `
     font-size:11px;cursor:pointer;color:#6a4a2a;}
   #azer-inv .rune.sel{background:#f2c96a;border-color:#e07830;}
   #azer-inv .hint{font-size:9px;color:#8a3b2a;margin:2px 0;}
+  #azer-inv .unid{font-style:italic;}
   #azer-item-tip{position:absolute;pointer-events:none;z-index:60;background:#241a30;border:2px solid #8a6d3b;
     border-radius:6px;padding:6px 8px;font-family:"Courier New",monospace;font-size:11px;color:#e8e0cc;
     max-width:200px;display:none;box-shadow:0 4px 0 rgba(0,0,0,.4);}
@@ -120,6 +123,12 @@ export class InventoryUI {
     return ` <span class="sockets">${pips}</span>`;
   }
 
+  /** Cell text: unidentified items hide their name (base slot only), else name + pips. */
+  private cellLabel(item: ItemInstance): string {
+    if (!isIdentified(item)) return `<span class="unid">? Unidentified ${item.slot}</span>`;
+    return `${item.name}${this.socketPips(item)}`;
+  }
+
   private render(): void {
     const gear = this.host.gear();
     const bag = this.host.bag();
@@ -129,7 +138,7 @@ export class InventoryUI {
     const eqRows = SLOTS.map((slot) => {
       const item = gear[slot] ?? null;
       const cell = item
-        ? `<div class="cell${socketable(item) ? ' socketable' : ''}" data-unequip="${slot}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${item.name}${this.socketPips(item)}</div>`
+        ? `<div class="cell${socketable(item) ? ' socketable' : ''}" data-unequip="${slot}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${this.cellLabel(item)}</div>`
         : `<div class="cell empty">— empty —</div>`;
       return `<div class="eqrow"><span class="slotname">${slot}</span>${cell}</div>`;
     }).join('');
@@ -138,7 +147,7 @@ export class InventoryUI {
       ? bag
           .map(
             (item, i) =>
-              `<div class="bagcell${socketable(item) ? ' socketable' : ''}" data-bag="${i}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${item.name}${this.socketPips(item)}</div>`,
+              `<div class="bagcell${socketable(item) ? ' socketable' : ''}" data-bag="${i}" style="color:${RARITY_HEX[item.rarity] ?? '#2b2033'}">${this.cellLabel(item)}</div>`,
           )
           .join('')
       : '<div class="empty-bag">Your bag is empty. Slay something.</div>';
@@ -165,7 +174,8 @@ export class InventoryUI {
       const i = Number(el.dataset['bag']);
       const item = bag[i]!;
       el.addEventListener('click', () => {
-        if (this.selectedRune && canSocket(item)) this.doSocket({ kind: 'bag', index: i });
+        if (!isIdentified(item)) this.host.identify(i);
+        else if (this.selectedRune && canSocket(item)) this.doSocket({ kind: 'bag', index: i });
         else this.host.equip(i);
       });
       this.attachTip(el, item);
@@ -210,6 +220,10 @@ export class InventoryUI {
 
   private tipHtml(item: ItemInstance): string {
     const color = RARITY_HEX[item.rarity] ?? '#e8e0cc';
+    if (!isIdentified(item)) {
+      // Hide the roll (and the unique/set name it would spoil) until identified.
+      return `<div class="nm" style="color:${color}">Unidentified ${item.slot}</div><div class="sub">${item.rarity} · unidentified</div><div class="hint">Click to identify.</div>`;
+    }
     const affLines = item.affixes
       .map((aff) => {
         const def = this.host.affixes.find((a) => a.key === aff.key);

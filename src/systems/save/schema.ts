@@ -36,6 +36,9 @@ export const ItemInstanceSchema = z.object({
   set: z.string().optional(), // set id (m4.x) when this is a set piece — drives partial-set bonuses
   sockets: z.number().int().nonnegative().optional(), // total socket slots (m4.x); white bases only
   socketed: z.array(z.string()).optional(), // rune ids filling the sockets, in insertion order
+  // Unidentified drops (m4.x): rare/unique/set gear drops hidden until identified.
+  // Absent/true = identified; only explicit false hides name+affixes and blocks equip.
+  identified: z.boolean().optional(),
   // Durability (since v8): both optional so pre-v8 items are simply indestructible.
   durability: z.number().optional(),
   maxDurability: z.number().optional(),

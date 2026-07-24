@@ -3,9 +3,11 @@ import { loadGameData } from '../data/gameData.ts';
 import {
   BOSS_DROP_CHANCES,
   NORMAL_DROP_CHANCES,
+  dropsUnidentified,
   effectiveMagicFind,
   gearStats,
   isBroken,
+  isIdentified,
   itemValue,
   repairCost,
   rollAffixTier,
@@ -166,6 +168,29 @@ describe('item levels + affix tiers (D2 itemization)', () => {
     // A unique is a monumental ~1% of drops (before drop-frequency sparsity).
     expect(frac('unique')).toBeLessThan(0.03);
     expect(frac('unique')).toBeGreaterThan(0); // still possible
+  });
+});
+
+describe('identification', () => {
+  it('rare and above drop unidentified; white/magic are legible', () => {
+    expect(dropsUnidentified('rare')).toBe(true);
+    expect(dropsUnidentified('unique')).toBe(true);
+    expect(dropsUnidentified('set')).toBe(true);
+    expect(dropsUnidentified('magic')).toBe(false);
+    expect(dropsUnidentified('white')).toBe(false);
+  });
+
+  it('treats a missing/true flag as identified, only explicit false as not', () => {
+    const it: ItemInstance = { slot: 'Ring', name: 'x', base: 3, rarity: 'rare', affixes: [] };
+    expect(isIdentified(it)).toBe(true); // absent flag = identified
+    expect(isIdentified({ ...it, identified: true })).toBe(true);
+    expect(isIdentified({ ...it, identified: false })).toBe(false);
+  });
+
+  it('an unidentified equipped item contributes no stats until identified', () => {
+    const ring: ItemInstance = { slot: 'Ring', name: 'x', base: 5, rarity: 'rare', affixes: [{ key: 'hp', value: 30 }], identified: false };
+    expect(gearStats({ Ring: ring }).maxHp).toBe(0); // hidden roll grants nothing
+    expect(gearStats({ Ring: { ...ring, identified: true } }).maxHp).toBe(5 * 3 + 30); // revealed
   });
 });
 

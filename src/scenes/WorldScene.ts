@@ -21,7 +21,9 @@ import {
   BOSS_DROP_MIN,
   BOSS_MAGIC_FIND,
   NORMAL_DROP_CHANCES,
+  dropsUnidentified,
   gearStats,
+  isIdentified,
   itemValue,
   repairCost,
   rollDropRarity,
@@ -433,6 +435,7 @@ export class WorldScene extends Phaser.Scene {
       heldRunes: () => this.saveData.runes,
       equip: (i) => this.equipFromBag(i),
       unequip: (slot) => this.unequipToBag(slot),
+      identify: (i) => this.identifyBagItem(i),
       socketInto: (runeId, target) => this.socketRuneInto(runeId, target),
     });
     this.vendorStock = rollVendorStock(this.gameData.items, this.gameData.affixes, Math.random, 8, this.player.level);
@@ -605,6 +608,7 @@ export class WorldScene extends Phaser.Scene {
     if (slot) opts.slot = slot as ItemSlot;
     if (rarity) opts.rarity = rarity;
     const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, opts);
+    if (dropsUnidentified(item.rarity)) item.identified = false; // mirror drop behaviour
     this.saveData.bag.push(item);
     this.saveNow();
     this.inventoryUI.refresh();
@@ -1395,11 +1399,13 @@ export class WorldScene extends Phaser.Scene {
       for (let i = 0; i < count; i++) {
         const rarity = rollDropRarity(Math.random, BOSS_DROP_CHANCES, magicFind + BOSS_MAGIC_FIND);
         const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { rarity, ilvl });
+        if (dropsUnidentified(rarity)) item.identified = false;
         this.spawnItemDrop(x + (Math.random() - 0.5) * 28, y + (Math.random() - 0.5) * 20, item);
       }
     } else if (Math.random() < NORMAL_DROP_CHANCE + tier.dropChanceAdd) {
       const rarity = rollDropRarity(Math.random, NORMAL_DROP_CHANCES, magicFind);
       const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { rarity, ilvl });
+      if (dropsUnidentified(rarity)) item.identified = false;
       this.spawnItemDrop(x, y, item);
     }
     if (Math.random() < MATERIAL_DROP_CHANCE) {
@@ -1464,6 +1470,10 @@ export class WorldScene extends Phaser.Scene {
   private equipFromBag(bagIndex: number): void {
     const item = this.saveData.bag[bagIndex];
     if (!item) return;
+    if (!isIdentified(item)) {
+      this.numbers.spawn(this.player.x, this.player.y - 14, 'UNIDENTIFIED — IDENTIFY IT FIRST', '#c88af5');
+      return;
+    }
     const prev = this.saveData.gear[item.slot] ?? null;
     this.saveData.gear[item.slot] = item;
     this.saveData.bag.splice(bagIndex, 1);
@@ -1477,6 +1487,16 @@ export class WorldScene extends Phaser.Scene {
     this.saveData.gear[slot] = null;
     this.saveData.bag.push(item);
     this.onGearChanged();
+  }
+
+  /** Reveals an unidentified bag item's roll (m4.x). */
+  private identifyBagItem(bagIndex: number): void {
+    const item = this.saveData.bag[bagIndex];
+    if (!item || isIdentified(item)) return;
+    this.saveData.bag[bagIndex] = { ...item, identified: true };
+    this.numbers.spawn(this.player.x, this.player.y - 14, `IDENTIFIED: ${item.name}`, '#6ee0d8');
+    this.saveNow();
+    this.inventoryUI.refresh();
   }
 
   /** Inserts a held rune into an item's open socket (m4.x). Consumes the rune;

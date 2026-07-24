@@ -8,14 +8,34 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Runewords are now DONE** (note below). Six D2 itemization boxes shipped:
+**Unidentified drops are now DONE** (note below). Seven D2 itemization boxes shipped:
 foundation (ilvl + tiers), set items, ladder rename, drop pipeline, sockets/runes,
-and now runewords. **Next task (top-to-bottom in ROADMAP 4.x): unidentified drops**
-— magic+ items drop unidentified (base name only); an identify action (scroll/
-vendor/right-click) reveals the roll, the two-step reward loop. After that:
-unique-roster growth / mythic tier / remaining slots, then the still-pending Zone-3
-marsh quest chain / dungeon / secrets. The **attribute-requirements** box still needs
-an explicit user decision (STR/DEX system vs. level-only) — do not build unprompted.
+runewords, and now unidentified drops. **The D2 itemization overhaul the user asked
+for is essentially complete** — the remaining 4.x items are non-D2-specific content
+growth: unique-roster growth (30–50), mythic tier, remaining slots (belt/necklace/
+ring2/offhand), elite/champion modifiers. **Next task (top-to-bottom): grow the
+unique roster to 30–50** (~1/3 skill-modifying) — pure content in items.json's
+`legendaries` (data-only, no code). After the 4.x itemization list, the still-pending
+Zone-3 marsh quest chain / dungeon / secrets remain under Milestone 4. The
+**attribute-requirements** box still needs an explicit user decision (STR/DEX system
+vs. level-only) — do not build unprompted. **Consider checking in with the user**
+on priorities: keep growing itemization content, resume Zone 3, or decide attributes.
+
+### D2 itemization — unidentified drops (m4.x box 7 — DONE)
+Rare/unique/set gear drops **unidentified**; magic + white are legible (D2-accurate).
+`dropsUnidentified(rarity)` (rare/unique/set) + `isIdentified(item)` (absent/true =
+identified, only explicit `false` hides) in loot.ts. `ItemInstance.identified`
+optional (additive — **no save bump**; old items read as identified). `maybeDropLoot`
+marks qualifying drops `identified:false` (both boss + normal); `debugSpawnItem`
+mirrors it so debug spawns behave like drops. `equipFromBag` blocks unidentified
+(toast) and `gearStats` skips unidentified gear (defensive). `identifyBagItem`
+reveals (sets identified:true, toast, refresh). InventoryUI: unidentified cells show
+"? Unidentified <slot>" (italic), tooltip hides the roll + "Click to identify.", and
+a bag click **identifies** an unidentified item instead of equipping (a second click
+then equips). Uniques/sets don't leak their name pre-ID (shown as the slot). Tests:
+dropsUnidentified table, isIdentified flag semantics, gearStats hides unidentified.
+Smoke: rare spawns unidentified + masked in bag → click reveals ("Silver Band"),
+not equipped → click equips (maxHp 100→109), no console errors.
 
 ### D2 itemization — runewords (m4.x box 6 — DONE)
 `matchRuneword(item, runewords)` in sockets.ts: returns the runeword an item spells,
