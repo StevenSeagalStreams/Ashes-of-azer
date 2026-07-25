@@ -67,6 +67,37 @@ export const CorruptVariantSchema = z.object({
 });
 export type CorruptVariant = z.infer<typeof CorruptVariantSchema>;
 
+// A telegraphed shockwave a boss unleashes as it enters a new phase — damages
+// the player if they're inside `radius`. A "get out and reposition" beat that
+// makes phase transitions about movement, not just DPS.
+export const NovaSchema = z.object({
+  damage: z.number().positive(),
+  radius: z.number().positive(),
+});
+
+// A boss phase (m4.x): once the boss's HP fraction drops to/below `hpPct`, it
+// transitions — recolours, may release a nova, adjusts speed/damage, and layers
+// in the phase's attack patterns (a different fight, not just bigger HP). Pattern
+// fields set here are added to the boss's current move-set on entry; leave a
+// field out to keep whatever the boss already had.
+export const BossPhaseSchema = z.object({
+  hpPct: z.number().min(0).max(1), // enter at/below this HP fraction
+  name: z.string().optional(), // banner shown on entry ("SUNDERED")
+  tint: z.string().optional(), // sprite recolour for the phase (hex)
+  spdMult: z.number().positive().optional(),
+  dmgMult: z.number().positive().optional(),
+  novaOnEnter: NovaSchema.optional(),
+  slam: SlamSchema.optional(),
+  charge: ChargeSchema.optional(),
+  ranged: RangedSchema.optional(),
+  explode: ExplodeSchema.optional(),
+  summon: SummonSchema.optional(),
+  poison: PoisonAttackSchema.optional(),
+  aggro: z.number().nonnegative().optional(),
+  keepDistance: z.number().positive().optional(),
+});
+export type BossPhase = z.infer<typeof BossPhaseSchema>;
+
 export const EnemySchema = z.object({
   id: z.string(),
   sprite: z.string(),
@@ -93,6 +124,7 @@ export const EnemySchema = z.object({
   summon: SummonSchema.optional(),
   poison: PoisonAttackSchema.optional(), // poison-touch DoT on hit (m4)
   corrupt: CorruptVariantSchema.optional(), // corrupted spawn variant (m3)
+  phases: z.array(BossPhaseSchema).optional(), // multi-phase boss fight (m4.x)
 });
 export type EnemyData = z.infer<typeof EnemySchema>;
 

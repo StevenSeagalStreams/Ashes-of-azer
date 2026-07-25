@@ -161,6 +161,15 @@ interface ZoneInit {
   entryY?: number;
 }
 
+// Payload of the 'boss-phase' event (m4.x): which phase name to herald, where the
+// boss is (nova origin), and the optional on-enter shockwave.
+interface BossPhaseEvent {
+  name: string;
+  x: number;
+  y: number;
+  nova: { damage: number; radius: number } | null;
+}
+
 interface RegionState {
   region: EnemyRegion;
   timer: number;
@@ -371,6 +380,8 @@ export class WorldScene extends Phaser.Scene {
     this.events.on('enemy-shoot', (shot: EnemyShot) => this.enemyShots.fire(shot));
     this.events.off('enemy-summon');
     this.events.on('enemy-summon', (cfg: NonNullable<EnemyData['summon']>, x: number, y: number) => this.summonMinions(cfg, x, y));
+    this.events.off('boss-phase');
+    this.events.on('boss-phase', (info: BossPhaseEvent) => this.onBossPhase(info));
 
     this.skillUI = new SkillUI({
       skills: this.effectiveSkills, // tooltips reflect equipped skillMods
@@ -893,6 +904,19 @@ export class WorldScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(40);
     this.tweens.add({ targets: banner, alpha: 0, y: 30, delay: 2600, duration: 900, onComplete: () => banner.destroy() });
+  }
+
+  /** A boss crossed into a new phase (m4.x): announce it, shake the screen, and
+   *  release the phase's telegraphed nova (a "reposition or get hit" shockwave). */
+  private onBossPhase(info: BossPhaseEvent): void {
+    if (info.name) this.announceBoss(info.name);
+    this.cameras.main.shake(240, 0.006);
+    if (!info.nova) return;
+    const ring = this.add.circle(info.x, info.y, info.nova.radius, 0xffcaa0, 0.32).setDepth(4);
+    this.tweens.add({ targets: ring, alpha: 0, scale: 1.3, duration: 360, onComplete: () => ring.destroy() });
+    if (!this.player.dead && Math.hypot(this.player.x - info.x, this.player.y - info.y) <= info.nova.radius) {
+      this.player.takeDamage(info.nova.damage, this.numbers);
+    }
   }
 
   /** A summoner's call: spawn up to `count` minions near it, capped by `max`

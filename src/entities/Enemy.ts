@@ -5,6 +5,8 @@ import { DamageNumbers } from '../systems/DamageNumbers.ts';
 import { addSpriteTexture, spriteRowsFor } from '../systems/pixelart.ts';
 import { moveMode } from '../systems/enemyAI.ts';
 import type { EliteMod } from '../systems/elites.ts';
+import { advancePhase, mergePhaseDef, sortPhases } from '../systems/bossPhases.ts';
+import type { BossPhase } from '../data/schemas/index.ts';
 import type { Player } from './Player.ts';
 
 let nextEnemyId = 1;
@@ -17,6 +19,16 @@ const WINDUP_TINT = 0xffd24a;
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   readonly def: EnemyData;
+  // The def the AI actually reads for its move-set. Starts as `def`; boss phases
+  // (m4.x) swap in a merged def with extra/replaced patterns. `def` stays the
+  // original (identity, loot, HP-bar width).
+  private activeDef: EnemyData;
+  // Boss phases, sorted first-crossed-first; how many have been entered; and the
+  // speed/damage multipliers the current phase contributes (on top of corruption).
+  private readonly phases: BossPhase[];
+  private phasesEntered = 0;
+  private phaseSpdMult = 1;
+  private phaseDmgMult = 1;
   /** Elite/champion affix (m4.x), or null for a normal spawn. Set by the scene. */
   elite: EliteMod | null = null;
   private eliteLabel: Phaser.GameObjects.Text | null = null;
@@ -55,13 +67,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   // Corruption scales enemies at spawn (m3): HP and damage-dealt multipliers.
   private readonly dmgMult: number;
   // A persistent tint for corrupted variants (m3); telegraph flashes restore to
-  // this instead of clearing outright, so the recolor survives combat.
-  private readonly baseTint: number | null;
+  // this instead of clearing outright, so the recolor survives combat. Mutable so
+  // a boss phase (m4.x) can recolour the boss when it transitions.
+  private baseTint: number | null;
 
   constructor(scene: Phaser.Scene, def: EnemyData, x: number, y: number, playerLevel: number, hpMult = 1, dmgMult = 1, baseTint: number | null = null) {
     addSpriteTexture(scene, def.sprite, spriteRowsFor(def.sprite));
     super(scene, x, y, def.sprite);
     this.def = def;
+    this.activeDef = def;
+    this.phases = sortPhases(def.phases ?? []);
     this.dmgMult = dmgMult;
     this.baseTint = baseTint;
     if (baseTint !== null) this.setTint(baseTint);
@@ -116,7 +131,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.windupT <= 0) {
         this.restoreTint();
         const reach = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-        if (reach < CONTACT_RANGE + 4) this.receiveThorns(this.hitPlayer(player, this.def.dmg, numbers), numbers);
+        if (reach < CONTACT_RANGE + 4) this.receiveThorns(this.hitPlayer(player, this.activeDef.dmg, numbers), numbers);
       }
       this.positionHpBar();
       return;
@@ -124,16 +139,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     const d = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
     // Charger (m2.4): telegraph in place, then dash the locked heading, dealing a
     // contact hit once. Overrides normal movement while winding up or dashing.
-    if (this.def.charge) {
+    if (this.activeDef.charge) {
       if (this.chargeWindupT > 0) {
         this.chargeWindupT -= dt;
         this.setVelocity(0, 0);
         if (this.chargeWindupT <= 0) {
           this.restoreTint();
           const dd = d || 1;
-          this.chargeVX = ((player.x - this.x) / dd) * this.def.charge.speed;
-          this.chargeVY = ((player.y - this.y) / dd) * this.def.charge.speed;
-          this.chargeDashT = this.def.charge.duration;
+          this.chargeVX = ((player.x - this.x) / dd) * this.activeDef.charge.speed;
+          this.chargeVY = ((player.y - this.y) / dd) * this.activeDef.charge.speed;
+          this.chargeDashT = this.activeDef.charge.duration;
           this.chargeHit = false;
         }
         this.positionHpBar();
@@ -144,10 +159,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.setVelocity(this.chargeVX, this.chargeVY);
         if (!this.chargeHit && d < CONTACT_RANGE + 4) {
           this.chargeHit = true;
-          this.receiveThorns(this.hitPlayer(player, this.def.dmg, numbers), numbers);
+          this.receiveThorns(this.hitPlayer(player, this.activeDef.dmg, numbers), numbers);
         }
         if (this.chargeDashT <= 0) {
-          this.chargeCd = this.def.charge.cooldown;
+          this.chargeCd = this.activeDef.charge.cooldown;
           this.setVelocity(0, 0);
         }
         this.positionHpBar();
@@ -155,12 +170,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     }
     // Movement: chase, kite (keepDistance), or hold — direction from the pure helper.
-    const mode = moveMode(d, this.def.aggro, this.def.keepDistance);
+    const mode = moveMode(d, this.activeDef.aggro, this.activeDef.keepDistance);
     const chill = 1 - this.chillPct / 100; // frost slow
+    const spd = this.activeDef.spd * this.phaseSpdMult; // phase speed-up (m4.x)
     if (mode === 'chase' || mode === 'kite') {
       const sign = mode === 'kite' ? -1 : 1;
-      const vx = (((player.x - this.x) / d) * this.def.spd * chill) * sign;
-      const vy = (((player.y - this.y) / d) * this.def.spd * chill) * sign;
+      const vx = (((player.x - this.x) / d) * spd * chill) * sign;
+      const vy = (((player.y - this.y) / d) * spd * chill) * sign;
       this.setVelocity(vx, vy);
       this.bobPhase += dt * 14; // walk squash while moving
       const s = Math.sin(this.bobPhase);
@@ -170,18 +186,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.setScale(1, 1);
     }
     // Start a charge when the player wanders into range (telegraph resolves above).
-    if (this.def.charge && this.chargeCd <= 0 && d < this.def.charge.range) {
-      this.chargeWindupT = this.def.charge.windup;
+    if (this.activeDef.charge && this.chargeCd <= 0 && d < this.activeDef.charge.range) {
+      this.chargeWindupT = this.activeDef.charge.windup;
       this.setTint(WINDUP_TINT);
     }
     // Contact attack (chargers dash instead; exploders detonate instead).
-    if (!this.def.charge && !this.def.explode && d < CONTACT_RANGE && this.atkCd <= 0) {
+    if (!this.activeDef.charge && !this.activeDef.explode && d < CONTACT_RANGE && this.atkCd <= 0) {
       this.atkCd = ENEMY_ATTACK_COOLDOWN;
       this.windupT = CONTACT_WINDUP;
       this.setTint(WINDUP_TINT);
     }
     // Ranged (m2.4): loose a projectile toward the player from range.
-    const ranged = this.def.ranged;
+    const ranged = this.activeDef.ranged;
     if (ranged && this.rangedCd <= 0 && d <= ranged.range && d > 2) {
       this.rangedCd = ranged.cooldown;
       this.scene.events.emit('enemy-shoot', {
@@ -193,7 +209,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       });
     }
     // Exploder (m2.4): within range, arm a telegraph then self-destruct in an AoE.
-    const explode = this.def.explode;
+    const explode = this.activeDef.explode;
     if (explode) {
       if (this.explodePendingT > 0) {
         this.explodePendingT -= dt;
@@ -210,7 +226,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     }
     // Summoner (m2.4): periodically call minions (the scene enforces the cap).
-    const summon = this.def.summon;
+    const summon = this.activeDef.summon;
     if (summon) {
       this.summonT -= dt;
       if (this.summonT <= 0) {
@@ -220,7 +236,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     // Data-driven AoE ground slam (prototype: Rotfang every 4.5s). The ring is
     // the area indicator; the blow lands only after the slam windup.
-    const slam = this.def.slam;
+    const slam = this.activeDef.slam;
     if (slam) {
       if (this.slamPendingT > 0) {
         this.slamPendingT -= dt;
@@ -253,12 +269,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     else this.clearTint();
   }
 
-  /** Deals `base` damage to the player, scaled by this enemy's corruption mult. */
+  /** Deals `base` damage to the player, scaled by corruption + boss-phase mults. */
   private hitPlayer(player: Player, base: number, numbers: DamageNumbers): number {
-    const thorns = player.takeDamage(base * this.dmgMult, numbers);
+    const thorns = player.takeDamage(base * this.dmgMult * this.phaseDmgMult, numbers);
     // Poison-touch enemies (m4) leave a DoT on contact — harmless under god mode.
-    if (this.def.poison && !player.dead && !player.invulnerable) {
-      player.poisonSelf(this.def.poison.dps, this.def.poison.duration);
+    const poison = this.activeDef.poison;
+    if (poison && !player.dead && !player.invulnerable) {
+      player.poisonSelf(poison.dps, poison.duration);
     }
     return thorns;
   }
@@ -268,6 +285,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.hp -= thorns;
     numbers.spawn(this.x, this.y, thorns, '#4f9c3f');
     if (this.hp <= 0) this.die();
+    else this.checkPhase();
   }
 
   /** Advances one DoT channel; returns true if it killed the enemy. */
@@ -284,8 +302,42 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.die();
         return true;
       }
+      this.checkPhase();
     }
     return false;
+  }
+
+  /** After any HP loss, advance through boss phases if a threshold was crossed. */
+  private checkPhase(): void {
+    if (this.phases.length === 0 || !this.active) return;
+    const n = advancePhase(this.phases, this.hp / this.maxHp, this.phasesEntered);
+    if (n <= this.phasesEntered) return;
+    this.phasesEntered = n;
+    this.enterPhase(this.phases[n - 1]!); // apply the deepest phase just crossed
+  }
+
+  /** Transitions the boss into `phase`: recolour, speed/damage, new move-set, and
+   *  a scene event so the world can telegraph it (banner + shake + nova). Pattern
+   *  fields layer onto the current move-set, so a phase adds to (not resets) it. */
+  private enterPhase(phase: BossPhase): void {
+    this.activeDef = mergePhaseDef(this.activeDef, phase);
+    if (phase.spdMult !== undefined) this.phaseSpdMult = phase.spdMult;
+    if (phase.dmgMult !== undefined) this.phaseDmgMult = phase.dmgMult;
+    if (phase.tint) {
+      this.baseTint = Number.parseInt(phase.tint.replace('#', ''), 16);
+      this.setTint(this.baseTint);
+    }
+    // Kick the new signature moves off promptly instead of waiting a full cycle.
+    this.slamT = Math.min(this.slamT, 0.5);
+    this.summonT = Math.min(this.summonT, 0.5);
+    this.chargeCd = Math.min(this.chargeCd, 0.5);
+    this.rangedCd = Math.min(this.rangedCd, 0.5);
+    this.scene.events.emit('boss-phase', {
+      name: phase.name ?? '',
+      x: this.x,
+      y: this.y,
+      nova: phase.novaOnEnter ?? null,
+    });
   }
 
   /** Flags this enemy as an elite: stores the affix and shows a floating tag. */
@@ -355,6 +407,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setTintFill(0xffffff);
     this.scene.time.delayedCall(120, () => this.restoreTint());
     if (this.hp <= 0) this.die();
+    else this.checkPhase();
     return amount;
   }
 

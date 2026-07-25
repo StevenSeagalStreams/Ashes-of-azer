@@ -11,15 +11,43 @@ under Milestone 4 — but the user's itemization direction takes priority now.
 **Remaining slots is now DONE** (note below). The whole `4.x Itemization` list is
 finished (foundation → sets → ladder → drop pipeline → sockets/runes → runewords →
 unidentified → unique roster → mythic → remaining slots). **Elite/champion enemy
-modifiers is now DONE** (note below). **Next task (top-to-bottom in ROADMAP 4.x):
-the Boss design pass** — every zone boss gets 2–3 phases with distinct mechanics
-(not just bigger HP); world bosses require movement/positioning. Under Milestone 4
+modifiers is now DONE.** **Boss phases (first box of the 4.x Boss design pass) is now
+DONE** (note below). **Next task (top-to-bottom in ROADMAP 4.x Boss design pass):
+"World bosses require movement/positioning, not just DPS"** — the phase-nova already
+forces some repositioning, but this box wants the open-world bosses' core fight built
+around movement (safe-zones, ground hazards, back-attacks, etc.). Under Milestone 4
 the **Zone-3 marsh quest chain / dungeon / secrets** remain pending too. The
 **attribute-requirements** box needs an explicit user decision (STR/DEX vs.
 level-only) — do not build unprompted.
 **STRONGLY worth checking in on priorities now** — itemization is extremely deep;
-finishing Zone 3 (visible content) or boss phases (visible combat variety) likely
-give more player-facing payoff than more itemization.
+finishing Zone 3 (visible content) likely gives more player-facing payoff than more
+systems work.
+
+### Boss phases (m4.x — DONE)
+Data-driven multi-phase boss engine. New pure module `systems/bossPhases.ts`:
+`sortPhases` (descending hpPct = first-crossed-first), `advancePhase(phases,
+hpFraction, entered)` (returns new entered-count; a big hit crossing several
+thresholds jumps straight to the deepest — never moves backward), `mergePhaseDef(
+base, phase)` (overlays the phase's pattern fields onto a def; presentation-only
+fields tint/name/spdMult/dmgMult/nova are NOT merged). Schema: `BossPhaseSchema` +
+`NovaSchema` in `schemas/enemy.ts`; `phases: BossPhase[]` optional on `EnemySchema`.
+`Enemy` now reads its move-set from a mutable `activeDef` (not `def`, which stays the
+identity/loot/HP-bar source): AI reads in `updateEnemy`/`hitPlayer` switched to
+`this.activeDef.<pattern>`, speed = `activeDef.spd * phaseSpdMult`, damage = `base *
+dmgMult * phaseDmgMult`. `baseTint` made mutable so a phase can recolour. `checkPhase()`
+(called after every HP loss — takeHit/receiveThorns/tickDoT, guarded on active + hp>0)
+advances phases; `enterPhase(phase)` merges onto activeDef **cumulatively** (each phase
+adds to the running move-set), applies spd/dmg mults + tint, kicks the new move timers
+to fire promptly, emits `'boss-phase'` {name,x,y,nova}. `WorldScene` binds it →
+`onBossPhase`: banner (reuses `announceBoss`), camera shake, telegraphed nova ring that
+damages the player if inside `radius` (`BossPhaseEvent` interface near `Drop`). Phase
+data authored in `enemies.json` for all 4 bosses (2–3 phases each, valid minion ids
+skel/sporeling/thornwolf). No save changes (runtime-only). Tests: `bossPhases.test.ts`
+(sort stability/no-mutate; advance edge cases incl. multi-cross + no-backward; merge
+overlay/replace/cumulative/no-mutate/presentation-excluded). Loader test validates the
+boss JSON. Smoke `_smoke-bossphase.mjs`: spawn Rotfang, drop through both thresholds →
+2 ordered transitions (ROTFANG UNBURIED → BARROW WRATH); a single below-both hit
+collapses to one final-phase emit; no console errors.
 
 ### Elite / champion enemy modifiers (m4.x — DONE)
 `systems/elites.ts` (pure, unit-tested): an `ELITE_MODS` table of six affixes

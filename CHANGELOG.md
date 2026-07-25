@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Bosses fight in phases now.** Every zone boss shifts tactics as its health
+  falls — Rotfang claws its way out of the barrow and calls the dead, then goes
+  berserk and charges; Mossmaw spits thorn volleys and poisons; Greathorn's charge
+  gets wilder before the hollow stag summons a wolf pack; Oakheart's seals break
+  into ranged bolts, then a poisoned swarm. Each transition erupts in a shockwave
+  you have to step out of, with a banner and a screen shake to sell the turn.
 - **Elite monsters — mini-bosses in the open world.** A small fraction of foes
   (more often the deeper your corruption) spawn as **elites**: a glowing aura and
   a `★` name tag mark them, and each carries one of six affixes — **Swift**,

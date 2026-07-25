@@ -48,7 +48,52 @@
       "interval": 4.5,
       "damage": 22,
       "radius": 64
-    }
+    },
+    "phases": [
+      {
+        "hpPct": 0.6,
+        "name": "ROTFANG UNBURIED",
+        "tint": "#6a8b3a",
+        "spdMult": 1.35,
+        "summon": {
+          "minion": "skel",
+          "count": 2,
+          "interval": 6,
+          "max": 4
+        },
+        "slam": {
+          "interval": 3.5,
+          "damage": 24,
+          "radius": 72
+        },
+        "novaOnEnter": {
+          "damage": 24,
+          "radius": 80
+        }
+      },
+      {
+        "hpPct": 0.3,
+        "name": "BARROW WRATH",
+        "tint": "#b23a2a",
+        "dmgMult": 1.4,
+        "charge": {
+          "range": 220,
+          "windup": 0.5,
+          "speed": 300,
+          "duration": 0.5,
+          "cooldown": 3.5
+        },
+        "slam": {
+          "interval": 3,
+          "damage": 28,
+          "radius": 80
+        },
+        "novaOnEnter": {
+          "damage": 32,
+          "radius": 92
+        }
+      }
+    ]
   },
   {
     "id": "thornwolf",
@@ -189,7 +234,35 @@
       "max": 3
     },
     "relic": "relic_verdant_heart",
-    "relicName": "Verdant Heart"
+    "relicName": "Verdant Heart",
+    "phases": [
+      {
+        "hpPct": 0.5,
+        "name": "MOSSMAW SEETHES",
+        "tint": "#3f7a2e",
+        "spdMult": 1.15,
+        "ranged": {
+          "range": 180,
+          "cooldown": 2.2,
+          "damage": 16,
+          "projectileSpeed": 150
+        },
+        "poison": {
+          "dps": 8,
+          "duration": 3
+        },
+        "summon": {
+          "minion": "sporeling",
+          "count": 2,
+          "interval": 5,
+          "max": 4
+        },
+        "novaOnEnter": {
+          "damage": 22,
+          "radius": 72
+        }
+      }
+    ]
   },
   {
     "id": "greathorn",
@@ -216,7 +289,47 @@
       "radius": 66
     },
     "relic": "relic_hollow_antler",
-    "relicName": "Hollow Antler"
+    "relicName": "Hollow Antler",
+    "phases": [
+      {
+        "hpPct": 0.66,
+        "name": "GREATHORN CHARGES",
+        "tint": "#8a6a3a",
+        "spdMult": 1.25,
+        "charge": {
+          "range": 260,
+          "windup": 0.5,
+          "speed": 340,
+          "duration": 0.6,
+          "cooldown": 3
+        },
+        "novaOnEnter": {
+          "damage": 26,
+          "radius": 82
+        }
+      },
+      {
+        "hpPct": 0.33,
+        "name": "HOLLOW STAMPEDE",
+        "tint": "#5a3a6a",
+        "dmgMult": 1.3,
+        "summon": {
+          "minion": "thornwolf",
+          "count": 2,
+          "interval": 6,
+          "max": 4
+        },
+        "slam": {
+          "interval": 4.5,
+          "damage": 28,
+          "radius": 74
+        },
+        "novaOnEnter": {
+          "damage": 34,
+          "radius": 94
+        }
+      }
+    ]
   },
   {
     "id": "oakheart",
@@ -240,7 +353,45 @@
       "count": 2,
       "interval": 6,
       "max": 3
-    }
+    },
+    "phases": [
+      {
+        "hpPct": 0.5,
+        "name": "SEALS BREAKING",
+        "tint": "#4a7a5a",
+        "spdMult": 1.2,
+        "ranged": {
+          "range": 170,
+          "cooldown": 2.4,
+          "damage": 15,
+          "projectileSpeed": 145
+        },
+        "novaOnEnter": {
+          "damage": 24,
+          "radius": 76
+        }
+      },
+      {
+        "hpPct": 0.25,
+        "name": "WARDEN UNBOUND",
+        "tint": "#6a2a4a",
+        "dmgMult": 1.35,
+        "poison": {
+          "dps": 7,
+          "duration": 3
+        },
+        "summon": {
+          "minion": "sporeling",
+          "count": 3,
+          "interval": 5,
+          "max": 6
+        },
+        "novaOnEnter": {
+          "damage": 30,
+          "radius": 86
+        }
+      }
+    ]
   },
   {
     "id": "rotshambler",
