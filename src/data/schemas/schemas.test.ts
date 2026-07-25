@@ -91,7 +91,7 @@ describe('ItemsFileSchema', () => {
       slots: ['Weapon'],
       bases: { Weapon: [{ name: 'Sword', base: 3 }] },
       rarities: [],
-      legendaries: [{ name: 'X', slot: 'Belt', power: 'x', text: 'x', forcedAffixes: [] }],
+      legendaries: [{ name: 'X', slot: 'Trinket', power: 'x', text: 'x', forcedAffixes: [] }],
     };
     expect(ItemsFileSchema.safeParse(items).success).toBe(false);
   });

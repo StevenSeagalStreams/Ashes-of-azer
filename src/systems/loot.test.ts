@@ -104,6 +104,27 @@ describe('rollItem', () => {
     expect(item.affixes).toEqual(leg.forcedAffixes);
   });
 
+  it('rolls the new equip slots (Belt / Necklace / Offhand) from their bases', () => {
+    for (const slot of ['Belt', 'Necklace', 'Offhand'] as const) {
+      const item = rollItem(items, affixes, seeded(4), { slot, rarity: 'magic', ilvl: 30 });
+      expect(item.slot).toBe(slot);
+      const bases = items.bases[slot]!.map((b) => b.name);
+      expect(bases).toContain(item.name);
+    }
+  });
+
+  it('a fixed-tier roll with no item for the slot downgrades to a rare (never a blank gold)', () => {
+    // Ring2 is an equip position with no bases/uniques; forcing 'unique' there
+    // must not emit an empty unique — it downgrades to a real rare roll.
+    const item = rollItem(items, affixes, seeded(9), { slot: 'Ring', rarity: 'unique', ilvl: 40 });
+    // Ring HAS uniques, so this stays unique. A slot without any unique would fall
+    // back; assert the mechanism via a slot guaranteed to lack a set piece.
+    expect(item.rarity).toBe('unique');
+    const noSet = rollItem(items, affixes, seeded(9), { slot: 'Weapon', rarity: 'set', ilvl: 40 });
+    expect(noSet.rarity).toBe('rare'); // no Weapon set piece → downgraded, with affixes
+    expect(noSet.affixes.length).toBeGreaterThan(0);
+  });
+
   it('a forced mythic roll yields a mythic item (fixed power + affixes)', () => {
     const weaponMythics = items.mythics.filter((m) => m.slot === 'Weapon');
     expect(weaponMythics.length).toBeGreaterThan(0);

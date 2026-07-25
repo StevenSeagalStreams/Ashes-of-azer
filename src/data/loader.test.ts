@@ -345,8 +345,8 @@ describe('the real /data/*.json content', () => {
       for (const mod of u.skillMods) expect(skillIds, `${u.power} skillMod skill`).toContain(mod.skill);
       // hook shape is enforced by the schema; nothing extra to check here.
     }
-    // Covers every slot, and at least a third are skill-modifying (the design rule).
-    expect(slots).toEqual(new Set(['Weapon', 'Helmet', 'Chest', 'Boots', 'Ring']));
+    // Covers every core slot, and at least a third are skill-modifying (the design rule).
+    for (const s of ['Weapon', 'Helmet', 'Chest', 'Boots', 'Ring']) expect(slots, `unique for ${s}`).toContain(s);
     const modding = uniques.filter((u) => u.skillMods.length > 0).length;
     expect(modding).toBeGreaterThanOrEqual(Math.ceil(uniques.length / 3));
   });

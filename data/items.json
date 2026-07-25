@@ -4,7 +4,10 @@
     "Helmet",
     "Chest",
     "Boots",
-    "Ring"
+    "Ring",
+    "Belt",
+    "Necklace",
+    "Offhand"
   ],
   "bases": {
     "Weapon": [
@@ -79,6 +82,48 @@
       {
         "name": "Runed Loop",
         "base": 5
+      }
+    ],
+    "Belt": [
+      {
+        "name": "Sash",
+        "base": 2
+      },
+      {
+        "name": "Heavy Belt",
+        "base": 3
+      },
+      {
+        "name": "War Girdle",
+        "base": 5
+      }
+    ],
+    "Necklace": [
+      {
+        "name": "Bead Amulet",
+        "base": 2
+      },
+      {
+        "name": "Silver Amulet",
+        "base": 4
+      },
+      {
+        "name": "Gilded Torc",
+        "base": 6
+      }
+    ],
+    "Offhand": [
+      {
+        "name": "Buckler",
+        "base": 3
+      },
+      {
+        "name": "Kite Shield",
+        "base": 6
+      },
+      {
+        "name": "Tower Shield",
+        "base": 9
       }
     ]
   },
@@ -866,6 +911,76 @@
         }
       ],
       "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Girdle of the Titan",
+      "slot": "Belt",
+      "power": "titan_girdle",
+      "text": "A giant's belt — you shrug off blows and swing all the faster.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 45
+        },
+        {
+          "key": "aspd",
+          "value": 15
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Amulet of the Ember Sage",
+      "slot": "Necklace",
+      "power": "ember_sage",
+      "text": "Fireball roars wider and your spells refund their cost.",
+      "forcedAffixes": [
+        {
+          "key": "cdr",
+          "value": 15
+        },
+        {
+          "key": "manakill",
+          "value": 8
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "fireball",
+          "mod": "radius",
+          "value": 10,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onCast",
+          "effect": "manaGain",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "name": "Bulwark Aegis",
+      "slot": "Offhand",
+      "power": "bulwark_aegis",
+      "text": "A wall of a shield — Iron Guard holds, and blows rebound.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 50
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "iron_guard",
+          "mod": "damageReductionPct",
+          "value": 10,
+          "op": "add"
+        }
+      ],
       "hooks": []
     }
   ],

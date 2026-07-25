@@ -8,17 +8,35 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Mythic tier is now DONE** (note below). The D2 itemization systems (7 boxes),
-the roster grow, and the mythic tier are all shipped. **Next task (top-to-bottom
-in ROADMAP 4.x): remaining slots** — belt / necklace / ring2 / offhand (shields,
-quivers, tomes): add the slots to `ItemSlotSchema` + bases + gear layout + UI.
-That's a systems-ish box (new equip slots touch the gear record, save schema,
-InventoryUI, and stat contribution). After that: elite/champion enemy modifiers,
-then the boss-design pass. Under Milestone 4 the Zone-3 marsh quest chain / dungeon
-/ secrets remain pending. The **attribute-requirements** box still needs an explicit
-user decision (STR/DEX vs. level-only) — do not build unprompted. **Worth checking
-in with the user on priorities** — the D2 itemization arc is very deep now; resuming
-Zone 3 or the boss-design pass may give more visible variety than more slots.
+**Remaining slots is now DONE** (note below). The whole `4.x Itemization` list is
+finished (foundation → sets → ladder → drop pipeline → sockets/runes → runewords →
+unidentified → unique roster → mythic → remaining slots). **Next task (top-to-bottom
+in ROADMAP 4.x): elite/champion enemy modifiers** — D2 rare-monster affixes (Extra
+Fast, Frost-Enchanted, Shielded, Summoner…) with better drops; then the **4.x Boss
+design pass** (2–3 phase bosses). Under Milestone 4 the **Zone-3 marsh quest chain /
+dungeon / secrets** remain pending too. The **attribute-requirements** box needs an
+explicit user decision (STR/DEX vs. level-only) — do not build unprompted.
+**STRONGLY worth checking in on priorities now** — itemization is extremely deep;
+finishing Zone 3 (visible content) or elite modifiers / boss phases (visible combat
+variety) likely give more player-facing payoff than more itemization.
+
+### D2 itemization — remaining equip slots (m4.x — DONE)
+Added **Belt / Necklace / Offhand** item slots + a second ring position **Ring2**.
+`ItemSlotSchema` extended to `[…, Belt, Necklace, Offhand, Ring2]` (Ring2 is an
+equip *position* only — no item has slot Ring2, no bases, never rolls). items.json
+gained 3 bases each for Belt/Necklace/Offhand (+ them in `slots`), and one unique
+per new slot (Girdle of the Titan, Amulet of the Ember Sage, Bulwark Aegis → 35
+uniques). `WorldScene.equipKeyFor` routes a Ring to Ring then Ring2; equip/unequip
+key off it. InventoryUI `SLOTS` shows Weapon/Helmet/Chest/Boots/Belt/Necklace/
+Offhand/Ring/Ring2. gearStats already keys by gear-slot (non-Weapon → life×3), so
+belts/amulets/shields/second-ring contribute correctly with no change. **Robustness
+fix**: `rollItem` now downgrades a unique/set/mythic roll to a rare when the slot has
+no such fixed item (prevents blank gold items on slots lacking bespoke content).
+Gear record + saves are additive (partialRecord over the enum) — **no save bump**.
+Tests: new-slot base rolls, fixed-tier→rare downgrade, schema unknown-slot uses
+'Trinket' now, unique-roster slot check relaxed to the 5 core slots. Smoke: equip
+belt/necklace/offhand + two rings (Ring+Ring2), inventory shows all rows, drops roll
+the new slots, no console errors.
 
 ### D2 itemization — mythic tier (m4.x — DONE)
 New `mythic` rarity (hot pink `#ff5ecb`/`0xff5ecb`) above unique. Added to

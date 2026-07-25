@@ -2,7 +2,10 @@ import { z } from 'zod';
 import { ElementSchema } from './skill.ts';
 
 // Ported from the prototype's SLOTS, BASES, RARITY and LEGENDARIES.
-export const ItemSlotSchema = z.enum(['Weapon', 'Helmet', 'Chest', 'Boots', 'Ring']);
+// Equip slots (m4.x expanded). 'Ring2' is an equip *position* only — a second
+// ring slot that holds Ring-type items; no item ever has slot 'Ring2', and it
+// has no bases (so drops never roll it).
+export const ItemSlotSchema = z.enum(['Weapon', 'Helmet', 'Chest', 'Boots', 'Ring', 'Belt', 'Necklace', 'Offhand', 'Ring2']);
 export type ItemSlot = z.infer<typeof ItemSlotSchema>;
 
 export const ItemBaseSchema = z.object({

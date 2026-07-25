@@ -25,7 +25,7 @@ export interface InventoryUIHost {
   socketInto: (runeId: string, target: SocketTarget) => void;
 }
 
-const SLOTS: ItemSlot[] = ['Weapon', 'Helmet', 'Chest', 'Boots', 'Ring'];
+const SLOTS: ItemSlot[] = ['Weapon', 'Helmet', 'Chest', 'Boots', 'Belt', 'Necklace', 'Offhand', 'Ring', 'Ring2'];
 const RARITY_HEX: Record<string, string> = {
   white: '#f4f0e0',
   magic: '#7fa8ee',

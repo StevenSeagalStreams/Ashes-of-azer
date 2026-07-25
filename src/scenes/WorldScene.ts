@@ -1488,11 +1488,19 @@ export class WorldScene extends Phaser.Scene {
       this.numbers.spawn(this.player.x, this.player.y - 14, 'UNIDENTIFIED — IDENTIFY IT FIRST', '#c88af5');
       return;
     }
-    const prev = this.saveData.gear[item.slot] ?? null;
-    this.saveData.gear[item.slot] = item;
+    const key = this.equipKeyFor(item);
+    const prev = this.saveData.gear[key] ?? null;
+    this.saveData.gear[key] = item;
     this.saveData.bag.splice(bagIndex, 1);
     if (prev) this.saveData.bag.push(prev);
     this.onGearChanged();
+  }
+
+  /** The gear position an item equips into. A Ring fills the first open ring
+   *  slot (Ring, then Ring2); everything else equips into its own slot. */
+  private equipKeyFor(item: ItemInstance): ItemSlot {
+    if (item.slot === 'Ring' && this.saveData.gear['Ring'] && !this.saveData.gear['Ring2']) return 'Ring2';
+    return item.slot;
   }
 
   private unequipToBag(slot: ItemSlot): void {

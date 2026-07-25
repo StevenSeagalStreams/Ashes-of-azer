@@ -196,14 +196,22 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
     }
   }
 
+  // If a fixed tier (unique/set/mythic) had no entry for this slot, we fall
+  // through to here — downgrade to a proper rare roll rather than emit an empty
+  // gold item. (This keeps new slots without bespoke uniques from dropping blanks.)
+  const genRarity =
+    rarity.id === 'unique' || rarity.id === 'set' || rarity.id === 'mythic'
+      ? items.rarities.find((r) => r.id === 'rare') ?? rarity
+      : rarity;
+
   const bases = items.bases[slot] ?? [];
   const baseItem = pick(bases, rng);
-  const count = randInt(rarity.affixMin, rarity.affixMax, rng);
+  const count = randInt(genRarity.affixMin, genRarity.affixMax, rng);
   const rolled = rollAffixes(affixes, count, rng, ilvl);
-  const dur = durabilityFor(baseItem.base, rarity.id);
-  const item: ItemInstance = { slot, name: baseItem.name, base: baseItem.base, rarity: rarity.id, ilvl, affixes: rolled, durability: dur, maxDurability: dur };
+  const dur = durabilityFor(baseItem.base, genRarity.id);
+  const item: ItemInstance = { slot, name: baseItem.name, base: baseItem.base, rarity: genRarity.id, ilvl, affixes: rolled, durability: dur, maxDurability: dur };
   // White (normal) bases can roll sockets — the D2 runeword/gem base (m4.x).
-  if (rarity.id === 'white') {
+  if (genRarity.id === 'white') {
     const n = rollSockets(slot, ilvl, rng);
     if (n > 0) {
       item.sockets = n;

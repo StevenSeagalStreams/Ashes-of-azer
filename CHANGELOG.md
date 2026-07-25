@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **More gear slots: belts, amulets, shields, and a second ring.** You can now
+  equip a **Belt**, a **Necklace**, an **Offhand** (shields), and a **second ring**
+  — a ring fills your first open ring slot, then the second. New base items drop
+  for each, plus a unique apiece (Girdle of the Titan, Amulet of the Ember Sage,
+  Bulwark Aegis). More slots means more room to build.
 - **Mythic items — the new top of the ladder.** Above unique sits a hot-pink
   **Mythic** tier: five ultra-rare, build-warping items that **drop only from
   bosses**. Worldbreaker turns Hammerfall into a cataclysm, Crown of Cinders makes
