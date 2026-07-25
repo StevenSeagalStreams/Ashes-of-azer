@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **A new quest chain: The Mire Watch.** Warden Sela holds the line at Fenwatch,
+  and she needs help. Cull the drowned dead of the Mirefen — shamblers, corpse-
+  lights, spitters, and the drowned pack — then stand the Sunken Vigil with her.
+  Five quests of marsh story, given the old-fashioned way: talk to the warden.
 - **World bosses make you move.** Greathorn now scorches the ground where you're
   standing — telegraphed pools bloom under your feet and linger, so parking on top
   of the boss and holding attack gets you cooked. As the hollow stag breaks into

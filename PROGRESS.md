@@ -12,16 +12,38 @@ under Milestone 4 — but the user's itemization direction takes priority now.
 finished (foundation → sets → ladder → drop pipeline → sockets/runes → runewords →
 unidentified → unique roster → mythic → remaining slots). **Elite/champion enemy
 modifiers is now DONE.** **Boss phases (first box of the 4.x Boss design pass) is now
-DONE.** **World-boss movement mechanic (second box) is now DONE** (note below) — which
-finishes the entire **4.x Boss design pass**. **Next task (top-to-bottom): the 4.x
-track is now complete; the next unchecked ROADMAP box is under Milestone 4 — the
-Zone-3 marsh content (quest chain / dungeon+mini-boss / secrets), which was deferred
-when the itemization redirect landed.** The **attribute-requirements** box (in 4.x
-Itemization) still needs an explicit user decision (STR/DEX vs. level-only) — do not
-build unprompted.
+DONE.** **World-boss movement mechanic (second box) is DONE** — which
+finished the entire **4.x Boss design pass**. **Zone-3 marsh quest chain is now DONE**
+(note below). **Next task (top-to-bottom in Milestone 4, Zone 3): "Dungeon + mini-boss
+(relic)"** — the marsh needs a dungeon zone (like forestdungeon/the Barrow) with a
+mini-boss that grants a relic fragment (see the Bramblewarren/mossmaw pattern + the
+loader test at loader.test.ts "the Bramblewarren mini-boss grants a relic fragment").
+Then Zone-3 "Secrets". The **attribute-requirements** box (in 4.x Itemization) still
+needs an explicit user decision (STR/DEX vs. level-only) — do not build unprompted.
 **STRONGLY worth checking in on priorities now** — the systems layer (itemization,
 elites, boss phases, hazards) is very deep; finishing Zone 3 (visible content) likely
 gives more player-facing payoff than more systems work.
+
+### Zone-3 marsh quest chain — The Mire Watch (m4 — DONE)
+Data-only story chain for the Haunted Marsh, mirroring the warden_trials/ashfall
+pattern. 5 linear NPC-given quests (chain `mire_watch`, autoOffer false) in
+`quests.json`: q_mw_shamblers (kill 6 rotshambler) → q_mw_corpselights (5 bogwraith)
+→ q_mw_venom (6 fenspitter) → q_mw_pack (5 drownhound) → q_mw_vigil (talkTo mw_sela,
+the capstone — same talk-to-giver pattern as q_wt_warden). One giver: **Warden Sela**
+(`mw_sela`, sprite `elder`, zone marshtown at 464,208, offersQuests = all 5) added to
+`npcs.json`; a full dialogue tree `mw_sela` in `dialogue.json` (greet + lore + per-quest
+accept nodes with `startsQuest` actions gated on `questAvailable`, progress nodes gated
+on `questActive`, and a `questCompleted` done node). No code, no save changes — the
+existing quest engine + scene kill/talkTo hooks drive it. Verified: the loader graph
+test already checks all cross-refs (offersQuests/startsQuest/prereqs resolve; exactly
+one giver per gated quest — all passing); added a dedicated loader test "the Mire Watch
+chain links 5 undead-hunt quests to one Fenwatch giver" that asserts shape + walks the
+chain start→finish through `startQuest`/`recordEvent` with real data. Smoke
+`_smoke-marshquest.mjs`: teleport into Fenwatch beside Sela, press E → her dialogue
+crawls open and offers the first quest; teleport to the Mirefen → all 4 undead spawn;
+no console errors. NOTE the dialogue text uses a ~1.2s typewriter crawl and choices
+render only after it finishes — smokes must wait for the choice text, not capture
+immediately.
 
 ### World-boss movement mechanic — ground hazards (m4.x — DONE)
 Data-driven zone-denial. Pure `systems/hazards.ts`: `hazardSpots(cx,cy,count,spread,

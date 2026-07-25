@@ -212,6 +212,51 @@ describe('the real /data/*.json content', () => {
     expect(hasRespec).toBe(true);
   });
 
+  it('the Mire Watch chain links 5 undead-hunt quests to one Fenwatch giver', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const { startQuest, recordEvent } = await import('../systems/quests.ts');
+    const { emptyQuestState } = await import('../systems/save/schema.ts');
+    const data = loadGameData();
+    const chain = data.quests.filter((q) => q.chain === 'mire_watch');
+    expect(chain.length).toBe(5);
+    // Linear: every quest but the first is gated behind another mire_watch quest,
+    // and all are NPC-given (never auto-offered).
+    const chainIds = new Set(chain.map((q) => q.id));
+    const gated = chain.filter((q) => q.prerequisites.some((p) => chainIds.has(p)));
+    expect(gated.length).toBe(chain.length - 1);
+    for (const q of chain) expect(q.autoOffer).toBe(false);
+    // A single giver — Warden Sela — offers the whole chain, and she stands in
+    // Fenwatch (marshtown) with a real dialogue tree that starts each quest.
+    const givers = data.npcs.filter((n) => n.offersQuests.some((id) => chainIds.has(id)));
+    expect(givers.length).toBe(1);
+    const sela = givers[0]!;
+    expect(sela.zone).toBe('marshtown');
+    for (const id of chainIds) expect(sela.offersQuests).toContain(id);
+    const tree = data.dialogue.find((t) => t.id === sela.dialogue)!;
+    const started = new Set<string>();
+    for (const node of tree.nodes) for (const c of node.choices) if (c.action?.startsQuest) started.add(c.action.startsQuest);
+    for (const id of chainIds) expect(started, `${id} startable`).toContain(id);
+    // The kill quests target the marsh's undead roster (data-driven, no code).
+    const marshMobs = new Set(['rotshambler', 'bogwraith', 'fenspitter', 'drownhound']);
+    for (const q of chain) {
+      for (const obj of q.objectives) {
+        if (obj.type === 'kill') expect(marshMobs, `${q.id} target`).toContain(obj.target);
+      }
+    }
+    // Functional walk: feed the chain's own objective events and confirm it runs
+    // start → finish in order, gating each quest on the previous.
+    let state = emptyQuestState();
+    for (const q of chain) {
+      state = startQuest(data.quests, state, q.id);
+      expect(state.active, `${q.id} accepted`).toContain(q.id);
+      for (const obj of q.objectives) {
+        state = recordEvent(data.quests, state, { type: obj.type, target: obj.target, amount: obj.count }).state;
+      }
+      expect(state.completed, `${q.id} done`).toContain(q.id);
+    }
+    expect(chain.every((q) => state.completed.includes(q.id))).toBe(true);
+  });
+
   it('the Shrine of Ashes offers all three endings, each gated on all relics', async () => {
     const { loadGameData } = await import('./gameData.ts');
     const { visibleChoices } = await import('../systems/dialogue.ts');

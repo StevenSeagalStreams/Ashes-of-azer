@@ -485,5 +485,108 @@
     "prerequisites": [],
     "chain": "ashes_finale",
     "autoOffer": false
+  },
+  {
+    "id": "q_mw_shamblers",
+    "name": "The Walking Bog",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "rotshambler",
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "xp": 120,
+      "gold": 30,
+      "itemIds": []
+    },
+    "prerequisites": [],
+    "chain": "mire_watch",
+    "autoOffer": false
+  },
+  {
+    "id": "q_mw_corpselights",
+    "name": "Corpse-Lights",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "bogwraith",
+        "count": 5
+      }
+    ],
+    "rewards": {
+      "xp": 140,
+      "gold": 35,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_mw_shamblers"
+    ],
+    "chain": "mire_watch",
+    "autoOffer": false
+  },
+  {
+    "id": "q_mw_venom",
+    "name": "Spit and Rot",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "fenspitter",
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "xp": 160,
+      "gold": 40,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_mw_corpselights"
+    ],
+    "chain": "mire_watch",
+    "autoOffer": false
+  },
+  {
+    "id": "q_mw_pack",
+    "name": "The Drowned Pack",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "drownhound",
+        "count": 5
+      }
+    ],
+    "rewards": {
+      "xp": 190,
+      "gold": 50,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_mw_venom"
+    ],
+    "chain": "mire_watch",
+    "autoOffer": false
+  },
+  {
+    "id": "q_mw_vigil",
+    "name": "The Sunken Vigil",
+    "objectives": [
+      {
+        "type": "talkTo",
+        "target": "mw_sela",
+        "count": 1
+      }
+    ],
+    "rewards": {
+      "xp": 320,
+      "gold": 120,
+      "itemIds": []
+    },
+    "prerequisites": [
+      "q_mw_pack"
+    ],
+    "chain": "mire_watch",
+    "autoOffer": false
   }
 ]

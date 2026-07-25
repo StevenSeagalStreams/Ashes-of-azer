@@ -321,5 +321,22 @@
     "y": 512,
     "dialogue": "marshtrainer",
     "wander": false
+  },
+  {
+    "id": "mw_sela",
+    "name": "Warden Sela",
+    "sprite": "elder",
+    "zone": "marshtown",
+    "x": 464,
+    "y": 208,
+    "dialogue": "mw_sela",
+    "wander": false,
+    "offersQuests": [
+      "q_mw_shamblers",
+      "q_mw_corpselights",
+      "q_mw_venom",
+      "q_mw_pack",
+      "q_mw_vigil"
+    ]
   }
 ]

@@ -86,7 +86,7 @@
       },
       {
         "id": "corr_taint",
-        "text": "A little ash clings to you — nothing a clean well won't wash away. But it deepens if you feed it, and it is hungry.",
+        "text": "A little ash clings to you \u2014 nothing a clean well won't wash away. But it deepens if you feed it, and it is hungry.",
         "choices": [
           {
             "text": "I'll remember that.",
@@ -96,7 +96,7 @@
       },
       {
         "id": "corr_corrupt",
-        "text": "The corruption has its hooks in you now. It makes the wilds bare their teeth — and their treasures. A dangerous bargain, that.",
+        "text": "The corruption has its hooks in you now. It makes the wilds bare their teeth \u2014 and their treasures. A dangerous bargain, that.",
         "choices": [
           {
             "text": "A bargain I'll weigh.",
@@ -261,7 +261,7 @@
       },
       {
         "id": "lore",
-        "text": "Sena. I've drawn Ashfall's water thirty years — never has it tasted of ash till now.",
+        "text": "Sena. I've drawn Ashfall's water thirty years \u2014 never has it tasted of ash till now.",
         "choices": [
           {
             "text": "I see.",
@@ -289,7 +289,7 @@
       },
       {
         "id": "thanks",
-        "text": "The water clears already — bless you. Warden Kessa should hear of this; she keeps the gate.",
+        "text": "The water clears already \u2014 bless you. Warden Kessa should hear of this; she keeps the gate.",
         "choices": [
           {
             "text": "I'll find her."
@@ -304,7 +304,7 @@
     "nodes": [
       {
         "id": "greet",
-        "text": "Halt— ah, a fighting sort. Good. Dusk brings wings to my palisade.",
+        "text": "Halt\u2014 ah, a fighting sort. Good. Dusk brings wings to my palisade.",
         "choices": [
           {
             "text": "Who are you?",
@@ -369,7 +369,7 @@
       },
       {
         "id": "thanks",
-        "text": "The night's quieter — my thanks. But Doran, my scout, went to the Barrow and hasn't returned. Speak with him; he made it back at last.",
+        "text": "The night's quieter \u2014 my thanks. But Doran, my scout, went to the Barrow and hasn't returned. Speak with him; he made it back at last.",
         "choices": [
           {
             "text": "I'll seek him out."
@@ -384,7 +384,7 @@
     "nodes": [
       {
         "id": "greet",
-        "text": "You're the one Kessa sent? I crawled out of that Barrow — barely. My partner didn't.",
+        "text": "You're the one Kessa sent? I crawled out of that Barrow \u2014 barely. My partner didn't.",
         "choices": [
           {
             "text": "Who are you?",
@@ -431,7 +431,7 @@
       },
       {
         "id": "accepted",
-        "text": "Take the gate east, then down into the barrow. Any sign of her — I have to know.",
+        "text": "Take the gate east, then down into the barrow. Any sign of her \u2014 I have to know.",
         "choices": [
           {
             "text": "I'll go."
@@ -449,7 +449,7 @@
       },
       {
         "id": "thanks",
-        "text": "You walked the dark and came back. That's more than she did... thank you. Mira the herbalist studies what festers below — she'll want your help.",
+        "text": "You walked the dark and came back. That's more than she did... thank you. Mira the herbalist studies what festers below \u2014 she'll want your help.",
         "choices": [
           {
             "text": "I'll speak with her."
@@ -511,7 +511,7 @@
       },
       {
         "id": "accepted",
-        "text": "Eight of the walking dead. Their unrest is what the roots feed on — still them.",
+        "text": "Eight of the walking dead. Their unrest is what the roots feed on \u2014 still them.",
         "choices": [
           {
             "text": "It will be done."
@@ -529,7 +529,7 @@
       },
       {
         "id": "thanks",
-        "text": "The soil steadies at last. Only the thing that raised them remains. Priest Halden means to end it — he'll need a blade like yours.",
+        "text": "The soil steadies at last. Only the thing that raised them remains. Priest Halden means to end it \u2014 he'll need a blade like yours.",
         "choices": [
           {
             "text": "I'll find Halden."
@@ -580,7 +580,7 @@
     "nodes": [
       {
         "id": "greet",
-        "text": "Azer's ash falls thickest over the Barrow's heart. A master stirs there — the root of all this rot.",
+        "text": "Azer's ash falls thickest over the Barrow's heart. A master stirs there \u2014 the root of all this rot.",
         "choices": [
           {
             "text": "Who are you?",
@@ -611,7 +611,7 @@
             "nextNodeId": "thanks"
           },
           {
-            "text": "Priest — am I becoming one of them?",
+            "text": "Priest \u2014 am I becoming one of them?",
             "condition": {
               "corruptionMin": 50
             },
@@ -624,7 +624,7 @@
       },
       {
         "id": "lore",
-        "text": "Halden, last priest of the Ash. I have watched the corruption creep to our very well — but no longer, if you are willing.",
+        "text": "Halden, last priest of the Ash. I have watched the corruption creep to our very well \u2014 but no longer, if you are willing.",
         "choices": [
           {
             "text": "I see.",
@@ -634,7 +634,7 @@
       },
       {
         "id": "corr_bless",
-        "text": "Not yet — but the ash favours you, and that favour is a debt. It lends you strength and lends the wilds their teeth in equal measure. Kneel at a well and let the water take it; corruption is a loan the Barrow always calls in.",
+        "text": "Not yet \u2014 but the ash favours you, and that favour is a debt. It lends you strength and lends the wilds their teeth in equal measure. Kneel at a well and let the water take it; corruption is a loan the Barrow always calls in.",
         "choices": [
           {
             "text": "I'll cleanse it.",
@@ -662,7 +662,7 @@
       },
       {
         "id": "thanks",
-        "text": "It is done. Ashfall stands because you stood. Go with the light, Ashbreaker — you will always have a hearth here.",
+        "text": "It is done. Ashfall stands because you stood. Go with the light, Ashbreaker \u2014 you will always have a hearth here.",
         "choices": [
           {
             "text": "Farewell, Halden."
@@ -749,7 +749,7 @@
       },
       {
         "id": "corr_warn",
-        "text": "I've seen that ash-shadow on Wardens before. It sharpens the hunt and fattens the spoils — but it turns the Reach against you, blade by blade. Cleanse at a well when you can, recruit.",
+        "text": "I've seen that ash-shadow on Wardens before. It sharpens the hunt and fattens the spoils \u2014 but it turns the Reach against you, blade by blade. Cleanse at a well when you can, recruit.",
         "choices": [
           {
             "text": "Noted, Captain.",
@@ -759,7 +759,7 @@
       },
       {
         "id": "corr_hard",
-        "text": "Steady, now. You carry more corruption than most who walk out of the Barrow in a box. The green forgives much, but the ash forgives nothing. Go to a well — that is an order.",
+        "text": "Steady, now. You carry more corruption than most who walk out of the Barrow in a box. The green forgives much, but the ash forgives nothing. Go to a well \u2014 that is an order.",
         "choices": [
           {
             "text": "Aye, Captain.",
@@ -769,7 +769,7 @@
       },
       {
         "id": "a_cull",
-        "text": "Start with the sporelings fouling the glades — six should steady the Reach. Standing with the Wardens follows.",
+        "text": "Start with the sporelings fouling the glades \u2014 six should steady the Reach. Standing with the Wardens follows.",
         "choices": [
           {
             "text": "Consider it done."
@@ -796,7 +796,7 @@
       },
       {
         "id": "done_warden",
-        "text": "Rise, Warden of the Reach. The green is yours by right — and the Reach is safer for it. Well done.",
+        "text": "Rise, Warden of the Reach. The green is yours by right \u2014 and the Reach is safer for it. Well done.",
         "choices": [
           {
             "text": "For the Wardens."
@@ -858,7 +858,7 @@
       },
       {
         "id": "lore",
-        "text": "Brenna, quartermaster of the Wardens. I keep us fed and armed — when the beasts let me.",
+        "text": "Brenna, quartermaster of the Wardens. I keep us fed and armed \u2014 when the beasts let me.",
         "choices": [
           {
             "text": "I see.",
@@ -940,7 +940,7 @@
       },
       {
         "id": "lore",
-        "text": "Loremaster Fen. I read the Reach's sickness in its very wood — and the grovewardens are its worst symptom.",
+        "text": "Loremaster Fen. I read the Reach's sickness in its very wood \u2014 and the grovewardens are its worst symptom.",
         "choices": [
           {
             "text": "I see.",
@@ -1218,7 +1218,7 @@
     "nodes": [
       {
         "id": "root",
-        "text": "The Shrine of Ashes. Four sockets ring a bowl of cold embers. With every relic in hand the stone waits — but it will not answer until you have earned the ending you would give the Reach.",
+        "text": "The Shrine of Ashes. Four sockets ring a bowl of cold embers. With every relic in hand the stone waits \u2014 but it will not answer until you have earned the ending you would give the Reach.",
         "choices": [
           {
             "text": "Scatter it. I will carry the relics to the ruin's heart and break them there.",
@@ -1254,21 +1254,21 @@
             "nextNodeId": "rite"
           },
           {
-            "text": "Shatter the relics — the rite is done.",
+            "text": "Shatter the relics \u2014 the rite is done.",
             "condition": {
               "questCompleted": "q_end_destroy"
             },
             "nextNodeId": "ask_destroy"
           },
           {
-            "text": "Bind the corruption — the rite is done.",
+            "text": "Bind the corruption \u2014 the rite is done.",
             "condition": {
               "questCompleted": "q_end_control"
             },
             "nextNodeId": "ask_control"
           },
           {
-            "text": "Take the ash into yourself — the rite is done.",
+            "text": "Take the ash into yourself \u2014 the rite is done.",
             "condition": {
               "questCompleted": "q_end_become"
             },
@@ -1299,7 +1299,7 @@
       },
       {
         "id": "ask_destroy",
-        "text": "Break the relics against the shrine and the corruption unravels with them — the Reach saved, and made smaller. There is no undoing it. Are you certain?",
+        "text": "Break the relics against the shrine and the corruption unravels with them \u2014 the Reach saved, and made smaller. There is no undoing it. Are you certain?",
         "choices": [
           {
             "text": "Shatter them.",
@@ -1331,7 +1331,7 @@
       },
       {
         "id": "ask_become",
-        "text": "Open your hands and let the ash in. You will not be what you were — you will be more, and less, and Azer's own. There is no coming back from it. Are you certain?",
+        "text": "Open your hands and let the ash in. You will not be what you were \u2014 you will be more, and less, and Azer's own. There is no coming back from it. Are you certain?",
         "choices": [
           {
             "text": "Take it into yourself.",
@@ -1353,7 +1353,7 @@
     "nodes": [
       {
         "id": "root",
-        "text": "The fen changes those who linger. If your path no longer fits you, I can unmake it — the marsh forgets, and so may you.",
+        "text": "The fen changes those who linger. If your path no longer fits you, I can unmake it \u2014 the marsh forgets, and so may you.",
         "choices": [
           {
             "text": "Reset my skills.",
@@ -1369,8 +1369,212 @@
       },
       {
         "id": "done",
-        "text": "It is unwound. Choose again, and choose well — the mire is not forgiving twice.",
+        "text": "It is unwound. Choose again, and choose well \u2014 the mire is not forgiving twice.",
         "choices": []
+      }
+    ]
+  },
+  {
+    "id": "mw_sela",
+    "startNodeId": "greet",
+    "nodes": [
+      {
+        "id": "greet",
+        "text": "Fenwatch holds by the grace of clean water and hard vigils. The Mirefen gives up its dead every night \u2014 and every night we put them down again.",
+        "choices": [
+          {
+            "text": "Who holds the Fen?",
+            "nextNodeId": "lore"
+          },
+          {
+            "text": "The shamblers rise near the walls. I'll thin them. (Accept)",
+            "condition": {
+              "questAvailable": "q_mw_shamblers"
+            },
+            "action": {
+              "startsQuest": "q_mw_shamblers"
+            },
+            "nextNodeId": "a_shamblers"
+          },
+          {
+            "text": "The bog still walks.",
+            "condition": {
+              "questActive": "q_mw_shamblers"
+            },
+            "nextNodeId": "p_shamblers"
+          },
+          {
+            "text": "Lights drift in the reeds. I'll snuff them. (Accept)",
+            "condition": {
+              "questAvailable": "q_mw_corpselights"
+            },
+            "action": {
+              "startsQuest": "q_mw_corpselights"
+            },
+            "nextNodeId": "a_corpselights"
+          },
+          {
+            "text": "The corpse-lights still burn.",
+            "condition": {
+              "questActive": "q_mw_corpselights"
+            },
+            "nextNodeId": "p_corpselights"
+          },
+          {
+            "text": "The spitters poison the water. I'll silence them. (Accept)",
+            "condition": {
+              "questAvailable": "q_mw_venom"
+            },
+            "action": {
+              "startsQuest": "q_mw_venom"
+            },
+            "nextNodeId": "a_venom"
+          },
+          {
+            "text": "The rot still spreads.",
+            "condition": {
+              "questActive": "q_mw_venom"
+            },
+            "nextNodeId": "p_venom"
+          },
+          {
+            "text": "The drowned pack runs the deep mire. I'll break it. (Accept)",
+            "condition": {
+              "questAvailable": "q_mw_pack"
+            },
+            "action": {
+              "startsQuest": "q_mw_pack"
+            },
+            "nextNodeId": "a_pack"
+          },
+          {
+            "text": "The pack still hunts.",
+            "condition": {
+              "questActive": "q_mw_pack"
+            },
+            "nextNodeId": "p_pack"
+          },
+          {
+            "text": "I'll stand the last vigil with you. (Accept)",
+            "condition": {
+              "questAvailable": "q_mw_vigil"
+            },
+            "action": {
+              "startsQuest": "q_mw_vigil"
+            },
+            "nextNodeId": "a_vigil"
+          },
+          {
+            "text": "The vigil is kept.",
+            "condition": {
+              "questCompleted": "q_mw_vigil"
+            },
+            "nextNodeId": "done_vigil"
+          },
+          {
+            "text": "Farewell."
+          }
+        ]
+      },
+      {
+        "id": "lore",
+        "text": "Sela, last warden of Fenwatch. My charge is simple and endless: keep the well clean, and keep the dead in the mud where they belong. Lately the mud will not keep them.",
+        "choices": [
+          {
+            "text": "I see.",
+            "nextNodeId": "greet"
+          }
+        ]
+      },
+      {
+        "id": "a_shamblers",
+        "text": "Rotshamblers \u2014 waterlogged and slow, but their touch festers. Put down six near the walls and the night patrols might sleep an hour.",
+        "choices": [
+          {
+            "text": "Six, then."
+          }
+        ]
+      },
+      {
+        "id": "p_shamblers",
+        "text": "The shamblers still drag themselves up the banks. Keep at it.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_corpselights",
+        "text": "The bogwraiths wear the last breath of the drowned as a lantern. Five of those lights must go dark before more travellers follow them under.",
+        "choices": [
+          {
+            "text": "They'll go dark."
+          }
+        ]
+      },
+      {
+        "id": "p_corpselights",
+        "text": "The reeds still glow with dead men's light.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_venom",
+        "text": "Fenspitters nest upwind of the well and foul it from afar. Silence six, and Fenwatch drinks clean another week.",
+        "choices": [
+          {
+            "text": "Consider it done."
+          }
+        ]
+      },
+      {
+        "id": "p_venom",
+        "text": "The water still turns green by noon. The spitters live yet.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_pack",
+        "text": "The drownhounds run the deep mire in a pack \u2014 fast, and they hit like a sprung trap. Break five of them and the deep paths open again.",
+        "choices": [
+          {
+            "text": "The pack falls."
+          }
+        ]
+      },
+      {
+        "id": "p_pack",
+        "text": "The hounds still bay out in the deep water.",
+        "choices": [
+          {
+            "text": "Soon."
+          }
+        ]
+      },
+      {
+        "id": "a_vigil",
+        "text": "Then it's done, near enough. Stand the sunken vigil with me \u2014 one night watching the water not rise. Return when it's kept, and Fenwatch will call you its own.",
+        "choices": [
+          {
+            "text": "I'll return."
+          }
+        ]
+      },
+      {
+        "id": "done_vigil",
+        "text": "The water held. First night in a year it did. Whatever you are, stranger, the Fen owes you its morning \u2014 and Fenwatch owes you its thanks.",
+        "choices": [
+          {
+            "text": "Rest easy, Warden."
+          }
+        ]
       }
     ]
   }
