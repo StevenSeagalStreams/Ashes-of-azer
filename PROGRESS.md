@@ -8,18 +8,31 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Unidentified drops are now DONE** (note below). Seven D2 itemization boxes shipped:
-foundation (ilvl + tiers), set items, ladder rename, drop pipeline, sockets/runes,
-runewords, and now unidentified drops. **The D2 itemization overhaul the user asked
-for is essentially complete** — the remaining 4.x items are non-D2-specific content
-growth: unique-roster growth (30–50), mythic tier, remaining slots (belt/necklace/
-ring2/offhand), elite/champion modifiers. **Next task (top-to-bottom): grow the
-unique roster to 30–50** (~1/3 skill-modifying) — pure content in items.json's
-`legendaries` (data-only, no code). After the 4.x itemization list, the still-pending
-Zone-3 marsh quest chain / dungeon / secrets remain under Milestone 4. The
-**attribute-requirements** box still needs an explicit user decision (STR/DEX system
-vs. level-only) — do not build unprompted. **Consider checking in with the user**
-on priorities: keep growing itemization content, resume Zone 3, or decide attributes.
+**Unique roster growth is now DONE** (note below). The D2 itemization systems (7
+boxes) plus the roster grow are all shipped. **Next task (top-to-bottom in ROADMAP
+4.x): the Mythic tier** — an ultra-rare, build-warping item class dropping only from
+world bosses / endgame. After that: remaining slots (belt/necklace/ring2/offhand),
+elite/champion modifiers, then the boss-design pass. Under Milestone 4 the Zone-3
+marsh quest chain / dungeon / secrets are still pending. The **attribute-requirements**
+box still needs an explicit user decision (STR/DEX system vs. level-only) — do not
+build unprompted. **Worth checking in with the user on priorities** — I asked (keep
+growing itemization / attributes / back to Zone 3 / elite modifiers) but they said
+Continue, so I'm proceeding top-to-bottom; a mid-course steer is welcome.
+
+### D2 itemization — unique roster growth (m4.x — DONE)
+Grew `data/items.json` `legendaries` from 8 → **32** uniques (data-only, zero code),
+across all 5 slots (Weapon 7 / Helmet 6 / Chest 6 / Boots 5 / Ring 8), **18 skill-
+modifying** (>½ — protects the core rule "items change how skills behave"): e.g.
+Stormpierce (Chain Lightning +2 chain/+40 range), Pyroclast Visor (Fireball
++burnDps/+radius), Duskquiver (Arrow Storm +2 count), Trapper's Treads (Explosive
+Trap instant-arm + wider), Frostweave Robe (Ice Shard +chill). The rest are stat-
+sticks (Bulwark of the Fen +60 hp; Heartseeker +14 crit/+15 aspd) or hook-carriers
+(Voidcleaver onHit burn; Gravebite onKill explode; Emberwalk onKill heal; Embersight
+onCast manaGain). All authored via a script that validated every forcedAffix key,
+skillMod skill id, hook on/effect, and power uniqueness before writing. New loader
+test guards: roster ≥30, all 5 slots present, ≥⅓ skill-modifying, every ref resolves.
+Smoke: roster 32, unique weapons roll ≥3 distinct powers, a unique drops
+unidentified → identify → equip applies its forced life (100→174), no console errors.
 
 ### D2 itemization — unidentified drops (m4.x box 7 — DONE)
 Rare/unique/set gear drops **unidentified**; magic + white are legible (D2-accurate).

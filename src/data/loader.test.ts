@@ -327,6 +327,30 @@ describe('the real /data/*.json content', () => {
     }
   });
 
+  it('the unique roster is 30+, mostly build-changing, and references real ids', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const uniques = data.items.legendaries;
+    const affixKeys = new Set(data.affixes.map((a) => a.key));
+    const skillIds = new Set(data.skills.map((s) => s.id));
+    const powers = new Set<string>();
+    const slots = new Set<string>();
+    expect(uniques.length).toBeGreaterThanOrEqual(30); // grown to the roadmap target
+
+    for (const u of uniques) {
+      expect(powers, `duplicate power ${u.power}`).not.toContain(u.power);
+      powers.add(u.power);
+      slots.add(u.slot);
+      for (const aff of u.forcedAffixes) expect(affixKeys, `${u.power} affix`).toContain(aff.key);
+      for (const mod of u.skillMods) expect(skillIds, `${u.power} skillMod skill`).toContain(mod.skill);
+      // hook shape is enforced by the schema; nothing extra to check here.
+    }
+    // Covers every slot, and at least a third are skill-modifying (the design rule).
+    expect(slots).toEqual(new Set(['Weapon', 'Helmet', 'Chest', 'Boots', 'Ring']));
+    const modding = uniques.filter((u) => u.skillMods.length > 0).length;
+    expect(modding).toBeGreaterThanOrEqual(Math.ceil(uniques.length / 3));
+  });
+
   it('runes reference real affixes and have positive drop weights', async () => {
     const { loadGameData } = await import('./gameData.ts');
     const data = loadGameData();

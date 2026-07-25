@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Four times as many uniques.** The unique (gold) roster grew from 8 to **32** —
+  spread across weapons, helms, chests, boots and rings, with **18 that change how
+  a skill behaves** (Chain Lightning that forks further, Fireball that burns hotter,
+  Arrow Storm with extra shafts, Explosive Traps that arm instantly…) and the rest
+  powerful stat-sticks or on-hit/on-kill effects (searing strikes, corpse blasts,
+  life-on-kill). Far more to chase and build around.
 - **Unidentified drops.** Rare, unique, and set items now drop **unidentified** —
   in your bag they read only as "Unidentified Ring / Weapon / …", hiding the roll
   (and a unique's name) until you reveal it. **Click an unidentified item to
