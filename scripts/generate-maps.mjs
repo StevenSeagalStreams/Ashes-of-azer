@@ -221,6 +221,10 @@ function genMarsh(rnd) {
   carveH(30, 3, 6);
   m[30][3] = TILE.DOOR;
   m[31][3] = TILE.DOOR;
+  // Sunken-barrow spur (m4 dungeon): a dry causeway to a doorway in the SE mire.
+  carveH(46, 70, 92);
+  m[46][92] = TILE.DOOR;
+  m[47][92] = TILE.DOOR;
   return m;
 }
 
@@ -265,6 +269,49 @@ function genForestDungeon() {
   for (let y = 8; y <= 12; y++) for (let x = 46; x <= 53; x++) m[y][x] = TILE.DFLOOR;
   m[13][49] = TILE.FALSEWALL; // push up through the wall from the NE room
   m[33][6] = TILE.PORTAL; // exit portal in the entry room, back to the Reach
+  m[33][7] = TILE.PORTAL;
+  return m;
+}
+
+// The Sunken Barrow (m4 marsh dungeon): a drowned crypt — DWALL fill carved into
+// DFLOOR rooms + corridors, accented with murk pools and reeds, ending in the
+// mini-boss chamber where Gravemarrow, the Fen-Drowned, holds the Drowned Crown.
+function genMarshDungeon() {
+  const m = [];
+  for (let y = 0; y < MAPH; y++) m.push(new Array(MAPW).fill(TILE.DWALL));
+  const rooms = [
+    [4, 30, 12, 8], // entry (player spawn + exit portal)
+    [22, 30, 12, 8],
+    [40, 30, 14, 8],
+    [42, 14, 14, 10],
+    [22, 12, 16, 12], // mini-boss chamber (Gravemarrow)
+    [4, 14, 12, 10],
+  ];
+  for (const [rx, ry, rw, rh] of rooms)
+    for (let y = ry; y < ry + rh; y++) for (let x = rx; x < rx + rw; x++) m[y][x] = TILE.DFLOOR;
+  const cor = (x1, y1, x2, y2) => {
+    for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      m[y1][x] = TILE.DFLOOR;
+      m[y1 + 1][x] = TILE.DFLOOR;
+    }
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      m[y][x2] = TILE.DFLOOR;
+      m[y][x2 + 1] = TILE.DFLOOR;
+    }
+  };
+  cor(10, 33, 24, 33);
+  cor(28, 33, 44, 33);
+  cor(46, 32, 48, 20);
+  cor(46, 18, 38, 18);
+  cor(30, 30, 30, 22);
+  cor(20, 17, 10, 17);
+  // Standing murk (solid) and reeds seep into the barrow — a drowned crypt.
+  m[16][26] = TILE.MURK;
+  m[18][35] = TILE.MURK;
+  m[34][12] = TILE.REED;
+  m[32][43] = TILE.REED;
+  m[16][10] = TILE.MURK;
+  m[33][6] = TILE.PORTAL; // exit portal in the entry room, back to the Mirefen
   m[33][7] = TILE.PORTAL;
   return m;
 }
@@ -691,6 +738,19 @@ const marsh = tiledMap({
         prop('targetY', 'float', 34 * TS),
       ],
     },
+    {
+      name: 'barrow-gate',
+      type: 'transition',
+      x: 92 * TS,
+      y: 46 * TS,
+      width: TS,
+      height: 2 * TS,
+      properties: [
+        prop('target', 'string', 'marshdungeon'),
+        prop('targetX', 'float', 8 * TS + 8),
+        prop('targetY', 'float', 34 * TS),
+      ],
+    },
   ],
 });
 
@@ -785,6 +845,50 @@ const forestdungeon = tiledMap({
         prop('gold', 'int', 220),
         prop('relic', 'string', 'relic_sealed_oak'),
         prop('relicName', 'string', 'Sealed Oakheart'),
+      ],
+    },
+  ],
+});
+
+const MARSH_DUNGEON_SPOTS = [
+  [24, 33], [30, 33], [44, 33], [50, 33],
+  [46, 20], [42, 18], [50, 16],
+  [10, 16], [8, 20], [14, 14],
+];
+
+const marshdungeon = tiledMap({
+  grid: genMarshDungeon(),
+  spawnObjects: [
+    { name: 'player', type: 'player_spawn', point: true, x: 8 * TS + 8, y: 34 * TS },
+    ...MARSH_DUNGEON_SPOTS.map(([x, y], i) => ({
+      name: `mob-${i + 1}`,
+      type: 'enemy_spawn',
+      point: true,
+      x: x * TS,
+      y: y * TS,
+      properties: [prop('pool', 'string', 'rotshambler,bogwraith,fenspitter,drownhound')],
+    })),
+    {
+      name: 'gravemarrow',
+      type: 'enemy_spawn',
+      point: true,
+      x: 30 * TS,
+      y: 17 * TS,
+      properties: [prop('pool', 'string', 'gravemarrow')],
+    },
+  ],
+  triggerObjects: [
+    {
+      name: 'exit-portal',
+      type: 'transition',
+      x: 6 * TS,
+      y: 33 * TS,
+      width: 2 * TS,
+      height: TS,
+      properties: [
+        prop('target', 'string', 'marsh'),
+        prop('targetX', 'float', 90 * TS + 8),
+        prop('targetY', 'float', 46 * TS + 8),
       ],
     },
   ],
@@ -910,6 +1014,7 @@ writeFileSync(join(out, 'foresttown.json'), JSON.stringify(foresttown));
 writeFileSync(join(out, 'forestdungeon.json'), JSON.stringify(forestdungeon));
 writeFileSync(join(out, 'marsh.json'), JSON.stringify(marsh));
 writeFileSync(join(out, 'marshtown.json'), JSON.stringify(marshtown));
+writeFileSync(join(out, 'marshdungeon.json'), JSON.stringify(marshdungeon));
 console.log('wrote', join(out, 'overworld.json'));
 console.log('wrote', join(out, 'dungeon.json'));
 console.log('wrote', join(out, 'town.json'));
@@ -918,3 +1023,4 @@ console.log('wrote', join(out, 'foresttown.json'));
 console.log('wrote', join(out, 'forestdungeon.json'));
 console.log('wrote', join(out, 'marsh.json'));
 console.log('wrote', join(out, 'marshtown.json'));
+console.log('wrote', join(out, 'marshdungeon.json'));

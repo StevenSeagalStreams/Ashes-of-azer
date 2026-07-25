@@ -4,6 +4,7 @@ import forestTownMap from '../../assets/maps/foresttown.json' assert { type: 'js
 import forestDungeonMap from '../../assets/maps/forestdungeon.json' assert { type: 'json' };
 import marshMap from '../../assets/maps/marsh.json' assert { type: 'json' };
 import marshTownMap from '../../assets/maps/marshtown.json' assert { type: 'json' };
+import marshDungeonMap from '../../assets/maps/marshdungeon.json' assert { type: 'json' };
 import plains from '../../assets/maps/overworld.json' assert { type: 'json' };
 import { TILE } from './mapgen.ts';
 
@@ -205,6 +206,34 @@ describe('The Mirefen (marsh) map', () => {
   it('scatters enemies from a wilds region', () => {
     const region = (marsh.layers.find((l) => l.name === 'spawns')!.objects as { type: string }[]).find((o) => o.type === 'enemy_region');
     expect(region, 'marsh has a wilds enemy region').toBeTruthy();
+  });
+});
+
+describe('The Sunken Barrow (marsh dungeon) map', () => {
+  const marsh = marshMap as unknown as TiledMap;
+  const dungeon = marshDungeonMap as unknown as TiledMap;
+
+  const enemyPools = (map: TiledMap): string[] =>
+    (map.layers.find((l) => l.name === 'spawns')!.objects as { type: string; properties?: { name: string; value: unknown }[] }[])
+      .filter((o) => o.type === 'enemy_spawn')
+      .flatMap((o) => String((o.properties ?? []).find((p) => p.name === 'pool')?.value ?? '').split(','));
+
+  it('is a 60×40 crypt spawning the player on walkable ground with the mini-boss placed', () => {
+    expect(dungeon.width).toBe(60);
+    expect(dungeon.height).toBe(40);
+    const s = playerSpawn(dungeon);
+    expect(SOLID_GIDS.has(groundGid(dungeon, s.x, s.y))).toBe(false);
+    expect(enemyPools(dungeon)).toContain('gravemarrow'); // the mini-boss chamber
+  });
+
+  it('is reachable from the Mirefen and exits back, landing both ways walkable', () => {
+    const toDungeon = transitions(marsh).find((t) => t.props['target'] === 'marshdungeon');
+    expect(toDungeon, 'marsh has a barrow gate').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(dungeon, toDungeon!.props['targetX'] as number, toDungeon!.props['targetY'] as number))).toBe(false);
+
+    const toMarsh = transitions(dungeon).find((t) => t.props['target'] === 'marsh');
+    expect(toMarsh, 'dungeon has an exit portal').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(marsh, toMarsh!.props['targetX'] as number, toMarsh!.props['targetY'] as number))).toBe(false);
   });
 });
 

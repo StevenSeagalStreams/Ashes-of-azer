@@ -64,7 +64,7 @@ describe('the real /data/*.json content', () => {
     expect(data.enemies.length).toBeGreaterThanOrEqual(4); // slime, bat, skel, boss
     expect(data.items.legendaries.length).toBeGreaterThanOrEqual(3);
     expect(data.skills.length).toBeGreaterThanOrEqual(5);
-    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest', 'foresttown', 'forestdungeon', 'marsh', 'marshtown']);
+    expect(data.zones.map((z) => z.id)).toEqual(['overworld', 'dungeon', 'town', 'forest', 'foresttown', 'forestdungeon', 'marsh', 'marshtown', 'marshdungeon']);
   });
 
   // Cross-references are plain string ids; zod checks their shape, not that they
@@ -179,6 +179,26 @@ describe('the real /data/*.json content', () => {
     expect(mossmaw?.relic).toBeTruthy();
     // The dungeon's enemyTypes include the mini-boss so the zone knows it.
     expect(data.zones.find((z) => z.id === 'forestdungeon')?.enemyTypes).toContain('mossmaw');
+  });
+
+  it('the Sunken Barrow mini-boss (Gravemarrow) grants a relic and multi-phases', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const gm = data.enemies.find((e) => e.id === 'gravemarrow');
+    expect(gm?.boss).toBe(true);
+    expect(gm?.relic).toBeTruthy();
+    expect(gm?.relicName).toBeTruthy();
+    // The marsh dungeon zone exists (dark) and knows its mini-boss.
+    const zone = data.zones.find((z) => z.id === 'marshdungeon');
+    expect(zone?.dark).toBe(true);
+    expect(zone?.enemyTypes).toContain('gravemarrow');
+    // It uses the m4 boss systems: multi-phase, with a hazard phase (movement).
+    expect((gm?.phases?.length ?? 0)).toBeGreaterThanOrEqual(2);
+    expect(gm?.phases?.some((p) => p.hazard)).toBe(true);
+    // Every summoned minion id it references is a real enemy (base + phases).
+    const ids = new Set(data.enemies.map((e) => e.id));
+    const summons = [gm?.summon?.minion, ...(gm?.phases ?? []).map((p) => p.summon?.minion)].filter(Boolean);
+    for (const s of summons) expect(ids, `minion ${s}`).toContain(s);
   });
 
   it('the Ashfall town chain links each quest to the next (5 quests, 5 NPCs)', async () => {

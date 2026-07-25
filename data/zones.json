@@ -70,5 +70,17 @@
     "name": "Fenwatch",
     "dark": false,
     "enemyTypes": []
+  },
+  {
+    "id": "marshdungeon",
+    "name": "The Sunken Barrow",
+    "dark": true,
+    "enemyTypes": [
+      "rotshambler",
+      "bogwraith",
+      "fenspitter",
+      "drownhound",
+      "gravemarrow"
+    ]
   }
 ]

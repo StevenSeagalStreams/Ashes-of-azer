@@ -13,16 +13,45 @@ finished (foundation → sets → ladder → drop pipeline → sockets/runes →
 unidentified → unique roster → mythic → remaining slots). **Elite/champion enemy
 modifiers is now DONE.** **Boss phases (first box of the 4.x Boss design pass) is now
 DONE.** **World-boss movement mechanic (second box) is DONE** — which
-finished the entire **4.x Boss design pass**. **Zone-3 marsh quest chain is now DONE**
-(note below). **Next task (top-to-bottom in Milestone 4, Zone 3): "Dungeon + mini-boss
-(relic)"** — the marsh needs a dungeon zone (like forestdungeon/the Barrow) with a
-mini-boss that grants a relic fragment (see the Bramblewarren/mossmaw pattern + the
-loader test at loader.test.ts "the Bramblewarren mini-boss grants a relic fragment").
-Then Zone-3 "Secrets". The **attribute-requirements** box (in 4.x Itemization) still
-needs an explicit user decision (STR/DEX vs. level-only) — do not build unprompted.
+finished the entire **4.x Boss design pass**. **Zone-3 marsh quest chain is DONE.**
+**Zone-3 dungeon + mini-boss (relic) is now DONE** (note below). **Next task
+(top-to-bottom in Milestone 4, Zone 3): "Secrets"** — hidden caches/false-wall rooms
+in the marsh/marsh dungeon (see the forest's `secret` triggers: FALSEPINE grove-cache
+in forest.json, FALSEWALL sealed-chest in forestdungeon.json; each grants gold + a
+relic via the `secret` trigger type, already handled by the scene). The
+**attribute-requirements** box (in 4.x Itemization) still needs an explicit user
+decision (STR/DEX vs. level-only) — do not build unprompted.
+DESIGN DECISION: the marsh mini-boss's relic (`relic_drowned_crown`) is a BONUS
+collectible — deliberately NOT added to endings.requiredRelics, so the m3 finale gate
+(4 forest relics) is unchanged. Revisit if the finale should require marsh relics.
 **STRONGLY worth checking in on priorities now** — the systems layer (itemization,
 elites, boss phases, hazards) is very deep; finishing Zone 3 (visible content) likely
 gives more player-facing payoff than more systems work.
+
+### Zone-3 dungeon + mini-boss — The Sunken Barrow (m4 — DONE)
+New dark dungeon zone `marshdungeon` ("The Sunken Barrow") built via the authored-Tiled
+pipeline (scripts/generate-maps.mjs → assets/maps/*.json; deterministic, so only
+marsh.json + the new marshdungeon.json changed on regen). `genMarshDungeon()` mirrors
+`genForestDungeon` (60×40, DWALL fill carved into DFLOOR rooms/corridors, murk/reed
+accents, a mini-boss chamber, an exit PORTAL in the entry room). Gate wiring: a
+`barrow-gate` transition in the SE Mirefen (new dry causeway spur + DOOR at ~x92,y46 in
+`genMarsh`) → marshdungeon entry; the dungeon's `exit-portal` → back to the marsh
+causeway. Registered: zones.json (`{id:marshdungeon, name:"The Sunken Barrow", dark:true,
+enemyTypes:[...4 undead, gravemarrow]}`) + BootScene MAP_ZONES. Mini-boss **gravemarrow**
+("GRAVEMARROW, THE FEN-DROWNED", sprite bogwraith, hp 340, boss) added to enemies.json:
+poison-touch + slam + summon rotshamblers, and it exercises the m4 boss systems — 2
+phases (0.55 "THE MIRE RISES": ranged poison bolts + hazard pools + nova; 0.25 "DROWNED
+FURY": bogwraith summons + heavier hazards + dmg enrage). Grants `relic_drowned_crown`
+"Drowned Crown" on death via the existing `def.relic` award path in onEnemyDied (no code
+needed). The relic is a BONUS collectible — NOT in requiredRelics, so checkAllRelics /
+the finale gate are unchanged (extra relics in saveData.relics are harmless). Tests:
+maps.test.ts (60×40, walkable player spawn, mini-boss placed, both-way gates land
+walkable) + loader.test.ts ("the Sunken Barrow mini-boss grants a relic and multi-phases"
+— boss/relic/dark-zone/phase-with-hazard + all summon minion ids real) + fixed the
+hard-coded zone-id list. Smoke `_smoke-marshdungeon.mjs`: teleport to marshdungeon,
+spawn gravemarrow (maxHp ~381), kill it, decode the base64 save export and confirm
+`relic_drowned_crown` is in saveData.relics; no console errors. NOTE: `save.export()` is
+**base64** (codec.ts) — decode it (atob + TextDecoder) to read save contents in a smoke.
 
 ### Zone-3 marsh quest chain — The Mire Watch (m4 — DONE)
 Data-only story chain for the Haunted Marsh, mirroring the warden_trials/ashfall

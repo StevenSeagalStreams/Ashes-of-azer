@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **A new dungeon: The Sunken Barrow.** Past a barrow gate in the deep Mirefen
+  lies a drowned crypt, and at its heart waits **Gravemarrow, the Fen-Drowned** —
+  a poisonous mini-boss who calls the shambling dead, floods the floor with rising
+  bog as its health falls, and guards the **Drowned Crown**. Bring it home.
 - **A new quest chain: The Mire Watch.** Warden Sela holds the line at Fenwatch,
   and she needs help. Cull the drowned dead of the Mirefen — shamblers, corpse-
   lights, spitters, and the drowned pack — then stand the Sunken Vigil with her.

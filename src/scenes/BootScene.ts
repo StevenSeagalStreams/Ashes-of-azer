@@ -4,7 +4,7 @@ import { loadGameData } from '../data/gameData.ts';
 
 // The zones with authored maps. The one place map files are enumerated —
 // a new zone adds its id here plus assets/maps/<id>.json + data/zones.json.
-const MAP_ZONES = ['overworld', 'dungeon', 'town', 'forest', 'foresttown', 'forestdungeon', 'marsh', 'marshtown'];
+const MAP_ZONES = ['overworld', 'dungeon', 'town', 'forest', 'foresttown', 'forestdungeon', 'marsh', 'marshtown', 'marshdungeon'];
 
 export class BootScene extends Phaser.Scene {
   constructor() {
