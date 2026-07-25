@@ -121,5 +121,9 @@ export const ItemsFileSchema = z.object({
   sets: z.array(SetSchema).default([]),
   runes: z.array(RuneSchema).default([]),
   runewords: z.array(RunewordSchema).default([]),
+  // Mythics (m4.x): an ultra-rare tier above unique — same fixed-signature shape,
+  // but build-warping (bigger stats, multiple skill mods + hooks). Drops only from
+  // bosses, never via the normal rarity cascade or vendors.
+  mythics: z.array(LegendarySchema).default([]),
 });
 export type ItemsFile = z.infer<typeof ItemsFileSchema>;

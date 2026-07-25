@@ -118,7 +118,7 @@ function rollRarityLucky(items: ItemsFile, rng: Rng, luck: number): ItemsFile['r
 }
 
 // Keys cover the current D2 ladder; legacy epic/legendary kept as harmless aliases.
-const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, unique: 50, set: 50, epic: 30, legendary: 50 };
+const RARITY_DURABILITY_BONUS: Record<string, number> = { white: 0, magic: 10, rare: 20, unique: 50, set: 50, mythic: 60, epic: 30, legendary: 50 };
 
 /** Full durability a freshly-rolled item spawns with (sturdier when better). */
 export const durabilityFor = (base: number, rarity: string): number =>
@@ -136,7 +136,7 @@ export const isBroken = (item: ItemInstance): boolean =>
 
 // Unidentified drops (m4.x, D2): rare/unique/set gear drops hidden until identified.
 // Magic + white are legible on the ground (D2 auto-ids them).
-const UNIDENTIFIED_RARITIES = new Set(['rare', 'unique', 'set']);
+const UNIDENTIFIED_RARITIES = new Set(['rare', 'unique', 'set', 'mythic']);
 
 /** Whether a rarity drops unidentified (rare and above). */
 export const dropsUnidentified = (rarity: string): boolean => UNIDENTIFIED_RARITIES.has(rarity);
@@ -168,6 +168,19 @@ export function rollItem(items: ItemsFile, affixes: AffixesFile, rng: Rng, opts:
       const base = bases.reduce((mx, b) => Math.max(mx, b.base), 0); // uniques roll the best base
       const dur = durabilityFor(base, 'unique');
       return { slot, name: leg.name, base, rarity: 'unique', ilvl, affixes: [...leg.forcedAffixes], power: leg.power, durability: dur, maxDurability: dur };
+    }
+  }
+
+  // Mythic: an ultra-rare fixed tier above unique (boss-only). Same shape as a
+  // unique; falls through to a normal roll if none exist for the slot.
+  if (rarity.id === 'mythic') {
+    const forSlot = items.mythics.filter((m) => m.slot === slot);
+    if (forSlot.length > 0) {
+      const myth = pick(forSlot, rng);
+      const bases = items.bases[slot] ?? [];
+      const base = bases.reduce((mx, b) => Math.max(mx, b.base), 0);
+      const dur = durabilityFor(base, 'mythic');
+      return { slot, name: myth.name, base, rarity: 'mythic', ilvl, affixes: [...myth.forcedAffixes], power: myth.power, durability: dur, maxDurability: dur };
     }
   }
 
@@ -221,7 +234,7 @@ function rollAffixes(affixes: AffixesFile, count: number, rng: Rng, ilvl: number
 
 // ---- pricing (m2.3 vendor) ----
 
-const RARITY_VALUE_MULT: Record<string, number> = { white: 1, magic: 2, rare: 4, unique: 16, set: 14, epic: 8, legendary: 16 };
+const RARITY_VALUE_MULT: Record<string, number> = { white: 1, magic: 2, rare: 4, unique: 16, set: 14, mythic: 30, epic: 8, legendary: 16 };
 
 /** Buy price: base value scaled by rarity, plus a little per affix. */
 export const itemValue = (item: ItemInstance): number =>

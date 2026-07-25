@@ -104,6 +104,24 @@ describe('rollItem', () => {
     expect(item.affixes).toEqual(leg.forcedAffixes);
   });
 
+  it('a forced mythic roll yields a mythic item (fixed power + affixes)', () => {
+    const weaponMythics = items.mythics.filter((m) => m.slot === 'Weapon');
+    expect(weaponMythics.length).toBeGreaterThan(0);
+    const item = rollItem(items, affixes, scriptRng([0, 0]), { slot: 'Weapon', rarity: 'mythic', ilvl: 40 });
+    expect(item.rarity).toBe('mythic');
+    expect(item.power).toBeTruthy();
+    const myth = items.mythics.find((m) => m.power === item.power)!;
+    expect(item.affixes).toEqual(myth.forcedAffixes);
+  });
+
+  it('mythic never appears in the normal weighted rarity roll (boss-only)', () => {
+    const rng = seeded(123);
+    for (let i = 0; i < 5000; i++) {
+      const item = rollItem(items, affixes, rng, { ilvl: 40 });
+      expect(item.rarity).not.toBe('mythic'); // dropChance 0 → never rolled unforced
+    }
+  });
+
   it('a set roll yields a set piece tagged with its set id + fixed affixes', () => {
     const helmetPieces = items.sets.flatMap((s) => s.pieces.filter((p) => p.slot === 'Helmet').map((p) => ({ p, setId: s.id })));
     expect(helmetPieces.length).toBeGreaterThan(0); // there is a Helmet set piece to roll
@@ -176,6 +194,7 @@ describe('identification', () => {
     expect(dropsUnidentified('rare')).toBe(true);
     expect(dropsUnidentified('unique')).toBe(true);
     expect(dropsUnidentified('set')).toBe(true);
+    expect(dropsUnidentified('mythic')).toBe(true);
     expect(dropsUnidentified('magic')).toBe(false);
     expect(dropsUnidentified('white')).toBe(false);
   });

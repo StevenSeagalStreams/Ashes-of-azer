@@ -8,16 +8,37 @@ attribute requirements [needs a call] → sockets/runewords → unidentified dro
 roster/mythic/slots) and built **the foundation box (DONE, note below)**. The
 Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
-**Unique roster growth is now DONE** (note below). The D2 itemization systems (7
-boxes) plus the roster grow are all shipped. **Next task (top-to-bottom in ROADMAP
-4.x): the Mythic tier** — an ultra-rare, build-warping item class dropping only from
-world bosses / endgame. After that: remaining slots (belt/necklace/ring2/offhand),
-elite/champion modifiers, then the boss-design pass. Under Milestone 4 the Zone-3
-marsh quest chain / dungeon / secrets are still pending. The **attribute-requirements**
-box still needs an explicit user decision (STR/DEX system vs. level-only) — do not
-build unprompted. **Worth checking in with the user on priorities** — I asked (keep
-growing itemization / attributes / back to Zone 3 / elite modifiers) but they said
-Continue, so I'm proceeding top-to-bottom; a mid-course steer is welcome.
+**Mythic tier is now DONE** (note below). The D2 itemization systems (7 boxes),
+the roster grow, and the mythic tier are all shipped. **Next task (top-to-bottom
+in ROADMAP 4.x): remaining slots** — belt / necklace / ring2 / offhand (shields,
+quivers, tomes): add the slots to `ItemSlotSchema` + bases + gear layout + UI.
+That's a systems-ish box (new equip slots touch the gear record, save schema,
+InventoryUI, and stat contribution). After that: elite/champion enemy modifiers,
+then the boss-design pass. Under Milestone 4 the Zone-3 marsh quest chain / dungeon
+/ secrets remain pending. The **attribute-requirements** box still needs an explicit
+user decision (STR/DEX vs. level-only) — do not build unprompted. **Worth checking
+in with the user on priorities** — the D2 itemization arc is very deep now; resuming
+Zone 3 or the boss-design pass may give more visible variety than more slots.
+
+### D2 itemization — mythic tier (m4.x — DONE)
+New `mythic` rarity (hot pink `#ff5ecb`/`0xff5ecb`) above unique. Added to
+items.rarities with **dropChance 0** so it never rolls via the cascade or vendor
+weighted rolls — only when explicitly forced. `items.mythics` (reuses
+`LegendarySchema`) holds 5 build-warping items, one per slot: Worldbreaker
+(Hammerfall +40 radius/+1.2 stun/+0.5 dmg + onHit explode), Crown of Cinders
+(Fireball +2 split/+12 burn/+15 radius + onCast mana), Aegis Eternal (+90 hp,
+iron_guard +3 dur/+15 DR + onHit heal), Tempeststride (+25 ms/+20 aspd, disengage
++60 + onKill mana), The Devouring Eye (+12 lifesteal/+18 crit + onKill explode +
+onHit burn). `rollItem` has a `rarity==='mythic'` branch (pick a slot-matching
+mythic, best base). Mythics drop **only from bosses** (`MYTHIC_DROP_CHANCE` 0.04,
+MF-nudged, in maybeDropLoot's boss branch), **unidentified** (added to
+UNIDENTIFIED_RARITIES), and feed the skill-mod/hook lookup via a new
+`WorldScene.powerItems()` = `[...legendaries, ...mythics]` (both share the
+LegendaryData shape). RARITY value/durability/colour maps gained `mythic`.
+Tests: forced-mythic roll, mythic-never-unforced, dropsUnidentified includes
+mythic, loader integrity (dropChance 0, valid refs, ≥½ skill-modifying, no power
+clash with uniques). Smoke: force Worldbreaker → unidentified → identify → equip →
+Hammerfall radius 60→100 (build-warp applied), no console errors.
 
 ### D2 itemization — unique roster growth (m4.x — DONE)
 Grew `data/items.json` `legendaries` from 8 → **32** uniques (data-only, zero code),

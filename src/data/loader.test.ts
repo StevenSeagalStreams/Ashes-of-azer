@@ -351,6 +351,26 @@ describe('the real /data/*.json content', () => {
     expect(modding).toBeGreaterThanOrEqual(Math.ceil(uniques.length / 3));
   });
 
+  it('mythics are a small, build-warping tier with valid references', async () => {
+    const { loadGameData } = await import('./gameData.ts');
+    const data = loadGameData();
+    const affixKeys = new Set(data.affixes.map((a) => a.key));
+    const skillIds = new Set(data.skills.map((s) => s.id));
+    const uniquePowers = new Set(data.items.legendaries.map((l) => l.power));
+    expect(data.items.mythics.length).toBeGreaterThan(0);
+    // A 'mythic' rarity exists but never rolls by weight (boss-only).
+    const mythicRarity = data.items.rarities.find((r) => r.id === 'mythic');
+    expect(mythicRarity?.dropChance).toBe(0);
+    for (const m of data.items.mythics) {
+      expect(uniquePowers, `mythic ${m.power} must not clash with a unique`).not.toContain(m.power);
+      for (const aff of m.forcedAffixes) expect(affixKeys, `${m.power} affix`).toContain(aff.key);
+      for (const mod of m.skillMods) expect(skillIds, `${m.power} skillMod`).toContain(mod.skill);
+    }
+    // Build-warping: most mythics change how a skill behaves.
+    const modding = data.items.mythics.filter((m) => m.skillMods.length > 0).length;
+    expect(modding).toBeGreaterThanOrEqual(Math.ceil(data.items.mythics.length / 2));
+  });
+
   it('runes reference real affixes and have positive drop weights', async () => {
     const { loadGameData } = await import('./gameData.ts');
     const data = loadGameData();

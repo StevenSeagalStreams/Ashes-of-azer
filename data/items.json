@@ -112,6 +112,12 @@
       "dropChance": 0.008,
       "affixMin": 0,
       "affixMax": 0
+    },
+    {
+      "id": "mythic",
+      "dropChance": 0,
+      "affixMin": 0,
+      "affixMax": 0
     }
   ],
   "legendaries": [
@@ -1056,6 +1062,190 @@
         {
           "key": "crit",
           "value": 12
+        }
+      ]
+    }
+  ],
+  "mythics": [
+    {
+      "name": "Worldbreaker",
+      "slot": "Weapon",
+      "power": "mythic_worldbreaker",
+      "text": "Hammerfall becomes a cataclysm, and every blow you land erupts.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 14
+        },
+        {
+          "key": "crit",
+          "value": 10
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "hammerfall",
+          "mod": "radius",
+          "value": 40,
+          "op": "add"
+        },
+        {
+          "skill": "hammerfall",
+          "mod": "stunDuration",
+          "value": 1.2,
+          "op": "add"
+        },
+        {
+          "skill": "hammerfall",
+          "mod": "damageMultiplier",
+          "value": 0.5,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "explode",
+          "value": 30,
+          "radius": 60
+        }
+      ]
+    },
+    {
+      "name": "Crown of Cinders",
+      "slot": "Helmet",
+      "power": "mythic_cinders",
+      "text": "Fireball splits and roars, burning all it touches to ash.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 55
+        },
+        {
+          "key": "cdr",
+          "value": 15
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "fireball",
+          "mod": "split",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "burnDps",
+          "value": 12,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "radius",
+          "value": 15,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onCast",
+          "effect": "manaGain",
+          "value": 6
+        }
+      ]
+    },
+    {
+      "name": "Aegis Eternal",
+      "slot": "Chest",
+      "power": "mythic_aegis",
+      "text": "An unbreakable guard — it mends you with every blow you turn.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 90
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "iron_guard",
+          "mod": "duration",
+          "value": 3,
+          "op": "add"
+        },
+        {
+          "skill": "iron_guard",
+          "mod": "damageReductionPct",
+          "value": 15,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "heal",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "name": "Tempeststride",
+      "slot": "Boots",
+      "power": "mythic_tempest",
+      "text": "The storm carries you — you flit across the field and drink its power.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 25
+        },
+        {
+          "key": "aspd",
+          "value": 20
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "disengage",
+          "mod": "distance",
+          "value": 60,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "manaGain",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "name": "The Devouring Eye",
+      "slot": "Ring",
+      "power": "mythic_eye",
+      "text": "It hungers. Slain foes burst, and your strikes fester and bleed you life.",
+      "forcedAffixes": [
+        {
+          "key": "lifesteal",
+          "value": 12
+        },
+        {
+          "key": "crit",
+          "value": 18
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "explode",
+          "value": 60,
+          "radius": 90
+        },
+        {
+          "on": "onHit",
+          "effect": "burn",
+          "value": 8,
+          "duration": 3
         }
       ]
     }

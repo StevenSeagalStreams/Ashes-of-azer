@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- **Mythic items — the new top of the ladder.** Above unique sits a hot-pink
+  **Mythic** tier: five ultra-rare, build-warping items that **drop only from
+  bosses**. Worldbreaker turns Hammerfall into a cataclysm, Crown of Cinders makes
+  Fireball split and roar, Aegis Eternal is a near-unbreakable wall that mends you,
+  Tempeststride is pure storm-speed, and The Devouring Eye makes corpses burst
+  while your strikes bleed you life. They drop unidentified — a boss dropping a pink
+  is a moment.
 - **Four times as many uniques.** The unique (gold) roster grew from 8 to **32** —
   spread across weapons, helms, chests, boots and rings, with **18 that change how
   a skill behaves** (Chain Lightning that forks further, Fireball that burns hotter,

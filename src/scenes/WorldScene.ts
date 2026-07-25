@@ -77,7 +77,7 @@ import { zoneEnemyDefs } from '../systems/zoneSpawns.ts';
 import { SkillUI } from '../ui/SkillUI.ts';
 import { QuestUI } from '../ui/QuestUI.ts';
 import { InventoryUI, type SocketTarget } from '../ui/InventoryUI.ts';
-import type { ItemSlot, SkillData } from '../data/schemas/index.ts';
+import type { ItemSlot, LegendaryData, SkillData } from '../data/schemas/index.ts';
 
 declare global {
   interface Window {
@@ -128,6 +128,7 @@ const RARITY_COLOR: Record<string, number> = {
   legendary: 0xe07830,
   unique: 0xe07830,
   set: 0x8bd06a, // D2 set green
+  mythic: 0xff5ecb, // ultra-rare tier — a distinct hot pink
 };
 // Diablo-2-sparse gear drops (m4.x): most kills drop nothing, so a drop — and
 // especially a rare/unique — feels earned. Bosses always drop a pile; the rarity
@@ -142,6 +143,8 @@ const MATERIAL_DROP_CHANCE = 0.3;
 // Runes are rare (m4.x) — most kills won't yield one; bosses are far likelier.
 const RUNE_DROP_CHANCE = 0.03;
 const BOSS_RUNE_DROP_CHANCE = 0.5;
+// Mythics are boss-only and rare — a chase drop even from a boss (m4.x).
+const MYTHIC_DROP_CHANCE = 0.04;
 const PICKUP_RANGE = 16;
 
 // A pickup lying on the ground: either a gear item (→ bag) or a stack of one
@@ -893,15 +896,20 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
+  /** Every power-bearing item def (uniques + mythics share the same shape). */
+  private powerItems(): LegendaryData[] {
+    return [...this.gameData.items.legendaries, ...this.gameData.items.mythics];
+  }
+
   /** classSkills with the equipped gear's skillMods folded in (m1.5). */
   private computeEffectiveSkills(): SkillData[] {
-    const mods = equippedSkillMods(this.saveData.gear, this.gameData.items.legendaries);
+    const mods = equippedSkillMods(this.saveData.gear, this.powerItems());
     return applySkillModsAll(this.classSkills, mods);
   }
 
-  /** Buckets the equipped legendaries' triggered effects by when they fire. */
+  /** Buckets the equipped legendaries'/mythics' triggered effects by when they fire. */
   private collectItemHooks(): void {
-    const hooks = equippedLegendaries(this.saveData.gear, this.gameData.items.legendaries).flatMap((l) => l.hooks);
+    const hooks = equippedLegendaries(this.saveData.gear, this.powerItems()).flatMap((l) => l.hooks);
     this.hooksOnCast = hooks.filter((h) => h.on === 'onCast');
     this.hooksOnHit = hooks.filter((h) => h.on === 'onHit');
     this.hooksOnKill = hooks.filter((h) => h.on === 'onKill');
@@ -1401,6 +1409,12 @@ export class WorldScene extends Phaser.Scene {
         const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { rarity, ilvl });
         if (dropsUnidentified(rarity)) item.identified = false;
         this.spawnItemDrop(x + (Math.random() - 0.5) * 28, y + (Math.random() - 0.5) * 20, item);
+      }
+      // Mythics drop only from bosses, and rarely — Magic Find nudges the odds.
+      if (Math.random() < MYTHIC_DROP_CHANCE * (1 + magicFind / 300)) {
+        const myth = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { rarity: 'mythic', ilvl });
+        myth.identified = false;
+        this.spawnItemDrop(x + (Math.random() - 0.5) * 28, y + (Math.random() - 0.5) * 20, myth);
       }
     } else if (Math.random() < NORMAL_DROP_CHANCE + tier.dropChanceAdd) {
       const rarity = rollDropRarity(Math.random, NORMAL_DROP_CHANCES, magicFind);
