@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules'] },
+  { ignores: ['dist', 'node_modules', '_smoke-*.mjs'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
@@ -11,6 +11,13 @@ export default tseslint.config(
     files: ['**/*.ts'],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    // Node tooling (map generator etc.)
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { console: 'readonly', process: 'readonly' },
     },
   },
 );

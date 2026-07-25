@@ -1,0 +1,15 @@
+[
+  {
+    "id": "wardens",
+    "name": "Wardens of the Reach",
+    "zones": ["forest", "forestdungeon"],
+    "killRep": 2,
+    "bossRep": 50,
+    "tiers": [
+      { "name": "Outsider", "threshold": 0, "vendorBonus": 0 },
+      { "name": "Recruit", "threshold": 120, "vendorBonus": 2 },
+      { "name": "Warden", "threshold": 360, "vendorBonus": 4 },
+      { "name": "Warden-Captain", "threshold": 800, "vendorBonus": 6 }
+    ]
+  }
+]
