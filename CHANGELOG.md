@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- **Marsh secrets.** The Mirefen keeps its secrets: a drowned pilgrim's cache is
+  hidden among the dead trees — walk into the one that isn't really there — and a
+  sealed reliquary waits behind a false wall deep in the Sunken Barrow. Each hides
+  a relic (the Fen-Lantern and the Barrow Censer) for those who search. **The
+  Haunted Marsh is now complete** — town, wilds, quests, dungeon, and secrets.
 - **A new dungeon: The Sunken Barrow.** Past a barrow gate in the deep Mirefen
   lies a drowned crypt, and at its heart waits **Gravemarrow, the Fen-Drowned** —
   a poisonous mini-boss who calls the shambling dead, floods the floor with rising

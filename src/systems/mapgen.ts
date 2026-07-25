@@ -29,6 +29,7 @@ export const TILE = {
   MURK: 15, // stagnant marsh water / quagmire (solid)
   DEADTREE: 16, // twisted dead tree (solid)
   REED: 17, // reeds/cattails decor on the bog (walkable)
+  FALSEDEADTREE: 18, // drawn identically to DEADTREE but walkable (marsh secret)
 } as const;
 
 /**

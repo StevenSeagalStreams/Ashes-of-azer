@@ -13,9 +13,9 @@ const MAPH = 40;
 const TILE = {
   GRASS: 0, TREE: 1, WATER: 2, PATH: 3, DOOR: 4, DFLOOR: 5, DWALL: 6, PORTAL: 7, FLOWERS: 8,
   FOREST: 9, PINE: 10, MUSHROOM: 11, FALSEPINE: 12, FALSEWALL: 13,
-  MARSH: 14, MURK: 15, DEADTREE: 16, REED: 17,
+  MARSH: 14, MURK: 15, DEADTREE: 16, REED: 17, FALSEDEADTREE: 18,
 };
-const TILE_COUNT = 18; // keep in sync with pixelart.ts TILE_COUNT + mapgen.ts TILE
+const TILE_COUNT = 19; // keep in sync with pixelart.ts TILE_COUNT + mapgen.ts TILE
 // FALSEPINE / FALSEWALL look like PINE / DWALL but are deliberately walkable (secrets).
 const SOLID = [TILE.TREE, TILE.WATER, TILE.DWALL, TILE.PINE, TILE.MURK, TILE.DEADTREE];
 
@@ -225,6 +225,14 @@ function genMarsh(rnd) {
   carveH(46, 70, 92);
   m[46][92] = TILE.DOOR;
   m[47][92] = TILE.DOOR;
+  // Hidden fen cache (m4 secret): a chamber ringed by dead trees, one of which
+  // isn't — push up through the FALSEDEADTREE to reach the cache inside.
+  const sx = 9, sy = 10; // interior is sx..sx+3 × sy..sy+3
+  for (let y = sy - 1; y <= sy + 4; y++)
+    for (let x = sx - 1; x <= sx + 4; x++)
+      m[y][x] = y < sy || y > sy + 3 || x < sx || x > sx + 3 ? TILE.DEADTREE : TILE.MARSH;
+  m[sy + 4][sx + 1] = TILE.FALSEDEADTREE; // the false wall (south entrance)
+  for (let y = sy + 5; y <= sy + 9; y++) m[y][sx + 1] = TILE.MARSH; // clear the approach
   return m;
 }
 
@@ -311,6 +319,10 @@ function genMarshDungeon() {
   m[34][12] = TILE.REED;
   m[32][43] = TILE.REED;
   m[16][10] = TILE.MURK;
+  // Sealed reliquary (secret): a hidden vault above the NE room, entered by
+  // pushing up through a FALSEWALL from that room.
+  for (let y = 8; y <= 12; y++) for (let x = 46; x <= 53; x++) m[y][x] = TILE.DFLOOR;
+  m[13][49] = TILE.FALSEWALL;
   m[33][6] = TILE.PORTAL; // exit portal in the entry room, back to the Mirefen
   m[33][7] = TILE.PORTAL;
   return m;
@@ -751,6 +763,21 @@ const marsh = tiledMap({
         prop('targetY', 'float', 34 * TS),
       ],
     },
+    {
+      name: 'fen-cache',
+      type: 'secret',
+      x: 10 * TS - 8,
+      y: 11 * TS - 8,
+      width: 32,
+      height: 32,
+      properties: [
+        prop('secretId', 'string', 'secret_fen_cache'),
+        prop('lore', 'string', 'A drowned pilgrim’s bundle, kept dry in the dead trees.'),
+        prop('gold', 'int', 140),
+        prop('relic', 'string', 'relic_fen_lantern'),
+        prop('relicName', 'string', 'Fen-Lantern'),
+      ],
+    },
   ],
 });
 
@@ -889,6 +916,21 @@ const marshdungeon = tiledMap({
         prop('target', 'string', 'marsh'),
         prop('targetX', 'float', 90 * TS + 8),
         prop('targetY', 'float', 46 * TS + 8),
+      ],
+    },
+    {
+      name: 'sealed-reliquary',
+      type: 'secret',
+      x: 49 * TS - 8,
+      y: 10 * TS - 8,
+      width: 32,
+      height: 32,
+      properties: [
+        prop('secretId', 'string', 'secret_reliquary'),
+        prop('lore', 'string', 'A censer of bog-iron, sealed before the barrow drowned.'),
+        prop('gold', 'int', 260),
+        prop('relic', 'string', 'relic_barrow_censer'),
+        prop('relicName', 'string', 'Barrow Censer'),
       ],
     },
   ],

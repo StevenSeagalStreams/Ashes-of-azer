@@ -313,7 +313,7 @@ export function addSlashTexture(scene: Phaser.Scene, key: string): void {
 // Tiles drawn into the shared tileset strip, in TILE-id order. Keep in sync with
 // the TILE enum (mapgen.ts) and the tileset `tilecount`/`imagewidth` that
 // scripts/generate-maps.mjs writes into each map JSON.
-export const TILE_COUNT = 18;
+export const TILE_COUNT = 19;
 
 export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   if (scene.textures.exists(key)) return;
@@ -447,15 +447,19 @@ export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   g.fillRect(TILE.MURK * TS + 4, 5, 3, 1);
   g.fillRect(TILE.MURK * TS + 10, 11, 3, 1);
 
-  // Dead tree: a bare twisted trunk over the bog (solid).
-  base(TILE.DEADTREE, '#5a6a3a');
-  g.fillStyle = '#3a2f28';
-  g.fillRect(TILE.DEADTREE * TS + 7, 4, 2, 11); // trunk
-  g.fillRect(TILE.DEADTREE * TS + 3, 6, 4, 2); // left bough
-  g.fillRect(TILE.DEADTREE * TS + 9, 8, 4, 2); // right bough
-  g.fillStyle = '#2a221c';
-  g.fillRect(TILE.DEADTREE * TS + 4, 4, 2, 2);
-  g.fillRect(TILE.DEADTREE * TS + 11, 6, 2, 2);
+  // Dead tree: a bare twisted trunk over the bog (solid). Drawn by column so the
+  // walkable FALSEDEADTREE secret tile can reuse the exact same art.
+  const drawDeadTree = (id: number): void => {
+    base(id, '#5a6a3a');
+    g.fillStyle = '#3a2f28';
+    g.fillRect(id * TS + 7, 4, 2, 11); // trunk
+    g.fillRect(id * TS + 3, 6, 4, 2); // left bough
+    g.fillRect(id * TS + 9, 8, 4, 2); // right bough
+    g.fillStyle = '#2a221c';
+    g.fillRect(id * TS + 4, 4, 2, 2);
+    g.fillRect(id * TS + 11, 6, 2, 2);
+  };
+  drawDeadTree(TILE.DEADTREE);
 
   // Reeds/cattails decor on the bog floor (walkable).
   base(TILE.REED, '#5a6a3a');
@@ -465,6 +469,9 @@ export function addTilesetTexture(scene: Phaser.Scene, key: string): void {
   g.fillStyle = '#3a2f28';
   g.fillRect(TILE.REED * TS + 5, 4, 1, 3); // cattail heads
   g.fillRect(TILE.REED * TS + 9, 3, 1, 3);
+
+  // Secret false dead tree: pixel-identical to DEADTREE but walkable (marsh cache).
+  drawDeadTree(TILE.FALSEDEADTREE);
 
   scene.textures.addCanvas(key, c);
 }

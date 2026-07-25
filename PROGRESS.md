@@ -14,11 +14,14 @@ unidentified → unique roster → mythic → remaining slots). **Elite/champion
 modifiers is now DONE.** **Boss phases (first box of the 4.x Boss design pass) is now
 DONE.** **World-boss movement mechanic (second box) is DONE** — which
 finished the entire **4.x Boss design pass**. **Zone-3 marsh quest chain is DONE.**
-**Zone-3 dungeon + mini-boss (relic) is now DONE** (note below). **Next task
-(top-to-bottom in Milestone 4, Zone 3): "Secrets"** — hidden caches/false-wall rooms
-in the marsh/marsh dungeon (see the forest's `secret` triggers: FALSEPINE grove-cache
-in forest.json, FALSEWALL sealed-chest in forestdungeon.json; each grants gold + a
-relic via the `secret` trigger type, already handled by the scene). The
+**Zone-3 dungeon + mini-boss (relic) is DONE.**
+**Zone-3 Secrets is now DONE** (note below) — which completes **ALL of Zone 3 (the
+Haunted Marsh)**; the parent ROADMAP box is now ticked. **Next task (top-to-bottom):
+the next unchecked Milestone-4 box is "Zone 4 — Desert Empire" (elite packs, faction
+conflict storyline)** — a whole new zone (systems-first via the 2.5 add-a-zone template,
+like the marsh: tiles → wilds map → town → roster → quests → dungeon → secrets). That's
+a large multi-session arc — consider splitting into sub-boxes first (as the marsh was),
+and it likely warrants a check-in on scope/theme before diving in. The
 **attribute-requirements** box (in 4.x Itemization) still needs an explicit user
 decision (STR/DEX vs. level-only) — do not build unprompted.
 DESIGN DECISION: the marsh mini-boss's relic (`relic_drowned_crown`) is a BONUS
@@ -27,6 +30,25 @@ collectible — deliberately NOT added to endings.requiredRelics, so the m3 fina
 **STRONGLY worth checking in on priorities now** — the systems layer (itemization,
 elites, boss phases, hazards) is very deep; finishing Zone 3 (visible content) likely
 gives more player-facing payoff than more systems work.
+
+### Zone-3 secrets — fen cache + sealed reliquary (m4 — DONE)
+Two hidden secrets using the generic `secret` trigger (scene `discoverSecret`: records
+the id in saveData.secrets, grants gold + optional relic, one-time). NEW TILE:
+**FALSEDEADTREE** (id 18) — the marsh's walkable false-wall twin of DEADTREE, mirroring
+FALSEPINE/FALSEWALL. TILE_COUNT 18→19 kept in sync across mapgen.ts (TILE), pixelart.ts
+(refactored dead-tree art into a shared `drawDeadTree(id)` helper, drawn for DEADTREE +
+FALSEDEADTREE), and generate-maps.mjs (TILE + TILE_COUNT; NOT in SOLID → walkable).
+Regenerating bumped the embedded tileset dims in ALL map JSONs (expected; ground data
+unchanged for non-marsh maps). Content: (1) a **fen cache** in genMarsh — a chamber
+ringed by DEADTREE with a FALSEDEADTREE south entrance (approach cleared) at ~tile
+(9-12,10-13), `secret_fen_cache` trigger grants 140g + `relic_fen_lantern` "Fen-Lantern";
+(2) a **sealed reliquary** in genMarshDungeon — a FALSEWALL vault above the NE room (like
+forestdungeon's sealed-chest), `secret_reliquary` grants 260g + `relic_barrow_censer`
+"Barrow Censer". Both relics are BONUS collectibles (not in requiredRelics — finale gate
+unchanged). Tests: maps.test.ts tilecount 18→19 (2 asserts) + a marsh "fen cache behind a
+walkable FALSEDEADTREE" test + a dungeon "reliquary behind a FALSEWALL" test. Smoke
+`_smoke-marshsecrets.mjs`: teleport onto each secret → discovered on contact, relic
+granted (decoded from the base64 save), and re-entering doesn't duplicate the id.
 
 ### Zone-3 dungeon + mini-boss — The Sunken Barrow (m4 — DONE)
 New dark dungeon zone `marshdungeon` ("The Sunken Barrow") built via the authored-Tiled

@@ -54,7 +54,7 @@ describe('Verdant Reach (forest) map', () => {
   it('is ~3× the Starter Plains and carries the standard layers + tileset', () => {
     expect(forest.width * forest.height).toBe(7200); // 100×72 = 3 × (60×40)
     expect(forest.layers.map((l) => l.name)).toEqual(['ground', 'spawns', 'triggers']);
-    expect(forest.tilesets[0]?.tilecount).toBe(18); // base + forest + secret + marsh tiles
+    expect(forest.tilesets[0]?.tilecount).toBe(19); // base + forest + secret + marsh + false-deadtree tiles
   });
 
   it('spawns the player on a walkable tile', () => {
@@ -175,7 +175,7 @@ describe('The Mirefen (marsh) map', () => {
   it('is a large wilds map carrying the standard layers + tileset', () => {
     expect(marsh.width * marsh.height).toBe(6144); // 96×64
     expect(marsh.layers.map((l) => l.name)).toEqual(['ground', 'spawns', 'triggers']);
-    expect(marsh.tilesets[0]?.tilecount).toBe(18);
+    expect(marsh.tilesets[0]?.tilecount).toBe(19);
   });
 
   it('spawns the player on a walkable tile', () => {
@@ -207,6 +207,18 @@ describe('The Mirefen (marsh) map', () => {
     const region = (marsh.layers.find((l) => l.name === 'spawns')!.objects as { type: string }[]).find((o) => o.type === 'enemy_region');
     expect(region, 'marsh has a wilds enemy region').toBeTruthy();
   });
+
+  it('hides a fen cache behind a walkable FALSEDEADTREE wall', () => {
+    const secret = (marsh.layers.find((l) => l.name === 'triggers')!.objects as { type: string; x: number; y: number; width: number; height: number }[])
+      .find((o) => o.type === 'secret');
+    expect(secret, 'marsh has a secret cache').toBeTruthy();
+    // The cache sits on walkable ground inside the chamber.
+    expect(SOLID_GIDS.has(groundGid(marsh, secret!.x + secret!.width / 2, secret!.y + secret!.height / 2))).toBe(false);
+    // A FALSEDEADTREE (id 18 → gid 19) exists and is walkable despite looking solid.
+    const data = marsh.layers.find((l) => l.name === 'ground')!.data as number[];
+    expect(data).toContain(TILE.FALSEDEADTREE + 1);
+    expect(SOLID_GIDS.has(TILE.FALSEDEADTREE + 1)).toBe(false);
+  });
 });
 
 describe('The Sunken Barrow (marsh dungeon) map', () => {
@@ -234,6 +246,15 @@ describe('The Sunken Barrow (marsh dungeon) map', () => {
     const toMarsh = transitions(dungeon).find((t) => t.props['target'] === 'marsh');
     expect(toMarsh, 'dungeon has an exit portal').toBeTruthy();
     expect(SOLID_GIDS.has(groundGid(marsh, toMarsh!.props['targetX'] as number, toMarsh!.props['targetY'] as number))).toBe(false);
+  });
+
+  it('seals a reliquary behind a FALSEWALL', () => {
+    const secret = (dungeon.layers.find((l) => l.name === 'triggers')!.objects as { type: string; x: number; y: number; width: number; height: number }[])
+      .find((o) => o.type === 'secret');
+    expect(secret, 'dungeon has a sealed reliquary').toBeTruthy();
+    expect(SOLID_GIDS.has(groundGid(dungeon, secret!.x + secret!.width / 2, secret!.y + secret!.height / 2))).toBe(false);
+    const data = dungeon.layers.find((l) => l.name === 'ground')!.data as number[];
+    expect(data).toContain(TILE.FALSEWALL + 1); // the walkable false wall exists
   });
 });
 
