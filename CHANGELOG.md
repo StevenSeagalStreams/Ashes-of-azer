@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **World bosses make you move.** Greathorn now scorches the ground where you're
+  standing — telegraphed pools bloom under your feet and linger, so parking on top
+  of the boss and holding attack gets you cooked. As the hollow stag breaks into
+  its stampede, the pools multiply and scatter. You have to keep repositioning.
 - **Bosses fight in phases now.** Every zone boss shifts tactics as its health
   falls — Rotfang claws its way out of the barrow and calls the dead, then goes
   berserk and charges; Mossmaw spits thorn volleys and poisons; Greathorn's charge

@@ -12,16 +12,40 @@ under Milestone 4 — but the user's itemization direction takes priority now.
 finished (foundation → sets → ladder → drop pipeline → sockets/runes → runewords →
 unidentified → unique roster → mythic → remaining slots). **Elite/champion enemy
 modifiers is now DONE.** **Boss phases (first box of the 4.x Boss design pass) is now
-DONE** (note below). **Next task (top-to-bottom in ROADMAP 4.x Boss design pass):
-"World bosses require movement/positioning, not just DPS"** — the phase-nova already
-forces some repositioning, but this box wants the open-world bosses' core fight built
-around movement (safe-zones, ground hazards, back-attacks, etc.). Under Milestone 4
-the **Zone-3 marsh quest chain / dungeon / secrets** remain pending too. The
-**attribute-requirements** box needs an explicit user decision (STR/DEX vs.
-level-only) — do not build unprompted.
-**STRONGLY worth checking in on priorities now** — itemization is extremely deep;
-finishing Zone 3 (visible content) likely gives more player-facing payoff than more
-systems work.
+DONE.** **World-boss movement mechanic (second box) is now DONE** (note below) — which
+finishes the entire **4.x Boss design pass**. **Next task (top-to-bottom): the 4.x
+track is now complete; the next unchecked ROADMAP box is under Milestone 4 — the
+Zone-3 marsh content (quest chain / dungeon+mini-boss / secrets), which was deferred
+when the itemization redirect landed.** The **attribute-requirements** box (in 4.x
+Itemization) still needs an explicit user decision (STR/DEX vs. level-only) — do not
+build unprompted.
+**STRONGLY worth checking in on priorities now** — the systems layer (itemization,
+elites, boss phases, hazards) is very deep; finishing Zone 3 (visible content) likely
+gives more player-facing payoff than more systems work.
+
+### World-boss movement mechanic — ground hazards (m4.x — DONE)
+Data-driven zone-denial. Pure `systems/hazards.ts`: `hazardSpots(cx,cy,count,spread,
+rng)` (first spot on-target, extras ring outward within [0.4,1]×spread; deterministic)
++ `inHazard(px,py,hx,hy,r)`. Schema `HazardSchema` {interval,telegraph,damage,radius,
+duration,count?,spread?} in `schemas/enemy.ts`; `hazard` optional on `EnemySchema` AND
+`BossPhaseSchema` (also added to `bossPhases.ts` OVERLAY_KEYS so phases can add it).
+Pooled `entities/HazardField.ts` (mirrors EnemyProjectilePool; 24 pooled Arc gfx):
+`spawn(x,y,cfg)` grabs a free slot; `update(dt)` runs a telegraph phase (pulsing
+outline, no damage) then an active phase (filled pool, damages the player every 0.5s
+while inside via `inHazard`), fades out, retires; `activeCount()`, `playerInActive()`,
+`clear()`, `destroy()`. `Enemy` gained a `hazardT` timer (first fire 3s after the
+pattern activates) that emits `'boss-hazard'` (cfg, player.x, player.y) when
+`activeDef.hazard` is set. `WorldScene`: constructs the field next to `enemyShots`
+(same playerPos/hit hooks → `player.takeDamage`), binds `'boss-hazard'` → `onBossHazard`
+(scatters via `hazardSpots`, spawns each), `hazards.update(dt)` in the loop,
+`hazards.clear()` when a boss dies, `destroy()` on shutdown, and `hazards` added to
+`counts()` (+ the `__AZER.counts` type). Data: the world boss **greathorn** gets a
+hazard in phase 2 (1 pool) escalating in phase 3 (2 pools, wider spread, harder). No
+save changes (runtime-only). Tests: `hazards.test.ts` (spots count/on-target/scatter
+bounds/determinism; inHazard inside/edge/outside/offset). Loader test validates the
+greathorn JSON. Smoke `_smoke-hazard.mjs`: (A) emit boss-hazard → 2 pools spawn,
+standing in them drops hp, they expire after the duration; (B) spawn Greathorn, drop
+to its hazard phase → it auto-seeds a hazard; no console errors.
 
 ### Boss phases (m4.x — DONE)
 Data-driven multi-phase boss engine. New pure module `systems/bossPhases.ts`:

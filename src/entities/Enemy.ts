@@ -61,6 +61,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private rangedCd = 0;
   private explodePendingT = 0; // explode telegraph → detonation
   private summonT = 2; // first summon 2s after spawn
+  private hazardT = 3; // first ground hazard 3s after the pattern becomes active
   private readonly hpBarBg: Phaser.GameObjects.Rectangle;
   private readonly hpBarFg: Phaser.GameObjects.Rectangle;
 
@@ -232,6 +233,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.summonT <= 0) {
         this.summonT = summon.interval;
         this.scene.events.emit('enemy-summon', summon, this.x, this.y);
+      }
+    }
+    // Ground hazard (m4.x world bosses): seed lingering pools on the player's
+    // position so they must relocate. The scene's HazardField renders + ticks them.
+    const hazard = this.activeDef.hazard;
+    if (hazard) {
+      this.hazardT -= dt;
+      if (this.hazardT <= 0) {
+        this.hazardT = hazard.interval;
+        this.scene.events.emit('boss-hazard', hazard, player.x, player.y);
       }
     }
     // Data-driven AoE ground slam (prototype: Rotfang every 4.5s). The ring is

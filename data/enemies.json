@@ -306,6 +306,14 @@
         "novaOnEnter": {
           "damage": 26,
           "radius": 82
+        },
+        "hazard": {
+          "interval": 4.5,
+          "telegraph": 0.9,
+          "damage": 6,
+          "radius": 30,
+          "duration": 3.5,
+          "count": 1
         }
       },
       {
@@ -327,6 +335,15 @@
         "novaOnEnter": {
           "damage": 34,
           "radius": 94
+        },
+        "hazard": {
+          "interval": 3.5,
+          "telegraph": 0.8,
+          "damage": 8,
+          "radius": 32,
+          "duration": 4,
+          "count": 2,
+          "spread": 70
         }
       }
     ]

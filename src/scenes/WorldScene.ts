@@ -4,6 +4,8 @@ import type { EnemyData, ZoneData } from '../data/schemas/index.ts';
 import { Enemy } from '../entities/Enemy.ts';
 import { ProjectilePool } from '../entities/Projectile.ts';
 import { EnemyProjectilePool, type EnemyShot } from '../entities/EnemyProjectile.ts';
+import { HazardField } from '../entities/HazardField.ts';
+import { hazardSpots } from '../systems/hazards.ts';
 import { GroundEffectPool } from '../entities/GroundEffect.ts';
 import { TrapPool } from '../entities/Trap.ts';
 import { Pet } from '../entities/Pet.ts';
@@ -94,6 +96,7 @@ declare global {
         enemyShots: number;
         enemies: number;
         traps: number;
+        hazards: number;
         pet: { hp: number; dead: boolean } | null;
         drops: number;
         bag: number;
@@ -247,6 +250,7 @@ export class WorldScene extends Phaser.Scene {
   private dialogueNodeId = '';
   private projectiles!: ProjectilePool;
   private enemyShots!: EnemyProjectilePool;
+  private hazards!: HazardField;
   private ground!: GroundEffectPool;
   private traps!: TrapPool;
   // The Hunter's companion (one at a time). null until Summon Pet is cast.
@@ -324,6 +328,10 @@ export class WorldScene extends Phaser.Scene {
       playerPos: () => (this.player.dead ? null : { x: this.player.x, y: this.player.y }),
       hit: (amount) => this.player.takeDamage(amount, this.numbers),
     });
+    this.hazards = new HazardField(this, {
+      playerPos: () => (this.player.dead ? null : { x: this.player.x, y: this.player.y }),
+      hit: (amount) => this.player.takeDamage(amount, this.numbers),
+    });
 
     this.enemies = this.physics.add.group({ runChildUpdate: false });
     this.physics.add.collider(this.enemies, layer);
@@ -382,6 +390,8 @@ export class WorldScene extends Phaser.Scene {
     this.events.on('enemy-summon', (cfg: NonNullable<EnemyData['summon']>, x: number, y: number) => this.summonMinions(cfg, x, y));
     this.events.off('boss-phase');
     this.events.on('boss-phase', (info: BossPhaseEvent) => this.onBossPhase(info));
+    this.events.off('boss-hazard');
+    this.events.on('boss-hazard', (cfg: NonNullable<EnemyData['hazard']>, x: number, y: number) => this.onBossHazard(cfg, x, y));
 
     this.skillUI = new SkillUI({
       skills: this.effectiveSkills, // tooltips reflect equipped skillMods
@@ -505,6 +515,7 @@ export class WorldScene extends Phaser.Scene {
       this.repairUI.destroy();
       this.projectiles.destroy();
       this.enemyShots.destroy();
+      this.hazards.destroy();
       this.ground.destroy();
       this.traps.destroy();
       this.pet?.destroyPet();
@@ -568,6 +579,7 @@ export class WorldScene extends Phaser.Scene {
         enemyShots: this.enemyShots.activeCount(),
         enemies: (this.enemies.getChildren() as Enemy[]).filter((e) => e.active).length,
         traps: this.traps.activeCount(),
+        hazards: this.hazards.activeCount(),
         pet: this.pet ? { hp: this.pet.hp, dead: this.pet.dead } : null,
         drops: this.drops.length,
         bag: this.saveData.bag.length,
@@ -700,6 +712,7 @@ export class WorldScene extends Phaser.Scene {
     this.skillUI.refresh();
     this.projectiles.update(dt);
     this.enemyShots.update(dt);
+    this.hazards.update(dt);
     this.ground.update(dt);
     this.traps.update(dt);
     this.pet?.updatePet(dt, this.player);
@@ -917,6 +930,13 @@ export class WorldScene extends Phaser.Scene {
     if (!this.player.dead && Math.hypot(this.player.x - info.x, this.player.y - info.y) <= info.nova.radius) {
       this.player.takeDamage(info.nova.damage, this.numbers);
     }
+  }
+
+  /** A world boss seeds ground hazards (m4.x): telegraphed pools around the
+   *  player that force repositioning. The HazardField renders + ticks them. */
+  private onBossHazard(cfg: NonNullable<EnemyData['hazard']>, x: number, y: number): void {
+    const spots = hazardSpots(x, y, cfg.count ?? 1, cfg.spread ?? 40, Math.random);
+    for (const s of spots) this.hazards.spawn(s.x, s.y, cfg);
   }
 
   /** A summoner's call: spawn up to `count` minions near it, capped by `max`
@@ -1394,6 +1414,8 @@ export class WorldScene extends Phaser.Scene {
 
   private onEnemyDied(def: EnemyData, x: number, y: number, elite: EliteMod | null = null): void {
     if (this.hooksOnKill.length) this.runHooks(this.hooksOnKill, x, y);
+    // A boss dying ends its fight — clear any lingering ground hazards (m4.x).
+    if (def.boss) this.hazards.clear();
     // Volatile elites burst on death, hitting the player if they're too close.
     if (elite?.volatile) this.eliteBurst(x, y, elite.volatile.damage, elite.volatile.radius);
     this.maybeDropLoot(def, x, y);

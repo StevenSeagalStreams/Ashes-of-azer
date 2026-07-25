@@ -8,7 +8,7 @@ import type { BossPhase, EnemyData } from '../data/schemas/index.ts';
 // The pattern fields a phase may overlay onto the boss's active def. spd/dmg are
 // handled as multipliers by the Enemy, and tint/name/nova are presentation, so
 // they are deliberately not in this list.
-const OVERLAY_KEYS = ['slam', 'charge', 'ranged', 'explode', 'summon', 'poison', 'aggro', 'keepDistance'] as const;
+const OVERLAY_KEYS = ['slam', 'charge', 'ranged', 'explode', 'summon', 'poison', 'hazard', 'aggro', 'keepDistance'] as const;
 
 /** Orders phases so the first one crossed comes first (descending hpPct). */
 export function sortPhases(phases: readonly BossPhase[]): BossPhase[] {

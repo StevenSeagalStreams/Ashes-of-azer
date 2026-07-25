@@ -52,6 +52,21 @@ export const PoisonAttackSchema = z.object({
   duration: z.number().positive(),
 });
 
+// Zone-denial ground hazard (m4.x, world bosses): every `interval`s the boss
+// seeds `count` lingering pools around the player — each telegraphed for
+// `telegraph`s, then active for `duration`s, dealing `damage` per 0.5s tick to
+// anyone inside `radius`. `spread` is how far extra pools scatter from the first.
+// Forces the player to keep moving; DPS alone won't clear it.
+export const HazardSchema = z.object({
+  interval: z.number().positive(),
+  telegraph: z.number().positive(),
+  damage: z.number().positive(),
+  radius: z.number().positive(),
+  duration: z.number().positive(),
+  count: z.number().int().positive().optional(),
+  spread: z.number().nonnegative().optional(),
+});
+
 // Corruption variant (m3): at/above corruption `tierMin`, this enemy spawns
 // "corrupted" — tinted `tint`, with the given pattern fields overlaid onto its
 // base (recolor + one new move). Any pattern here overrides/adds to the base.
@@ -93,6 +108,7 @@ export const BossPhaseSchema = z.object({
   explode: ExplodeSchema.optional(),
   summon: SummonSchema.optional(),
   poison: PoisonAttackSchema.optional(),
+  hazard: HazardSchema.optional(),
   aggro: z.number().nonnegative().optional(),
   keepDistance: z.number().positive().optional(),
 });
@@ -123,6 +139,7 @@ export const EnemySchema = z.object({
   explode: ExplodeSchema.optional(),
   summon: SummonSchema.optional(),
   poison: PoisonAttackSchema.optional(), // poison-touch DoT on hit (m4)
+  hazard: HazardSchema.optional(), // ground-hazard zone denial (m4.x world bosses)
   corrupt: CorruptVariantSchema.optional(), // corrupted spawn variant (m3)
   phases: z.array(BossPhaseSchema).optional(), // multi-phase boss fight (m4.x)
 });
