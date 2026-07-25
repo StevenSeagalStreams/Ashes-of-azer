@@ -5,3 +5,6 @@ dist-ssr
 .DS_Store
 coverage
 *.tsbuildinfo
+
+# Ad-hoc headless smoke scripts (throwaway verification, not part of the build)
+_smoke-*.mjs

@@ -4,6 +4,7 @@ import { CONTACT_RANGE, ENEMY_ATTACK_COOLDOWN, scaledEnemyHp, type HitResult } f
 import { DamageNumbers } from '../systems/DamageNumbers.ts';
 import { addSpriteTexture, spriteRowsFor } from '../systems/pixelart.ts';
 import { moveMode } from '../systems/enemyAI.ts';
+import type { EliteMod } from '../systems/elites.ts';
 import type { Player } from './Player.ts';
 
 let nextEnemyId = 1;
@@ -16,6 +17,9 @@ const WINDUP_TINT = 0xffd24a;
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   readonly def: EnemyData;
+  /** Elite/champion affix (m4.x), or null for a normal spawn. Set by the scene. */
+  elite: EliteMod | null = null;
+  private eliteLabel: Phaser.GameObjects.Text | null = null;
   /** Stable per-instance id (projectile pierce/chain tracking). */
   readonly eid = nextEnemyId++;
   hp: number;
@@ -284,12 +288,28 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     return false;
   }
 
+  /** Flags this enemy as an elite: stores the affix and shows a floating tag. */
+  setElite(mod: EliteMod): void {
+    this.elite = mod;
+    this.eliteLabel = this.scene.add
+      .text(this.x, this.y, `★ ${mod.name}`, {
+        fontFamily: 'monospace',
+        fontSize: '8px',
+        color: '#ffe08a',
+        stroke: '#2b2033',
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5, 1)
+      .setDepth(7);
+  }
+
   private positionHpBar(): void {
     const barWidth = this.def.boss ? 30 : 12;
     const barY = this.y - this.height / 2 - 6;
     this.hpBarBg.setPosition(this.x, barY);
     this.hpBarFg.setPosition(this.x - barWidth / 2, barY);
     this.hpBarFg.setScale(Phaser.Math.Clamp(this.hp / this.maxHp, 0, 1), 1);
+    this.eliteLabel?.setPosition(this.x, barY - 3);
   }
 
   applyStun(duration: number): void {
@@ -340,13 +360,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   private die(): void {
     if (!this.active) return; // already dying — never award a kill twice
-    this.scene.events.emit('enemy-died', this.def, this.x, this.y);
+    this.scene.events.emit('enemy-died', this.def, this.x, this.y, this.elite);
     // Become a non-interactive corpse (combat loops all gate on `active`),
     // then splat-fade instead of vanishing instantly.
     this.setActive(false);
     this.setVelocity(0, 0);
     this.hpBarBg.destroy();
     this.hpBarFg.destroy();
+    this.eliteLabel?.destroy();
     this.scene.tweens.add({
       targets: this,
       alpha: 0,

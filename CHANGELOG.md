@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- **Elite monsters — mini-bosses in the open world.** A small fraction of foes
+  (more often the deeper your corruption) spawn as **elites**: a glowing aura and
+  a `★` name tag mark them, and each carries one of six affixes — **Swift**,
+  **Brutal**, **Ironhide**, **Venomous**, **Volatile** (explodes when it dies —
+  don't stand on top of it), or **Summoner**. They hit harder and soak more, but
+  they pay out like a boss: an unidentified-tinged loot pile and a shot at a rune.
 - **More gear slots: belts, amulets, shields, and a second ring.** You can now
   equip a **Belt**, a **Necklace**, an **Offhand** (shields), and a **second ring**
   — a ring fills your first open ring slot, then the second. New base items drop

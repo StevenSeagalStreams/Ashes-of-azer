@@ -10,15 +10,37 @@ Zone-3 content boxes (quest chain, dungeon+mini-boss, secrets) are still pending
 under Milestone 4 — but the user's itemization direction takes priority now.
 **Remaining slots is now DONE** (note below). The whole `4.x Itemization` list is
 finished (foundation → sets → ladder → drop pipeline → sockets/runes → runewords →
-unidentified → unique roster → mythic → remaining slots). **Next task (top-to-bottom
-in ROADMAP 4.x): elite/champion enemy modifiers** — D2 rare-monster affixes (Extra
-Fast, Frost-Enchanted, Shielded, Summoner…) with better drops; then the **4.x Boss
-design pass** (2–3 phase bosses). Under Milestone 4 the **Zone-3 marsh quest chain /
-dungeon / secrets** remain pending too. The **attribute-requirements** box needs an
-explicit user decision (STR/DEX vs. level-only) — do not build unprompted.
+unidentified → unique roster → mythic → remaining slots). **Elite/champion enemy
+modifiers is now DONE** (note below). **Next task (top-to-bottom in ROADMAP 4.x):
+the Boss design pass** — every zone boss gets 2–3 phases with distinct mechanics
+(not just bigger HP); world bosses require movement/positioning. Under Milestone 4
+the **Zone-3 marsh quest chain / dungeon / secrets** remain pending too. The
+**attribute-requirements** box needs an explicit user decision (STR/DEX vs.
+level-only) — do not build unprompted.
 **STRONGLY worth checking in on priorities now** — itemization is extremely deep;
-finishing Zone 3 (visible content) or elite modifiers / boss phases (visible combat
-variety) likely give more player-facing payoff than more itemization.
+finishing Zone 3 (visible content) or boss phases (visible combat variety) likely
+give more player-facing payoff than more itemization.
+
+### Elite / champion enemy modifiers (m4.x — DONE)
+`systems/elites.ts` (pure, unit-tested): an `ELITE_MODS` table of six affixes
+(Swift/Brutal/Ironhide/Venomous/Volatile/Summoner — each with hp/dmg/spd mults and
+an optional behaviour) + `rollElite(rng, chance)` and `ELITE_CHANCE = 0.07`.
+`WorldScene.makeEnemy` rolls an elite for **non-bosses** at `ELITE_CHANCE +
+tier.rarityBonus*0.01` (corruption raises the odds); on a hit it overlays the affix
+onto the enemy def (spd×spdMult, poison, summon fallback = zone's first enemy id),
+multiplies hp/dmg, and uses the aura `tint` (wins over the corruption recolor).
+`Enemy.setElite(mod)` stores the mod + a floating gold `★ Name` tag (kept positioned
+with the HP bar, destroyed on death); `die()` emits `enemy-died` with the elite as a
+4th arg. `onEnemyDied(def,x,y,elite)` → `eliteBurst` (Volatile: orange ring + player
+damage within radius) + `dropEliteReward` (1–2 items from `BOSS_DROP_CHANCES` with
+Magic Find, unidentified for rare+, ~15% rune). New debug: `__AZER.debug.spawnElite(
+modId?, id?)` forces one (used by the smoke) — `makeEnemy` gained an optional
+`forcedElite` param that skips the roll + boss guard. No save changes (elite state
+is runtime-only). Tests: `elites.test.ts` (miss/hit, index across the whole table,
+out-of-bounds guard, rarity, table sanity). Smoke `_smoke-elites.mjs`: force a
+Volatile elite (tint + boosted HP verified), kill all elites → loot pile grows
+(drops+bag), every mod id spawnable, no console errors. Smoke scripts are gitignored
++ eslint-ignored (`_smoke-*.mjs`), throwaway like prior ones.
 
 ### D2 itemization — remaining equip slots (m4.x — DONE)
 Added **Belt / Necklace / Offhand** item slots + a second ring position **Ring2**.

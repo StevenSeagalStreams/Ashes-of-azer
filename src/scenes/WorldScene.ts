@@ -39,6 +39,7 @@ import { canCraft, craftItem, pickMaterial, spendInputs } from '../systems/craft
 import { canSocket, pickRune, socketRune } from '../systems/sockets.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
 import { cleanseCorruption, corruptedEnemy, corruptionTier, corruptionTierRose, gainCorruption, npcVisibleAtCorruption, type CorruptionTier } from '../systems/corruption.ts';
+import { ELITE_CHANCE, ELITE_MODS, rollElite, type EliteMod } from '../systems/elites.ts';
 import { getCorruptionAudio } from '../systems/audio.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
@@ -108,6 +109,7 @@ declare global {
         grantAllRelics: () => string[];
         poisonPlayer: (dps?: number, duration?: number) => number;
         grantRune: (id?: string) => number;
+        spawnElite: (modId?: string, id?: string) => string;
       };
     };
   }
@@ -364,7 +366,7 @@ export class WorldScene extends Phaser.Scene {
       });
     });
     this.events.off('enemy-died');
-    this.events.on('enemy-died', (def: EnemyData, x: number, y: number) => this.onEnemyDied(def, x, y));
+    this.events.on('enemy-died', (def: EnemyData, x: number, y: number, elite: EliteMod | null) => this.onEnemyDied(def, x, y, elite));
     this.events.off('enemy-shoot');
     this.events.on('enemy-shoot', (shot: EnemyShot) => this.enemyShots.fire(shot));
     this.events.off('enemy-summon');
@@ -601,6 +603,16 @@ export class WorldScene extends Phaser.Scene {
           this.inventoryUI.refresh();
           return this.saveData.runes.length;
         },
+        spawnElite: (modId, id) => {
+          const mod = modId
+            ? ELITE_MODS.find((m) => m.id === modId)
+            : ELITE_MODS[Math.floor(Math.random() * ELITE_MODS.length)];
+          if (!mod) return '';
+          const def = id ? this.enemyDefs.find((d) => d.id === id) : Phaser.Utils.Array.GetRandom(this.enemyDefs);
+          if (!def) return '';
+          const e = this.makeEnemy(def, this.player.x + 32, this.player.y, mod);
+          return `${mod.name} ${e.def.name ?? e.def.id}`;
+        },
       },
     };
   }
@@ -705,11 +717,31 @@ export class WorldScene extends Phaser.Scene {
   // ---------- spawning ----------
 
   /** Creates an enemy scaled + possibly corrupted by the current tier, and adds it. */
-  private makeEnemy(def: EnemyData, x: number, y: number): Enemy {
+  private makeEnemy(def: EnemyData, x: number, y: number, forcedElite?: EliteMod): Enemy {
     const corruption = this.saveData.world.corruption;
     const tier = corruptionTier(corruption);
     const variant = corruptedEnemy(def, corruption); // recolor + extra move at high tiers
-    const e = new Enemy(this, variant.def, x, y, this.player.level, tier.enemyHpMult, tier.enemyDmgMult, variant.tint);
+    // Elite/champion roll (m4.x): non-bosses can spawn as a tougher, coloured
+    // variant with an affix and a mini-boss reward. Corruption raises the odds.
+    // A forced elite (debug tool) skips the roll and the boss guard.
+    const elite = forcedElite ?? (def.boss ? null : rollElite(Math.random, ELITE_CHANCE + tier.rarityBonus * 0.01));
+    let eDef = variant.def;
+    let hpMult = tier.enemyHpMult;
+    let dmgMult = tier.enemyDmgMult;
+    let tint = variant.tint;
+    if (elite) {
+      eDef = {
+        ...eDef,
+        spd: eDef.spd * elite.spdMult,
+        poison: elite.poison ?? eDef.poison,
+        summon: elite.summoner ? (eDef.summon ?? { minion: this.enemyDefs[0]?.id ?? def.id, count: 1, interval: 5, max: 3 }) : eDef.summon,
+      };
+      hpMult *= elite.hpMult;
+      dmgMult *= elite.dmgMult;
+      tint = elite.tint; // the aura wins over the corruption recolor
+    }
+    const e = new Enemy(this, eDef, x, y, this.player.level, hpMult, dmgMult, tint);
+    if (elite) e.setElite(elite);
     this.enemies.add(e);
     return e;
   }
@@ -1336,9 +1368,12 @@ export class WorldScene extends Phaser.Scene {
     this.saveNow();
   }
 
-  private onEnemyDied(def: EnemyData, x: number, y: number): void {
+  private onEnemyDied(def: EnemyData, x: number, y: number, elite: EliteMod | null = null): void {
     if (this.hooksOnKill.length) this.runHooks(this.hooksOnKill, x, y);
+    // Volatile elites burst on death, hitting the player if they're too close.
+    if (elite?.volatile) this.eliteBurst(x, y, elite.volatile.damage, elite.volatile.radius);
     this.maybeDropLoot(def, x, y);
+    if (elite) this.dropEliteReward(x, y); // a mini-boss pile from a champion
     if (this.player.manaOnKill > 0) {
       this.player.mp = Math.min(this.player.maxMp, this.player.mp + this.player.manaOnKill);
     }
@@ -1397,6 +1432,35 @@ export class WorldScene extends Phaser.Scene {
    *  single sparse chance. Rarity comes from the D2 cascade, and corruption acts
    *  as Magic Find (raising the top of the cascade) + a small drop-frequency
    *  nudge (m3). Both may also drop a crafting material. */
+  /** A Volatile elite's death explosion: a quick ring + damage to a nearby player. */
+  private eliteBurst(x: number, y: number, damage: number, radius: number): void {
+    const ring = this.add.circle(x, y, radius, 0xff9a3d, 0.35).setDepth(4);
+    this.tweens.add({ targets: ring, alpha: 0, scale: 1.3, duration: 300, onComplete: () => ring.destroy() });
+    if (!this.player.dead && Math.hypot(this.player.x - x, this.player.y - y) <= radius) {
+      this.player.takeDamage(damage, this.numbers);
+    }
+  }
+
+  /** A champion's bonus loot: a small pile from the boss table (m4.x). */
+  private dropEliteReward(x: number, y: number): void {
+    const tier = corruptionTier(this.saveData.world.corruption);
+    const magicFind = tier.rarityBonus * CORRUPTION_MAGIC_FIND + BOSS_MAGIC_FIND / 2;
+    const drops = 1 + (Math.random() < 0.5 ? 1 : 0); // 1–2 items
+    for (let i = 0; i < drops; i++) {
+      const rarity = rollDropRarity(Math.random, BOSS_DROP_CHANCES, magicFind);
+      const item = rollItem(this.gameData.items, this.gameData.affixes, Math.random, { rarity, ilvl: this.player.level });
+      if (dropsUnidentified(rarity)) item.identified = false;
+      this.spawnItemDrop(x + (Math.random() - 0.5) * 24, y + (Math.random() - 0.5) * 18, item);
+    }
+    if (Math.random() < 0.15) {
+      const rune = pickRune(this.gameData.items.runes, Math.random);
+      if (rune) {
+        this.saveData.runes.push(rune.id);
+        this.numbers.spawn(x, y - 24, `⟡ ${rune.name}`, '#c8b48a');
+      }
+    }
+  }
+
   private maybeDropLoot(def: EnemyData, x: number, y: number): void {
     const tier = corruptionTier(this.saveData.world.corruption);
     const ilvl = this.player.level;
