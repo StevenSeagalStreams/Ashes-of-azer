@@ -1,0 +1,1368 @@
+{
+  "slots": [
+    "Weapon",
+    "Helmet",
+    "Chest",
+    "Boots",
+    "Ring",
+    "Belt",
+    "Necklace",
+    "Offhand"
+  ],
+  "bases": {
+    "Weapon": [
+      {
+        "name": "Rusty Sword",
+        "base": 3
+      },
+      {
+        "name": "Broad Axe",
+        "base": 5
+      },
+      {
+        "name": "War Maul",
+        "base": 7
+      },
+      {
+        "name": "Kingsteel Blade",
+        "base": 9
+      }
+    ],
+    "Helmet": [
+      {
+        "name": "Leather Cap",
+        "base": 2
+      },
+      {
+        "name": "Iron Helm",
+        "base": 4
+      },
+      {
+        "name": "Crested Helm",
+        "base": 6
+      }
+    ],
+    "Chest": [
+      {
+        "name": "Padded Vest",
+        "base": 3
+      },
+      {
+        "name": "Chainmail",
+        "base": 5
+      },
+      {
+        "name": "Titan Plate",
+        "base": 8
+      }
+    ],
+    "Boots": [
+      {
+        "name": "Worn Boots",
+        "base": 2
+      },
+      {
+        "name": "Striders",
+        "base": 4
+      },
+      {
+        "name": "Windwalkers",
+        "base": 6
+      }
+    ],
+    "Ring": [
+      {
+        "name": "Copper Ring",
+        "base": 1
+      },
+      {
+        "name": "Silver Band",
+        "base": 3
+      },
+      {
+        "name": "Runed Loop",
+        "base": 5
+      }
+    ],
+    "Belt": [
+      {
+        "name": "Sash",
+        "base": 2
+      },
+      {
+        "name": "Heavy Belt",
+        "base": 3
+      },
+      {
+        "name": "War Girdle",
+        "base": 5
+      }
+    ],
+    "Necklace": [
+      {
+        "name": "Bead Amulet",
+        "base": 2
+      },
+      {
+        "name": "Silver Amulet",
+        "base": 4
+      },
+      {
+        "name": "Gilded Torc",
+        "base": 6
+      }
+    ],
+    "Offhand": [
+      {
+        "name": "Buckler",
+        "base": 3
+      },
+      {
+        "name": "Kite Shield",
+        "base": 6
+      },
+      {
+        "name": "Tower Shield",
+        "base": 9
+      }
+    ]
+  },
+  "rarities": [
+    {
+      "id": "white",
+      "dropChance": 0.58,
+      "affixMin": 0,
+      "affixMax": 0
+    },
+    {
+      "id": "magic",
+      "dropChance": 0.29,
+      "affixMin": 1,
+      "affixMax": 2
+    },
+    {
+      "id": "rare",
+      "dropChance": 0.09,
+      "affixMin": 3,
+      "affixMax": 5
+    },
+    {
+      "id": "unique",
+      "dropChance": 0.01,
+      "affixMin": 0,
+      "affixMax": 0
+    },
+    {
+      "id": "set",
+      "dropChance": 0.008,
+      "affixMin": 0,
+      "affixMax": 0
+    },
+    {
+      "id": "mythic",
+      "dropChance": 0,
+      "affixMin": 0,
+      "affixMax": 0
+    }
+  ],
+  "legendaries": [
+    {
+      "name": "Emberfall Signet",
+      "slot": "Ring",
+      "power": "emberfall",
+      "text": "Fireball splits into 3, chains to 2 foes, and returns to you.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 6
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "fireball",
+          "mod": "split",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "chain",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "returns",
+          "value": 1,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Glacial Crown",
+      "slot": "Helmet",
+      "power": "glacial",
+      "text": "Ice Shard pierces 2 more enemies and chills far harder.",
+      "forcedAffixes": [
+        {
+          "key": "frost",
+          "value": 30
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "ice_shard",
+          "mod": "pierce",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "ice_shard",
+          "mod": "chillPct",
+          "value": 20,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Colossus Plate",
+      "slot": "Chest",
+      "power": "colossus",
+      "text": "Whirlwind's reach and Shield Slam's stun both grow.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 40
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "whirlwind",
+          "mod": "radius",
+          "value": 20,
+          "op": "add"
+        },
+        {
+          "skill": "shield_slam",
+          "mod": "stunDuration",
+          "value": 0.6,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Executioner's Edge",
+      "slot": "Weapon",
+      "power": "executioner",
+      "text": "Execute reaches far wider, and each kill mends your wounds.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 8
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "execute",
+          "mod": "range",
+          "value": 30,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "heal",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "name": "Beastmaster Totem",
+      "slot": "Ring",
+      "power": "beastmaster",
+      "text": "Multi Shot looses 2 extra arrows and your wolf bites harder.",
+      "forcedAffixes": [
+        {
+          "key": "aspd",
+          "value": 20
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "multi_shot",
+          "mod": "count",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "summon_wolf",
+          "mod": "petDamageMultiplier",
+          "value": 0.3,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Snarelord Boots",
+      "slot": "Boots",
+      "power": "snarelord",
+      "text": "Traps arm instantly and snap shut over a wider area.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 12
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "snare_trap",
+          "mod": "radius",
+          "value": 15,
+          "op": "add"
+        },
+        {
+          "skill": "snare_trap",
+          "mod": "armTime",
+          "value": 0,
+          "op": "set"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Frostheart",
+      "slot": "Ring",
+      "power": "frostheart",
+      "text": "Slain enemies burst in a 40-damage frost nova.",
+      "forcedAffixes": [
+        {
+          "key": "frost",
+          "value": 30
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "explode",
+          "value": 40,
+          "radius": 70
+        }
+      ]
+    },
+    {
+      "name": "Bloodmyre Band",
+      "slot": "Ring",
+      "power": "bloodmyre",
+      "text": "Your hits set enemies ablaze for 8 damage a second.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 6
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "burn",
+          "value": 8,
+          "duration": 3
+        }
+      ]
+    },
+    {
+      "name": "Stormpierce",
+      "slot": "Weapon",
+      "power": "stormpierce",
+      "text": "Chain Lightning leaps to 2 more foes across a wider gap.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 8
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "chain_lightning",
+          "mod": "chain",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "chain_lightning",
+          "mod": "chainRange",
+          "value": 40,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Wolfsong Bow",
+      "slot": "Weapon",
+      "power": "wolfsong",
+      "text": "Your wolf hits far harder and Multi Shot looses an extra arrow.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 7
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "summon_wolf",
+          "mod": "petDamageMultiplier",
+          "value": 0.5,
+          "op": "add"
+        },
+        {
+          "skill": "multi_shot",
+          "mod": "count",
+          "value": 1,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Cindermaul",
+      "slot": "Weapon",
+      "power": "cindermaul",
+      "text": "Hammerfall lands wider and stuns for longer.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 8
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "hammerfall",
+          "mod": "radius",
+          "value": 18,
+          "op": "add"
+        },
+        {
+          "skill": "hammerfall",
+          "mod": "stunDuration",
+          "value": 0.5,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Voidcleaver",
+      "slot": "Weapon",
+      "power": "voidcleaver",
+      "text": "Every strike sears the wound for 10 damage a second.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 9
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "burn",
+          "value": 10,
+          "duration": 3
+        }
+      ]
+    },
+    {
+      "name": "Gravebite",
+      "slot": "Weapon",
+      "power": "gravebite",
+      "text": "Slain foes rupture in a 50-damage blast.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 7
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "explode",
+          "value": 50,
+          "radius": 80
+        }
+      ]
+    },
+    {
+      "name": "Duskquiver",
+      "slot": "Weapon",
+      "power": "duskquiver",
+      "text": "Arrow Storm rains two more shafts.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 7
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "arrow_storm",
+          "mod": "count",
+          "value": 2,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Pyroclast Visor",
+      "slot": "Helmet",
+      "power": "pyroclast",
+      "text": "Fireball burns hotter and bursts wider.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 30
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "fireball",
+          "mod": "burnDps",
+          "value": 6,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "radius",
+          "value": 8,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Hawkeye Hood",
+      "slot": "Helmet",
+      "power": "hawkeye",
+      "text": "Piercing Arrow drills through 2 more enemies.",
+      "forcedAffixes": [
+        {
+          "key": "crit",
+          "value": 12
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "piercing_arrow",
+          "mod": "pierce",
+          "value": 2,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Warden's Sallet",
+      "slot": "Helmet",
+      "power": "wardens_sallet",
+      "text": "The Wardens' old helm — stout and far-seeing.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 45
+        },
+        {
+          "key": "vision",
+          "value": 30
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Embersight Crown",
+      "slot": "Helmet",
+      "power": "embersight",
+      "text": "Every cast draws 8 mana from the ember within.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 35
+        },
+        {
+          "key": "cdr",
+          "value": 12
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onCast",
+          "effect": "manaGain",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "name": "Mindspike Diadem",
+      "slot": "Helmet",
+      "power": "mindspike",
+      "text": "Arcane Bolt splits and pierces through the ranks.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 28
+        },
+        {
+          "key": "cdr",
+          "value": 10
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "arcane_bolt",
+          "mod": "split",
+          "value": 1,
+          "op": "add"
+        },
+        {
+          "skill": "arcane_bolt",
+          "mod": "pierce",
+          "value": 2,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Aegis of Thorns",
+      "slot": "Chest",
+      "power": "aegis_thorns",
+      "text": "Iron Guard holds far longer behind a wall of spines.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 50
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "iron_guard",
+          "mod": "duration",
+          "value": 2,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Molten Carapace",
+      "slot": "Chest",
+      "power": "molten_carapace",
+      "text": "Blows against you kindle the striker for 6 a second.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 45
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "burn",
+          "value": 6,
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "name": "Runewrought Hauberk",
+      "slot": "Chest",
+      "power": "runewrought",
+      "text": "Rune-stitched mail, heavy with old power.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 55
+        },
+        {
+          "key": "cdr",
+          "value": 15
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Frostweave Robe",
+      "slot": "Chest",
+      "power": "frostweave",
+      "text": "Ice Shard chills deeper and holds it longer.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 30
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "ice_shard",
+          "mod": "chillPct",
+          "value": 25,
+          "op": "add"
+        },
+        {
+          "skill": "ice_shard",
+          "mod": "chillDuration",
+          "value": 1,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Bulwark of the Fen",
+      "slot": "Chest",
+      "power": "bulwark_fen",
+      "text": "Mire-forged plate that shrugs off the worst.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 60
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Windstride Greaves",
+      "slot": "Boots",
+      "power": "windstride",
+      "text": "Fleet plate that quickens every step and swing.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 15
+        },
+        {
+          "key": "aspd",
+          "value": 15
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Trapper's Treads",
+      "slot": "Boots",
+      "power": "trappers",
+      "text": "Explosive Trap arms at once and detonates wider.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 12
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "explosive_trap",
+          "mod": "radius",
+          "value": 15,
+          "op": "add"
+        },
+        {
+          "skill": "explosive_trap",
+          "mod": "armTime",
+          "value": 0,
+          "op": "set"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Emberwalk Sabatons",
+      "slot": "Boots",
+      "power": "emberwalk",
+      "text": "Each kill mends you as the embers flare.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 12
+        },
+        {
+          "key": "hp",
+          "value": 20
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "heal",
+          "value": 6
+        }
+      ]
+    },
+    {
+      "name": "Swiftmarsh Boots",
+      "slot": "Boots",
+      "power": "swiftmarsh",
+      "text": "Disengage hurls you much farther across the bog.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 18
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "disengage",
+          "mod": "distance",
+          "value": 40,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Band of the Leech",
+      "slot": "Ring",
+      "power": "leech_band",
+      "text": "Blood answers blood — a heavy drain on every hit.",
+      "forcedAffixes": [
+        {
+          "key": "lifesteal",
+          "value": 8
+        },
+        {
+          "key": "dmg",
+          "value": 5
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Sigil of the Storm",
+      "slot": "Ring",
+      "power": "storm_sigil",
+      "text": "Chain Lightning forks once more and Arcane Bolt pierces on.",
+      "forcedAffixes": [
+        {
+          "key": "crit",
+          "value": 10
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "chain_lightning",
+          "mod": "chain",
+          "value": 1,
+          "op": "add"
+        },
+        {
+          "skill": "arcane_bolt",
+          "mod": "pierce",
+          "value": 2,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    },
+    {
+      "name": "Coil of Venom",
+      "slot": "Ring",
+      "power": "venom_coil",
+      "text": "Your critical strikes leave a seeping venom.",
+      "forcedAffixes": [
+        {
+          "key": "poison",
+          "value": 1
+        },
+        {
+          "key": "dmg",
+          "value": 5
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Heartseeker",
+      "slot": "Ring",
+      "power": "heartseeker",
+      "text": "It finds the gap in any guard.",
+      "forcedAffixes": [
+        {
+          "key": "crit",
+          "value": 14
+        },
+        {
+          "key": "aspd",
+          "value": 15
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Girdle of the Titan",
+      "slot": "Belt",
+      "power": "titan_girdle",
+      "text": "A giant's belt — you shrug off blows and swing all the faster.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 45
+        },
+        {
+          "key": "aspd",
+          "value": 15
+        }
+      ],
+      "skillMods": [],
+      "hooks": []
+    },
+    {
+      "name": "Amulet of the Ember Sage",
+      "slot": "Necklace",
+      "power": "ember_sage",
+      "text": "Fireball roars wider and your spells refund their cost.",
+      "forcedAffixes": [
+        {
+          "key": "cdr",
+          "value": 15
+        },
+        {
+          "key": "manakill",
+          "value": 8
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "fireball",
+          "mod": "radius",
+          "value": 10,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onCast",
+          "effect": "manaGain",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "name": "Bulwark Aegis",
+      "slot": "Offhand",
+      "power": "bulwark_aegis",
+      "text": "A wall of a shield — Iron Guard holds, and blows rebound.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 50
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "iron_guard",
+          "mod": "damageReductionPct",
+          "value": 10,
+          "op": "add"
+        }
+      ],
+      "hooks": []
+    }
+  ],
+  "sets": [
+    {
+      "id": "mirekeeper",
+      "name": "Mirekeeper's Vigil",
+      "pieces": [
+        {
+          "name": "Mirekeeper's Cowl",
+          "slot": "Helmet",
+          "forcedAffixes": [
+            {
+              "key": "hp",
+              "value": 22
+            },
+            {
+              "key": "vision",
+              "value": 25
+            }
+          ]
+        },
+        {
+          "name": "Mirekeeper's Shroud",
+          "slot": "Chest",
+          "forcedAffixes": [
+            {
+              "key": "hp",
+              "value": 34
+            }
+          ]
+        },
+        {
+          "name": "Mirekeeper's Treads",
+          "slot": "Boots",
+          "forcedAffixes": [
+            {
+              "key": "ms",
+              "value": 10
+            },
+            {
+              "key": "hp",
+              "value": 18
+            }
+          ]
+        }
+      ],
+      "bonuses": [
+        {
+          "pieces": 2,
+          "affixes": [
+            {
+              "key": "crit",
+              "value": 8
+            }
+          ]
+        },
+        {
+          "pieces": 3,
+          "affixes": [
+            {
+              "key": "lifesteal",
+              "value": 6
+            },
+            {
+              "key": "hp",
+              "value": 30
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "runes": [
+    {
+      "id": "rune_el",
+      "name": "El Rune",
+      "letter": "El",
+      "weight": 100,
+      "affixes": [
+        {
+          "key": "dmg",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "rune_tir",
+      "name": "Tir Rune",
+      "letter": "Tir",
+      "weight": 60,
+      "affixes": [
+        {
+          "key": "manakill",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "rune_ort",
+      "name": "Ort Rune",
+      "letter": "Ort",
+      "weight": 30,
+      "affixes": [
+        {
+          "key": "frost",
+          "value": 12
+        }
+      ]
+    },
+    {
+      "id": "rune_thul",
+      "name": "Thul Rune",
+      "letter": "Thul",
+      "weight": 12,
+      "affixes": [
+        {
+          "key": "hp",
+          "value": 24
+        }
+      ]
+    },
+    {
+      "id": "rune_amn",
+      "name": "Amn Rune",
+      "letter": "Amn",
+      "weight": 4,
+      "affixes": [
+        {
+          "key": "lifesteal",
+          "value": 5
+        }
+      ]
+    }
+  ],
+  "runewords": [
+    {
+      "id": "rw_steel",
+      "name": "Steel",
+      "runes": [
+        "rune_tir",
+        "rune_el"
+      ],
+      "slots": [
+        "Weapon"
+      ],
+      "affixes": [
+        {
+          "key": "dmg",
+          "value": 10
+        },
+        {
+          "key": "aspd",
+          "value": 18
+        }
+      ]
+    },
+    {
+      "id": "rw_malice",
+      "name": "Malice",
+      "runes": [
+        "rune_ort",
+        "rune_thul"
+      ],
+      "slots": [
+        "Weapon"
+      ],
+      "affixes": [
+        {
+          "key": "frost",
+          "value": 35
+        },
+        {
+          "key": "lifesteal",
+          "value": 6
+        }
+      ]
+    },
+    {
+      "id": "rw_nadir",
+      "name": "Nadir",
+      "runes": [
+        "rune_amn",
+        "rune_el"
+      ],
+      "slots": [
+        "Helmet"
+      ],
+      "affixes": [
+        {
+          "key": "hp",
+          "value": 50
+        },
+        {
+          "key": "crit",
+          "value": 12
+        }
+      ]
+    }
+  ],
+  "mythics": [
+    {
+      "name": "Worldbreaker",
+      "slot": "Weapon",
+      "power": "mythic_worldbreaker",
+      "text": "Hammerfall becomes a cataclysm, and every blow you land erupts.",
+      "forcedAffixes": [
+        {
+          "key": "dmg",
+          "value": 14
+        },
+        {
+          "key": "crit",
+          "value": 10
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "hammerfall",
+          "mod": "radius",
+          "value": 40,
+          "op": "add"
+        },
+        {
+          "skill": "hammerfall",
+          "mod": "stunDuration",
+          "value": 1.2,
+          "op": "add"
+        },
+        {
+          "skill": "hammerfall",
+          "mod": "damageMultiplier",
+          "value": 0.5,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "explode",
+          "value": 30,
+          "radius": 60
+        }
+      ]
+    },
+    {
+      "name": "Crown of Cinders",
+      "slot": "Helmet",
+      "power": "mythic_cinders",
+      "text": "Fireball splits and roars, burning all it touches to ash.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 55
+        },
+        {
+          "key": "cdr",
+          "value": 15
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "fireball",
+          "mod": "split",
+          "value": 2,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "burnDps",
+          "value": 12,
+          "op": "add"
+        },
+        {
+          "skill": "fireball",
+          "mod": "radius",
+          "value": 15,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onCast",
+          "effect": "manaGain",
+          "value": 6
+        }
+      ]
+    },
+    {
+      "name": "Aegis Eternal",
+      "slot": "Chest",
+      "power": "mythic_aegis",
+      "text": "An unbreakable guard — it mends you with every blow you turn.",
+      "forcedAffixes": [
+        {
+          "key": "hp",
+          "value": 90
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "iron_guard",
+          "mod": "duration",
+          "value": 3,
+          "op": "add"
+        },
+        {
+          "skill": "iron_guard",
+          "mod": "damageReductionPct",
+          "value": 15,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onHit",
+          "effect": "heal",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "name": "Tempeststride",
+      "slot": "Boots",
+      "power": "mythic_tempest",
+      "text": "The storm carries you — you flit across the field and drink its power.",
+      "forcedAffixes": [
+        {
+          "key": "ms",
+          "value": 25
+        },
+        {
+          "key": "aspd",
+          "value": 20
+        }
+      ],
+      "skillMods": [
+        {
+          "skill": "disengage",
+          "mod": "distance",
+          "value": 60,
+          "op": "add"
+        }
+      ],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "manaGain",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "name": "The Devouring Eye",
+      "slot": "Ring",
+      "power": "mythic_eye",
+      "text": "It hungers. Slain foes burst, and your strikes fester and bleed you life.",
+      "forcedAffixes": [
+        {
+          "key": "lifesteal",
+          "value": 12
+        },
+        {
+          "key": "crit",
+          "value": 18
+        }
+      ],
+      "skillMods": [],
+      "hooks": [
+        {
+          "on": "onKill",
+          "effect": "explode",
+          "value": 60,
+          "radius": 90
+        },
+        {
+          "on": "onHit",
+          "effect": "burn",
+          "value": 8,
+          "duration": 3
+        }
+      ]
+    }
+  ]
+}
