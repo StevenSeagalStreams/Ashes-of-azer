@@ -67,6 +67,16 @@ export const HazardSchema = z.object({
   spread: z.number().nonnegative().optional(),
 });
 
+// Pack-leader aura (m4, Desert Empire): an enemy with an `aura` is a pack-leader
+// whose presence buffs nearby allied enemies within `radius` — multiplying their
+// damage and/or speed. Kill the leader and the buff vanishes. Data-driven; the
+// scene samples active leaders each frame and applies the result to packmates.
+export const AuraSchema = z.object({
+  radius: z.number().positive(),
+  dmgMult: z.number().positive().optional(),
+  spdMult: z.number().positive().optional(),
+});
+
 // Corruption variant (m3): at/above corruption `tierMin`, this enemy spawns
 // "corrupted" — tinted `tint`, with the given pattern fields overlaid onto its
 // base (recolor + one new move). Any pattern here overrides/adds to the base.
@@ -140,6 +150,7 @@ export const EnemySchema = z.object({
   summon: SummonSchema.optional(),
   poison: PoisonAttackSchema.optional(), // poison-touch DoT on hit (m4)
   hazard: HazardSchema.optional(), // ground-hazard zone denial (m4.x world bosses)
+  aura: AuraSchema.optional(), // pack-leader buff aura (m4, Desert Empire)
   corrupt: CorruptVariantSchema.optional(), // corrupted spawn variant (m3)
   phases: z.array(BossPhaseSchema).optional(), // multi-phase boss fight (m4.x)
 });

@@ -29,6 +29,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private phasesEntered = 0;
   private phaseSpdMult = 1;
   private phaseDmgMult = 1;
+  // Pack-leader aura buff (m4, Desert Empire), refreshed by the scene each frame
+  // from nearby leaders. 1 = no buff. Public so headless smokes can read them.
+  auraSpdMult = 1;
+  auraDmgMult = 1;
   /** Elite/champion affix (m4.x), or null for a normal spawn. Set by the scene. */
   elite: EliteMod | null = null;
   private eliteLabel: Phaser.GameObjects.Text | null = null;
@@ -173,7 +177,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // Movement: chase, kite (keepDistance), or hold — direction from the pure helper.
     const mode = moveMode(d, this.activeDef.aggro, this.activeDef.keepDistance);
     const chill = 1 - this.chillPct / 100; // frost slow
-    const spd = this.activeDef.spd * this.phaseSpdMult; // phase speed-up (m4.x)
+    const spd = this.activeDef.spd * this.phaseSpdMult * this.auraSpdMult; // phase + pack-aura speed-up (m4)
     if (mode === 'chase' || mode === 'kite') {
       const sign = mode === 'kite' ? -1 : 1;
       const vx = (((player.x - this.x) / d) * spd * chill) * sign;
@@ -282,7 +286,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   /** Deals `base` damage to the player, scaled by corruption + boss-phase mults. */
   private hitPlayer(player: Player, base: number, numbers: DamageNumbers): number {
-    const thorns = player.takeDamage(base * this.dmgMult * this.phaseDmgMult, numbers);
+    const thorns = player.takeDamage(base * this.dmgMult * this.phaseDmgMult * this.auraDmgMult, numbers);
     // Poison-touch enemies (m4) leave a DoT on contact — harmless under god mode.
     const poison = this.activeDef.poison;
     if (poison && !player.dead && !player.invulnerable) {

@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- **Packs fight as one (groundwork for the Desert Empire).** Some enemies now lead
+  packs — a leader's presence strengthens the foes around it, hitting harder and
+  moving faster. Cut down the leader and the pack loses its edge. (The desert
+  roster that puts this to work arrives next.)
 - **Marsh secrets.** The Mirefen keeps its secrets: a drowned pilgrim's cache is
   hidden among the dead trees — walk into the one that isn't really there — and a
   sealed reliquary waits behind a false wall deep in the Sunken Barrow. Each hides

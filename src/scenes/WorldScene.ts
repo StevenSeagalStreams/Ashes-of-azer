@@ -42,6 +42,7 @@ import { canSocket, pickRune, socketRune } from '../systems/sockets.ts';
 import { addRep, factionForZone, repProgress, repTier } from '../systems/factions.ts';
 import { cleanseCorruption, corruptedEnemy, corruptionTier, corruptionTierRose, gainCorruption, npcVisibleAtCorruption, type CorruptionTier } from '../systems/corruption.ts';
 import { ELITE_CHANCE, ELITE_MODS, rollElite, type EliteMod } from '../systems/elites.ts';
+import { packAuraAt, type AuraSource } from '../systems/auras.ts';
 import { getCorruptionAudio } from '../systems/audio.ts';
 import type { ItemHook, QuestData, QuestObjectiveType } from '../data/schemas/index.ts';
 import { Player } from '../entities/Player.ts';
@@ -113,6 +114,7 @@ declare global {
         poisonPlayer: (dps?: number, duration?: number) => number;
         grantRune: (id?: string) => number;
         spawnElite: (modId?: string, id?: string) => string;
+        spawnPack: (leaderId?: string, allyId?: string) => string;
       };
     };
   }
@@ -636,6 +638,17 @@ export class WorldScene extends Phaser.Scene {
           const e = this.makeEnemy(def, this.player.x + 32, this.player.y, mod);
           return `${mod.name} ${e.def.name ?? e.def.id}`;
         },
+        spawnPack: (leaderId, allyId) => {
+          const ldef = leaderId ? this.enemyDefs.find((d) => d.id === leaderId) : Phaser.Utils.Array.GetRandom(this.enemyDefs);
+          const adef = allyId ? this.enemyDefs.find((d) => d.id === allyId) : ldef;
+          if (!ldef || !adef) return '';
+          // Inject a leader aura (the roster box gives real leaders their own).
+          const leaderDef = { ...ldef, aura: { radius: 96, dmgMult: 1.5, spdMult: 1.4 } };
+          this.makeEnemy(leaderDef, this.player.x + 40, this.player.y);
+          this.makeEnemy(adef, this.player.x + 52, this.player.y);
+          this.makeEnemy(adef, this.player.x + 30, this.player.y + 14);
+          return `pack: ${ldef.id} leads ${adef.id}×2`;
+        },
       },
     };
   }
@@ -703,6 +716,7 @@ export class WorldScene extends Phaser.Scene {
       // 'cutscene' triggers are parsed but inert until the cutscene system (m2.x).
     }
 
+    this.applyPackAuras();
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (e.active) e.updateEnemy(dt, this.player, this.numbers);
     }
@@ -741,6 +755,38 @@ export class WorldScene extends Phaser.Scene {
   // ---------- spawning ----------
 
   /** Creates an enemy scaled + possibly corrupted by the current tier, and adds it. */
+  /** Pack-leader auras (m4): each frame, sample active leaders (enemies with an
+   *  `aura`) and buff every nearby non-leader ally. Killing a leader drops the
+   *  buff — next frame it's no longer a source, so packmates revert. */
+  private applyPackAuras(): void {
+    const enemies = (this.enemies.getChildren() as Enemy[]).filter((e) => e.active);
+    const leaders = enemies.filter((e) => e.def.aura);
+    if (leaders.length === 0) {
+      for (const e of enemies) {
+        e.auraDmgMult = 1;
+        e.auraSpdMult = 1;
+      }
+      return;
+    }
+    const sources: AuraSource[] = leaders.map((l) => ({
+      x: l.x,
+      y: l.y,
+      radius: l.def.aura!.radius,
+      dmgMult: l.def.aura!.dmgMult ?? 1,
+      spdMult: l.def.aura!.spdMult ?? 1,
+    }));
+    for (const e of enemies) {
+      if (e.def.aura) {
+        e.auraDmgMult = 1; // leaders don't buff themselves or each other
+        e.auraSpdMult = 1;
+        continue;
+      }
+      const buff = packAuraAt(sources, e.x, e.y);
+      e.auraDmgMult = buff.dmgMult;
+      e.auraSpdMult = buff.spdMult;
+    }
+  }
+
   private makeEnemy(def: EnemyData, x: number, y: number, forcedElite?: EliteMod): Enemy {
     const corruption = this.saveData.world.corruption;
     const tier = corruptionTier(corruption);

@@ -15,15 +15,41 @@ modifiers is now DONE.** **Boss phases (first box of the 4.x Boss design pass) i
 DONE.** **World-boss movement mechanic (second box) is DONE** — which
 finished the entire **4.x Boss design pass**. **Zone-3 marsh quest chain is DONE.**
 **Zone-3 dungeon + mini-boss (relic) is DONE.**
-**Zone-3 Secrets is now DONE** (note below) — which completes **ALL of Zone 3 (the
-Haunted Marsh)**; the parent ROADMAP box is now ticked. **Next task (top-to-bottom):
-the next unchecked Milestone-4 box is "Zone 4 — Desert Empire" (elite packs, faction
-conflict storyline)** — a whole new zone (systems-first via the 2.5 add-a-zone template,
-like the marsh: tiles → wilds map → town → roster → quests → dungeon → secrets). That's
-a large multi-session arc — consider splitting into sub-boxes first (as the marsh was),
-and it likely warrants a check-in on scope/theme before diving in. The
-**attribute-requirements** box (in 4.x Itemization) still needs an explicit user
-decision (STR/DEX vs. level-only) — do not build unprompted.
+**Zone-3 (Haunted Marsh) is fully DONE.** **Zone 4 (Desert Empire) has been PLANNED
+into sub-boxes in ROADMAP** (user asked me to split it + decide the theme). THEME:
+the fallen sun-empire "Sunspire Wastes", with two warring powers — the **Ashen Legion**
+(imperial revenants) vs. the **Dunereavers** (living raiders). Signature combat: **elite
+packs** (pack-leader auras). Signature story: **faction conflict** (side with one at the
+other's cost). Sub-box order: Systems(packs) → tiles+wilds+gates → roster → town →
+two factions → quest chain → dungeon+mini-boss → secrets. **Zone-4 box 1 "Systems: elite
+packs" is now DONE** (note below). **Next task (top-to-bottom in Zone 4): "Tiles + desert
+wilds map (Sunspire Wastes) + register zone + wire gates from a neighbour (both
+directions)"** — mirror the marsh's tile+map box: add desert tiles (sand floor, dune
+wall(solid), rock, cactus/decor) keeping TILE_COUNT in sync across
+pixelart/mapgen/generate-maps, a `genDesert` wilds map, register in zones.json +
+BootScene, and gate it to/from a neighbour (marsh or overworld — pick one; the marsh
+Mirefen is the most recent zone, but the overworld/plains is the hub — decide and
+record). The **attribute-requirements** box (4.x Itemization) still needs an explicit
+user decision (STR/DEX vs. level-only) — do not build unprompted.
+
+### Zone-4 box 1 — Systems: elite packs / pack-leader auras (m4 — DONE)
+The desert's signature combat system. Pure `systems/auras.ts`: `packAuraAt(sources, x, y)`
+returns the combined `{dmgMult, spdMult}` buff for an ally at a point — overlapping
+leader auras stack multiplicatively, edge-inclusive, {1,1} when none reach; never
+mutates. Schema: `AuraSchema {radius, dmgMult?, spdMult?}`; `aura` optional on
+`EnemySchema` — an enemy WITH an aura is a pack-leader. Enemy gained public `auraSpdMult`
+/`auraDmgMult` (default 1), applied in movement (`spd * phaseSpdMult * auraSpdMult`) and
+`hitPlayer` (`* auraDmgMult`) alongside the phase mults. WorldScene `applyPackAuras()`
+runs each frame before the enemy update loop: gathers active leaders (def.aura) as
+AuraSource[], and for every active NON-leader enemy sets its aura mults from
+`packAuraAt`; leaders are never buffed (no self/mutual buff), and a dead leader stops
+being a source so packmates revert next frame. Debug `spawnPack(leaderId?, allyId?)`
+spawns a leader (aura injected: r96/dmg1.5/spd1.4) + 2 allies. No save changes
+(runtime-only). Tests: `auras.test.ts` (no sources / outside / edge / multiplicative
+stack / partial reach / per-axis default / no-mutate). Smoke `_smoke-packaura.mjs`:
+spawn a pack → 2 packmates buffed (spd1.4/dmg1.5), kill the leader → both revert to 1;
+no console errors. NOTE: no enemy has an `aura` in data yet — the desert roster box
+gives real leaders theirs; a leader visual (aura ring) is deferred to that box too.
 DESIGN DECISION: the marsh mini-boss's relic (`relic_drowned_crown`) is a BONUS
 collectible — deliberately NOT added to endings.requiredRelics, so the m3 finale gate
 (4 forest relics) is unchanged. Revisit if the finale should require marsh relics.
