@@ -76,7 +76,7 @@ func _spawn_dummy(distance: float = 2.0) -> Dictionary:
 	hurtbox.add_child(shape)
 	body.add_child(hurtbox)
 
-	return {"body": body, "health": health, "status": status}
+	return {"body": body, "health": health, "status": status, "stats": stats}
 
 
 func test_player_boots_with_a_class_applied() -> void:
@@ -242,6 +242,48 @@ func test_primary_attack_damages_an_enemy_in_front() -> void:
 	assert_true(player.try_cast(AbilityComponent.SLOT_PRIMARY), "cast started")
 	await physics_frames(24)
 	assert_lt(health.current_health, before, "the cleave connected")
+
+
+func test_the_floating_number_matches_the_damage_actually_applied() -> void:
+	# End to end through a real class ability against an armoured target: what
+	# the player is shown has to be what the health bar lost, or armour and
+	# debuffs silently stop being legible.
+	_add_floor()
+	_spawn_player(GameEnums.ClassId.WARRIOR)
+	var dummy := _spawn_dummy(2.0)
+	var health: HealthComponent = dummy["health"]
+	var stats: StatsComponent = dummy["stats"]
+	stats.set_base_stat(GameEnums.Stat.ARMOR, 400.0)
+	await physics_frames(3)
+
+	var seen: Dictionary = {}
+	EventBus.damage_number_requested.connect(
+		func(_position: Vector3, info: DamageInfo) -> void:
+			seen["shown"] = info.applied_amount,
+		CONNECT_ONE_SHOT
+	)
+
+	var before := health.current_health
+	assert_true(player.try_cast(AbilityComponent.SLOT_PRIMARY), "cast started")
+	await physics_frames(24)
+
+	var lost := before - health.current_health
+	assert_gt(lost, 0.0, "the cleave connected")
+	assert_almost_eq(
+		float(seen.get("shown", -1.0)),
+		lost,
+		0.01,
+		"the number on screen equals the health the target actually lost"
+	)
+	assert_lt(
+		float(seen.get("shown", 0.0)),
+		(player.class_data.primary_ability as AbilityData).compute_damage(
+			AbilityContext.create(
+				player, player.stats, GameEnums.Faction.PLAYER, player.aim_point
+			)
+		),
+		"and it is visibly lower than the unmitigated swing, so armour reads on screen"
+	)
 
 
 func test_primary_attack_misses_an_enemy_behind_you() -> void:

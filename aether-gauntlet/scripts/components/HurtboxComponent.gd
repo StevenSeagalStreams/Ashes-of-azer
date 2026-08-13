@@ -72,6 +72,16 @@ func receive_hit(info: DamageInfo) -> float:
 	packet.amount = info.amount * damage_multiplier
 	var dealt := health.apply_damage(packet)
 
+	# Mirror the resolved outcome back onto the caller's packet. The hitbox
+	# still owns that object and hands it to its own listeners — floating
+	# numbers, on-hit hooks — which need the figure that actually landed, not
+	# the one that was requested. Without this, armour, Sunder and weak-point
+	# multipliers are all applied but invisible to the player, and the number
+	# on screen contradicts the health bar.
+	info.amount = packet.amount
+	info.applied_amount = packet.applied_amount
+	info.was_absorbed = packet.was_absorbed
+
 	if dealt > 0.0:
 		hit_received.emit(packet)
 		_apply_reaction(packet)

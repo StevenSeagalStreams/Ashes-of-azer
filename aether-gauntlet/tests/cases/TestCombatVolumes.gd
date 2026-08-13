@@ -199,6 +199,54 @@ func test_targets_outside_the_radius_are_untouched() -> void:
 	)
 
 
+func test_hit_landed_reports_the_damage_that_actually_landed() -> void:
+	# The floating combat number is drawn from this packet, so if it carries
+	# the pre-mitigation figure the player is told a number the game did not
+	# apply — armour, Sunder and weak points all become invisible.
+	var target := _make_target(Vector3(1.0, 0.0, 0.0))
+	var stats: StatsComponent = target["stats"]
+	stats.set_base_stat(GameEnums.Stat.ARMOR, 400.0)
+	_install_hitbox()
+	await physics_frames(2)
+
+	var seen: Dictionary = {}
+	hitbox.hit_landed.connect(
+		func(_hurtbox: HurtboxComponent, dealt: float, info: DamageInfo) -> void:
+			seen["dealt"] = dealt
+			seen["applied"] = info.applied_amount
+	)
+	hitbox.activate(0.0)
+
+	assert_almost_eq(float(seen.get("dealt", 0.0)), 12.5, 0.001, "400 armour halves a 25 hit")
+	assert_almost_eq(
+		float(seen.get("applied", 0.0)),
+		float(seen.get("dealt", 0.0)),
+		0.001,
+		"the reported packet agrees with the damage the health component applied"
+	)
+
+
+func test_hit_landed_reflects_a_weak_point_multiplier() -> void:
+	var target := _make_target(Vector3(1.0, 0.0, 0.0))
+	(target["hurtbox"] as HurtboxComponent).damage_multiplier = 3.0
+	_install_hitbox()
+	await physics_frames(2)
+
+	var seen: Dictionary = {}
+	hitbox.hit_landed.connect(
+		func(_hurtbox: HurtboxComponent, _dealt: float, info: DamageInfo) -> void:
+			seen["applied"] = info.applied_amount
+	)
+	hitbox.activate(0.0)
+
+	assert_almost_eq(
+		float(seen.get("applied", 0.0)),
+		75.0,
+		0.001,
+		"a weak point hit reports the tripled damage, not the base swing"
+	)
+
+
 func test_critical_hits_multiply_damage() -> void:
 	var target := _make_target(Vector3(1.0, 0.0, 0.0))
 	_install_hitbox()
