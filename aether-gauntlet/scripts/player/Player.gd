@@ -26,6 +26,8 @@ signal potion_failed(reason: StringName)
 @export var friction: float = 70.0
 ## Degrees per second the body turns toward its facing target.
 @export var turn_speed_degrees: float = 900.0
+## Metres per second squared that knockback bleeds off at.
+@export var knockback_decay: float = 40.0
 ## Seconds an incoming hit locks movement when it staggers.
 @export var max_stagger_time: float = 0.6
 
@@ -49,7 +51,14 @@ var facing_direction: Vector3 = Vector3.FORWARD
 
 var _dodge_cooldown_left: float = 0.0
 var _potion_cooldown_left: float = 0.0
+
+## The character's own locomotion, tracked separately from [member velocity] so
+## that external motion can be layered on top without ever feeding back into
+## the controller's acceleration.
+var _locomotion_velocity: Vector3 = Vector3.ZERO
+## Decaying push from a blow that carried knockback.
 var _knockback_velocity: Vector3 = Vector3.ZERO
+## Fixed-speed offset held for the duration of an ability's lunge.
 var _impulse_velocity: Vector3 = Vector3.ZERO
 var _impulse_time_left: float = 0.0
 var _camera: Camera3D = null
@@ -88,7 +97,7 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_tick_impulses(delta)
+	_tick_external_motion(delta)
 	move_and_slide()
 	_apply_turning(delta)
 
@@ -165,30 +174,57 @@ func read_movement_input() -> Vector3:
 ## [param speed_multiplier] of the character's movement speed.
 func drive_movement(target_direction: Vector3, speed_multiplier: float, delta: float) -> void:
 	var speed := stats.get_stat(GameEnums.Stat.MOVE_SPEED) * maxf(0.0, speed_multiplier)
-	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
 	if target_direction.length_squared() > 0.001 and speed > 0.0:
-		var target := target_direction.normalized() * speed
-		horizontal = horizontal.move_toward(target, acceleration * delta)
+		_locomotion_velocity = _locomotion_velocity.move_toward(
+			target_direction.normalized() * speed, acceleration * delta
+		)
 	else:
-		horizontal = horizontal.move_toward(Vector3.ZERO, friction * delta)
-	velocity.x = horizontal.x
-	velocity.z = horizontal.z
-	_apply_gravity(delta)
+		_locomotion_velocity = _locomotion_velocity.move_toward(
+			Vector3.ZERO, friction * delta
+		)
+	_compose_velocity(delta)
 
 
-## Set horizontal velocity outright, used by the dodge.
+## Set horizontal velocity outright, used by the dodge. External motion is
+## deliberately ignored: a roll is authoritative over knockback and lunges.
 func set_horizontal_velocity(value: Vector3) -> void:
-	velocity.x = value.x
-	velocity.z = value.z
+	_locomotion_velocity = Vector3(value.x, 0.0, value.z)
+	velocity.x = _locomotion_velocity.x
+	velocity.z = _locomotion_velocity.z
 
 
 ## Stop horizontal movement immediately.
 func halt_horizontal() -> void:
+	_locomotion_velocity = Vector3.ZERO
 	velocity.x = 0.0
 	velocity.z = 0.0
 
 
-func _apply_gravity(delta: float) -> void:
+## Knockback plus any active ability lunge, as a single offset.
+func get_external_velocity() -> Vector3:
+	return _knockback_velocity + _impulse_velocity
+
+
+## Cancel every external push. The dodge uses this so a roll always goes where
+## the player aimed it.
+func clear_external_motion() -> void:
+	_knockback_velocity = Vector3.ZERO
+	_impulse_velocity = Vector3.ZERO
+	_impulse_time_left = 0.0
+
+
+## Lay external motion on top of locomotion. Because both are tracked
+## separately, neither can feed back into the other frame after frame.
+func _compose_velocity(delta: float) -> void:
+	var external := get_external_velocity()
+	velocity.x = _locomotion_velocity.x + external.x
+	velocity.z = _locomotion_velocity.z + external.z
+	apply_gravity(delta)
+
+
+## Apply gravity for one physics step. States that set velocity directly (the
+## dodge) call this themselves so the character still falls.
+func apply_gravity(delta: float) -> void:
 	if is_on_floor():
 		velocity.y = minf(velocity.y, 0.0)
 		return
@@ -244,23 +280,29 @@ func apply_stagger(seconds: float) -> void:
 	)
 
 
-## Short scripted movement used by lunging abilities.
+## Short scripted movement used by lunging abilities. [param motion_velocity]
+## is a speed held for [param seconds], so the distance covered is simply
+## speed × seconds. It replaces any lunge already running rather than adding
+## to it, which is what stops chained attacks from compounding.
 func apply_impulse_motion(motion_velocity: Vector3, seconds: float) -> void:
 	_impulse_velocity = Vector3(motion_velocity.x, 0.0, motion_velocity.z)
 	_impulse_time_left = maxf(0.0, seconds)
 
 
-func _tick_impulses(delta: float) -> void:
+## Age the external offsets by one physics step. This only ever *reduces*
+## them; the offsets are layered onto velocity in [method _compose_velocity]
+## and are never accumulated into it.
+func _tick_external_motion(delta: float) -> void:
 	if _impulse_time_left > 0.0:
 		_impulse_time_left = maxf(0.0, _impulse_time_left - delta)
-		velocity.x += _impulse_velocity.x
-		velocity.z += _impulse_velocity.z
 		if _impulse_time_left <= 0.0:
 			_impulse_velocity = Vector3.ZERO
-	if _knockback_velocity.length_squared() > 0.01:
-		velocity.x += _knockback_velocity.x
-		velocity.z += _knockback_velocity.z
-		_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, 40.0 * delta)
+	if _knockback_velocity.length_squared() > 0.000001:
+		_knockback_velocity = _knockback_velocity.move_toward(
+			Vector3.ZERO, knockback_decay * delta
+		)
+	else:
+		_knockback_velocity = Vector3.ZERO
 
 
 # --- Aiming -----------------------------------------------------------------
@@ -319,8 +361,10 @@ func try_dodge() -> bool:
 	if direction.length_squared() < 0.001:
 		direction = get_aim_direction()
 	_dodge_cooldown_left = class_data.dodge_cooldown
-	# Dodge outranks everything: it force-cancels casts and stagger alike.
+	# Dodge outranks everything: it force-cancels casts and stagger alike, and
+	# clears any push so the roll goes exactly where it was aimed.
 	abilities.cancel_cast(true)
+	clear_external_motion()
 	state_machine.travel(&"Dodge", {"direction": direction}, true)
 	dodge_started.emit()
 	return true

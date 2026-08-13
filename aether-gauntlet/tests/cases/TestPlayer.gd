@@ -403,6 +403,65 @@ func test_stagger_interrupts_and_returns_control() -> void:
 	assert_eq(player.state_machine.get_current_state_name(), &"Idle", "control returns")
 
 
+func test_a_lunging_attack_travels_the_authored_distance() -> void:
+	# Cleave lunges 0.5m. External motion must be a bounded, one-shot offset,
+	# not something added into velocity again on every physics tick.
+	_add_floor()
+	_spawn_player(GameEnums.ClassId.WARRIOR)
+	await physics_frames(3)
+	var start := player.global_position
+
+	player.try_cast(AbilityComponent.SLOT_PRIMARY)
+	await physics_frames(45)
+
+	var travelled := start.distance_to(player.global_position)
+	var authored := (player.class_data.primary_ability as MeleeArcAbility).lunge_distance
+	assert_lt(
+		travelled,
+		authored * 3.0,
+		"one swing moves roughly its authored lunge, not several metres"
+	)
+
+
+func test_attacking_continuously_does_not_launch_the_player() -> void:
+	# Chained casts must not compound their lunges. This is the plainest
+	# interaction in the game — stand still and hold the attack button.
+	_add_floor()
+	_spawn_player(GameEnums.ClassId.WARRIOR)
+	await physics_frames(3)
+	var start := player.global_position
+
+	for i in 180:
+		player.try_cast(AbilityComponent.SLOT_PRIMARY)
+		await physics_frames(1)
+
+	var travelled := start.distance_to(player.global_position)
+	assert_lt(
+		travelled,
+		6.0,
+		"three seconds of attacking in place does not fling the player across the arena"
+	)
+	assert_lt(
+		Vector3(player.velocity.x, 0.0, player.velocity.z).length(),
+		player.stats.get_stat(GameEnums.Stat.MOVE_SPEED) * 2.0,
+		"and speed never runs away past a sane multiple of walk speed"
+	)
+
+
+func test_knockback_is_bounded() -> void:
+	_add_floor()
+	_spawn_player(GameEnums.ClassId.WARRIOR)
+	await physics_frames(3)
+	var start := player.global_position
+
+	player.apply_knockback(Vector3(9.0, 0.0, 0.0))
+	await physics_frames(60)
+
+	var travelled := start.distance_to(player.global_position)
+	assert_gt(travelled, 0.1, "a heavy blow visibly shoves the player")
+	assert_lt(travelled, 5.0, "but knockback decays instead of accumulating every tick")
+
+
 func test_knockback_pushes_the_player() -> void:
 	_add_floor()
 	_spawn_player(GameEnums.ClassId.WARRIOR)

@@ -23,6 +23,8 @@ signal died(enemy: Enemy, experience: int)
 ## Metres of separation force applied against other enemies, so packs spread
 ## out instead of stacking into one silhouette.
 @export var separation_strength: float = 4.0
+## Metres per second squared that knockback bleeds off at.
+@export var knockback_decay: float = 30.0
 
 @onready var stats: StatsComponent = $StatsComponent as StatsComponent
 @onready var health: HealthComponent = $HealthComponent as HealthComponent
@@ -44,6 +46,9 @@ var home_position: Vector3 = Vector3.ZERO
 ## Seconds until the next attack attempt is allowed.
 var attack_timer: float = 0.0
 
+## The enemy's own locomotion, tracked separately from [member velocity] so
+## external motion never feeds back into its steering.
+var _locomotion_velocity: Vector3 = Vector3.ZERO
 var _knockback_velocity: Vector3 = Vector3.ZERO
 var _impulse_velocity: Vector3 = Vector3.ZERO
 var _impulse_time_left: float = 0.0
@@ -78,7 +83,7 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_tick_impulses(delta)
+	_tick_external_motion(delta)
 	move_and_slide()
 
 
@@ -203,20 +208,30 @@ func move_toward_position(destination: Vector3, speed_multiplier: float, delta: 
 ## Drive horizontal velocity toward a direction.
 func drive_movement(direction: Vector3, speed_multiplier: float, delta: float) -> void:
 	var speed := stats.get_stat(GameEnums.Stat.MOVE_SPEED) * maxf(0.0, speed_multiplier)
-	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
 	if direction.length_squared() > 0.001 and speed > 0.0:
-		horizontal = horizontal.move_toward(direction.normalized() * speed, acceleration * delta)
+		_locomotion_velocity = _locomotion_velocity.move_toward(
+			direction.normalized() * speed, acceleration * delta
+		)
 	else:
-		horizontal = horizontal.move_toward(Vector3.ZERO, friction * delta)
-	velocity.x = horizontal.x
-	velocity.z = horizontal.z
+		_locomotion_velocity = _locomotion_velocity.move_toward(
+			Vector3.ZERO, friction * delta
+		)
+	var external := get_external_velocity()
+	velocity.x = _locomotion_velocity.x + external.x
+	velocity.z = _locomotion_velocity.z + external.z
 	_apply_gravity(delta)
 
 
 ## Stop horizontal movement immediately.
 func halt_horizontal() -> void:
+	_locomotion_velocity = Vector3.ZERO
 	velocity.x = 0.0
 	velocity.z = 0.0
+
+
+## Knockback plus any active lunge, as a single offset.
+func get_external_velocity() -> Vector3:
+	return _knockback_velocity + _impulse_velocity
 
 
 func _apply_gravity(delta: float) -> void:
@@ -283,23 +298,28 @@ func apply_stagger(seconds: float) -> void:
 	state_machine.travel(&"Stagger", {"duration": scaled}, true)
 
 
-## Short scripted movement used by lunging attacks.
+## Short scripted movement used by lunging attacks. [param motion_velocity] is
+## a speed held for [param seconds], and it replaces any lunge already running
+## rather than adding to it.
 func apply_impulse_motion(motion_velocity: Vector3, seconds: float) -> void:
 	_impulse_velocity = Vector3(motion_velocity.x, 0.0, motion_velocity.z)
 	_impulse_time_left = maxf(0.0, seconds)
 
 
-func _tick_impulses(delta: float) -> void:
+## Age the external offsets by one physics step. This only ever reduces them;
+## they are layered onto velocity in [method drive_movement], never
+## accumulated into it.
+func _tick_external_motion(delta: float) -> void:
 	if _impulse_time_left > 0.0:
 		_impulse_time_left = maxf(0.0, _impulse_time_left - delta)
-		velocity.x += _impulse_velocity.x
-		velocity.z += _impulse_velocity.z
 		if _impulse_time_left <= 0.0:
 			_impulse_velocity = Vector3.ZERO
-	if _knockback_velocity.length_squared() > 0.01:
-		velocity.x += _knockback_velocity.x
-		velocity.z += _knockback_velocity.z
-		_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, 30.0 * delta)
+	if _knockback_velocity.length_squared() > 0.000001:
+		_knockback_velocity = _knockback_velocity.move_toward(
+			Vector3.ZERO, knockback_decay * delta
+		)
+	else:
+		_knockback_velocity = Vector3.ZERO
 
 
 ## Flash the body white, used as the attack telegraph.

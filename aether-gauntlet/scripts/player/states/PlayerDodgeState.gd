@@ -58,6 +58,7 @@ func physics_update(delta: float) -> void:
 	var t := clampf(_time_left / maxf(0.01, player.class_data.dodge_duration), 0.0, 1.0)
 	var speed := _speed * lerpf(0.45, 1.0, t)
 	player.set_horizontal_velocity(_direction * speed)
+	player.apply_gravity(delta)
 
 	if _time_left <= 0.0:
 		_finish()
