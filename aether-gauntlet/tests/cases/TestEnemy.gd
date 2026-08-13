@@ -202,6 +202,65 @@ func test_enemies_eventually_attack_and_damage_the_player() -> void:
 	assert_lt(health.current_health, before, "the grunt landed a hit within three seconds")
 
 
+func test_melee_enemies_attack_a_target_standing_inside_them() -> void:
+	# Character bodies no longer collide, so the player can walk right into a
+	# mob. That spot must not be safe. An enemy that is *too close* is still in
+	# range, and must never kite backwards out of its own attack window — the
+	# player outruns every retreating melee archetype, so a retreat-only branch
+	# hands them a permanent invulnerable standing position.
+	for archetype in [EnemyLibrary.GRUNT, EnemyLibrary.BRUTE]:
+		_add_floor()
+		var stub := _spawn_player_stub(Vector3(0.0, 0.0, -0.4))
+		_spawn_enemy(archetype, 1, Vector3.ZERO)
+		await physics_frames(2)
+		assert_not_null(enemy.acquire_target(), "'%s' sees the target" % archetype)
+
+		var body: Node3D = stub["body"]
+		var health: HealthComponent = stub["health"]
+		var before := health.current_health
+
+		# Pin the target on top of the enemy every frame. A stationary target
+		# would let the enemy simply retreat to its preferred range and attack
+		# from there; the exploit is a *player* who stays glued to the mob,
+		# which they can, because they outrun the retreat.
+		for i in 300:
+			var offset := body.global_position - enemy.global_position
+			offset.y = 0.0
+			if offset.length_squared() < 0.0001:
+				offset = Vector3(0.0, 0.0, -1.0)
+			body.global_position = enemy.global_position + offset.normalized() * 0.4
+			await physics_frames(1)
+
+		assert_lt(
+			health.current_health,
+			before,
+			"'%s' can hit a target standing on top of it" % archetype
+		)
+		cleanup()
+		await physics_frames(2)
+
+
+func test_ranged_enemies_still_open_the_gap_when_crowded() -> void:
+	# The counterpart: prioritising the attack must not turn the archer into a
+	# melee unit that plants itself in your face.
+	_add_floor()
+	_spawn_player_stub(Vector3.ZERO)
+	_spawn_enemy(EnemyLibrary.ARCHER, 1, Vector3(0.0, 0.0, -1.5))
+	await physics_frames(2)
+	# Acquire explicitly: the idle scan is on a randomised interval, and
+	# distance_to_target() reads INF until a target exists.
+	assert_not_null(enemy.acquire_target(), "the archer sees the target")
+	var start := enemy.distance_to_target()
+	assert_lt(start, 2.0, "and starts crowded, well inside its preferred range")
+
+	await physics_frames(300)
+	assert_gt(
+		enemy.distance_to_target(),
+		start + 0.5,
+		"a crowded archer still backs off toward its preferred range"
+	)
+
+
 func test_dying_moves_the_enemy_into_the_dead_state() -> void:
 	_add_floor()
 	_spawn_enemy(EnemyLibrary.GRUNT, 1, Vector3.ZERO)
