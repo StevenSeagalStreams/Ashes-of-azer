@@ -233,7 +233,9 @@ func get_cooldown_ratio(slot: StringName) -> float:
 
 ## Clear every cooldown, e.g. when a run ends or the Healer is used.
 func reset_cooldowns() -> void:
-	for key: Variant in _cooldowns.keys().duplicate():
+	for key: Variant in _cooldowns.keys():
+		if not _cooldowns.has(key):
+			continue
 		_cooldowns[key] = 0.0
 		cooldown_finished.emit(key)
 		EventBus.ability_cooldown_finished.emit(key)
@@ -242,6 +244,8 @@ func reset_cooldowns() -> void:
 ## Reduce every active cooldown by [param seconds] (cooldown-reset talents).
 func reduce_cooldowns(seconds: float) -> void:
 	for key: Variant in _cooldowns.keys():
+		if not _cooldowns.has(key):
+			continue
 		if float(_cooldowns[key]) <= 0.0:
 			continue
 		_cooldowns[key] = maxf(0.0, float(_cooldowns[key]) - seconds)
@@ -262,6 +266,10 @@ func _start_cooldown(slot: StringName, duration: float) -> void:
 
 func _tick_cooldowns(delta: float) -> void:
 	for key: Variant in _cooldowns.keys():
+		# cooldown_finished listeners may clear a slot, which erases keys from
+		# the snapshot this loop is walking.
+		if not _cooldowns.has(key):
+			continue
 		var remaining := float(_cooldowns[key])
 		if remaining <= 0.0:
 			continue

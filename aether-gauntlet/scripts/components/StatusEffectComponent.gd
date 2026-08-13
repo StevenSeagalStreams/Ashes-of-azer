@@ -36,6 +36,13 @@ func _process(delta: float) -> void:
 	var expired: Array[StringName] = []
 	for key: Variant in _active.keys():
 		var id: StringName = key
+		# A damage-over-time tick can land the killing blow, and both death
+		# handlers in the game respond by clearing every effect. That empties
+		# _active while this loop is still walking a snapshot of its keys taken
+		# before the tick, so the entry must be re-checked every iteration
+		# rather than indexed blind.
+		if not _active.has(id):
+			continue
 		var entry: Dictionary = _active[id]
 		entry["time_left"] = float(entry["time_left"]) - delta
 		_tick_damage(id, entry, delta)
@@ -191,7 +198,7 @@ func _tick_damage(id: StringName, entry: Dictionary, delta: float) -> void:
 	)
 	info.ability_id = id
 	var owner_node := get_parent() as Node3D
-	if owner_node != null:
+	if owner_node != null and owner_node.is_inside_tree():
 		info.origin = owner_node.global_position
 	# DoT bypasses faction filtering: it is already attached to this entity.
 	health.apply_damage(info)

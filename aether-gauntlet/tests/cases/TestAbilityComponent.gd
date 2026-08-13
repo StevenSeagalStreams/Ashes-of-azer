@@ -289,6 +289,65 @@ func test_reset_cooldowns_clears_everything() -> void:
 	assert_false(abilities.is_on_cooldown(AbilityComponent.SLOT_PRIMARY), "cleared")
 
 
+func test_a_listener_clearing_a_slot_does_not_abort_the_cooldown_loop() -> void:
+	# Same defect class as the status-effect tick loop: a cooldown_finished
+	# listener can empty a slot the loop has not reached yet, mutating the
+	# table mid-iteration. Godot aborts the function rather than raising, so
+	# this asserts on a third slot that must still have been ticked.
+	spy.windup = 0.0
+	spy.active_time = 0.0
+	spy.recovery = 0.0
+	spy.cooldown = 1.0
+	_install()
+
+	var secondary := _make_instant_spy(&"spy_secondary", 6.0)
+	var special := _make_instant_spy(&"spy_special", 8.0)
+	abilities.set_ability(AbilityComponent.SLOT_SECONDARY, secondary)
+	abilities.set_ability(AbilityComponent.SLOT_SPECIAL, special)
+
+	# Insertion order is iteration order, so casting in this sequence puts the
+	# slot the listener erases *between* the trigger and the witness.
+	abilities.try_cast(AbilityComponent.SLOT_PRIMARY, Vector3.ZERO)
+	abilities._process(0.01)
+	abilities.try_cast(AbilityComponent.SLOT_SECONDARY, Vector3.ZERO)
+	abilities._process(0.01)
+	abilities.try_cast(AbilityComponent.SLOT_SPECIAL, Vector3.ZERO)
+	abilities._process(0.01)
+
+	abilities.cooldown_finished.connect(
+		func(slot: StringName) -> void:
+			if slot == AbilityComponent.SLOT_PRIMARY:
+				abilities.set_ability(AbilityComponent.SLOT_SECONDARY, null)
+	)
+	var special_before := abilities.get_cooldown_remaining(AbilityComponent.SLOT_SPECIAL)
+
+	abilities._process(2.0)
+
+	assert_false(
+		abilities.is_on_cooldown(AbilityComponent.SLOT_PRIMARY), "the primary cooled down"
+	)
+	assert_null(
+		abilities.get_ability(AbilityComponent.SLOT_SECONDARY), "the listener cleared that slot"
+	)
+	assert_lt(
+		abilities.get_cooldown_remaining(AbilityComponent.SLOT_SPECIAL),
+		special_before,
+		"the slot after the erased one still ticked, so the loop was not aborted"
+	)
+
+
+## A spy ability with no cast time, so only its cooldown matters.
+func _make_instant_spy(id: StringName, cooldown: float) -> SpyAbility:
+	var ability := SpyAbility.new()
+	ability.id = id
+	ability.cooldown = cooldown
+	ability.windup = 0.0
+	ability.active_time = 0.0
+	ability.recovery = 0.0
+	ability.scales_with_attack_speed = false
+	return ability
+
+
 func test_reduce_cooldowns_shaves_time_off() -> void:
 	_install()
 	abilities.try_cast(AbilityComponent.SLOT_PRIMARY, Vector3.ZERO)

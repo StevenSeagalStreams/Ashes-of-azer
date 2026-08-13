@@ -130,6 +130,55 @@ func test_damage_over_time_scales_with_stacks() -> void:
 	assert_almost_eq(triple_tick, single_tick * 3.0, 0.01, "three stacks tick three times as hard")
 
 
+func test_a_lethal_tick_does_not_abort_the_rest_of_the_effect_loop() -> void:
+	# The kill path: a damage-over-time tick kills the entity mid-iteration and
+	# the death handler mutates the effect table the loop is walking. The
+	# giveaway is not an exception — Godot aborts the function and returns — so
+	# this asserts on a *later* effect in the same pass still being ticked.
+	_install(2.0)
+	status.tick_period = 0.5
+	health.died.connect(
+		func(_info: DamageInfo) -> void: status.remove_effect(StatusEffectLibrary.CHILL)
+	)
+
+	status.apply(StatusEffectLibrary.BURN)
+	status.apply(StatusEffectLibrary.CHILL)
+	status.apply(StatusEffectLibrary.HASTE)
+	var haste_duration := status.get_time_left(StatusEffectLibrary.HASTE)
+
+	status._process(0.6)
+
+	assert_true(health.is_dead, "the burn tick landed the killing blow")
+	assert_false(status.has_effect(StatusEffectLibrary.CHILL), "the handler removed chill")
+	assert_lt(
+		status.get_time_left(StatusEffectLibrary.HASTE),
+		haste_duration,
+		"the effect after the removed one still ticked, so the loop was not aborted"
+	)
+
+
+func test_a_lethal_tick_survives_the_real_death_handler() -> void:
+	# Player._on_died and Enemy._on_died both call clear_all(), which empties
+	# the table completely while the tick loop is still running.
+	_install(2.0)
+	status.tick_period = 0.5
+	var base_speed := stats.get_stat(GameEnums.Stat.MOVE_SPEED)
+	health.died.connect(func(_info: DamageInfo) -> void: status.clear_all())
+
+	status.apply(StatusEffectLibrary.BURN)
+	status.apply(StatusEffectLibrary.CHILL)
+	status._process(0.6)
+
+	assert_true(health.is_dead, "killed by the damage-over-time tick")
+	assert_true(status.get_active_ids().is_empty(), "every effect was cleared on death")
+	assert_almost_eq(
+		stats.get_stat(GameEnums.Stat.MOVE_SPEED),
+		base_speed,
+		0.001,
+		"and no stat modifier was left stranded on the corpse"
+	)
+
+
 func test_freeze_reports_incapacitation() -> void:
 	_install()
 	assert_false(status.is_incapacitated(), "not incapacitated by default")
