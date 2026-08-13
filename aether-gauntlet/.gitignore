@@ -1,0 +1,5 @@
+# Godot 4 editor/import cache — regenerated on first open or `--import`.
+.godot/
+# Exported builds.
+build/
+*.tmp

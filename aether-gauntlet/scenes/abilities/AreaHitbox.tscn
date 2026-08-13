@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/abilities/AbilityAreaFx.gd" id="1_fx"]
+[ext_resource type="Script" path="res://scripts/components/HitboxComponent.gd" id="2_hitbox"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_area"]
+height = 2.4
+radius = 1.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_area"]
+top_radius = 1.0
+bottom_radius = 1.0
+height = 0.12
+radial_segments = 32
+rings = 1
+
+[node name="AreaHitbox" type="Node3D"]
+script = ExtResource("1_fx")
+
+[node name="Hitbox" type="Area3D" parent="."]
+monitoring = false
+monitorable = false
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox"]
+shape = SubResource("CylinderShape3D_area")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.55, 0)
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_area")

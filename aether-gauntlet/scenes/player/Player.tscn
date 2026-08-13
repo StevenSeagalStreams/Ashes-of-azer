@@ -1,0 +1,92 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/Player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/components/StatsComponent.gd" id="2_stats"]
+[ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/components/StatusEffectComponent.gd" id="4_status"]
+[ext_resource type="Script" path="res://scripts/components/AbilityComponent.gd" id="5_abilities"]
+[ext_resource type="Script" path="res://scripts/components/HurtboxComponent.gd" id="6_hurtbox"]
+[ext_resource type="Script" path="res://scripts/state_machine/StateMachine.gd" id="7_machine"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerIdleState.gd" id="8_idle"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerMoveState.gd" id="9_move"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerAttackState.gd" id="10_attack"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerDodgeState.gd" id="11_dodge"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerStaggerState.gd" id="12_stagger"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerDeadState.gd" id="13_dead"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.42
+height = 1.7
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
+radius = 0.42
+height = 1.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_facing"]
+size = Vector3(0.5, 0.5, 1.2)
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+collision_layer = 2
+collision_mask = 5
+floor_max_angle = 0.959931
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("CapsuleMesh_player")
+
+[node name="FacingMarker" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, -0.5)
+cast_shadow = 0
+mesh = SubResource("BoxMesh_facing")
+
+[node name="StatsComponent" type="Node" parent="."]
+script = ExtResource("2_stats")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 180.0
+
+[node name="StatusEffectComponent" type="Node" parent="."]
+script = ExtResource("4_status")
+
+[node name="AbilityComponent" type="Node" parent="."]
+script = ExtResource("5_abilities")
+faction = 0
+
+[node name="HurtboxComponent" type="Area3D" parent="."]
+collision_layer = 32
+collision_mask = 0
+monitoring = false
+script = ExtResource("6_hurtbox")
+faction = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtboxComponent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("7_machine")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("8_idle")
+
+[node name="Move" type="Node" parent="StateMachine"]
+script = ExtResource("9_move")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("10_attack")
+
+[node name="Dodge" type="Node" parent="StateMachine"]
+script = ExtResource("11_dodge")
+
+[node name="Stagger" type="Node" parent="StateMachine"]
+script = ExtResource("12_stagger")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("13_dead")

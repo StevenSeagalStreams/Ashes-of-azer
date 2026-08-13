@@ -1,0 +1,79 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://scripts/components/StatsComponent.gd" id="2_stats"]
+[ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/components/StatusEffectComponent.gd" id="4_status"]
+[ext_resource type="Script" path="res://scripts/components/AbilityComponent.gd" id="5_abilities"]
+[ext_resource type="Script" path="res://scripts/components/HurtboxComponent.gd" id="6_hurtbox"]
+[ext_resource type="Script" path="res://scripts/state_machine/StateMachine.gd" id="7_machine"]
+[ext_resource type="Script" path="res://scripts/enemies/states/EnemyIdleState.gd" id="8_idle"]
+[ext_resource type="Script" path="res://scripts/enemies/states/EnemyChaseState.gd" id="9_chase"]
+[ext_resource type="Script" path="res://scripts/enemies/states/EnemyAttackState.gd" id="10_attack"]
+[ext_resource type="Script" path="res://scripts/enemies/states/EnemyStaggerState.gd" id="11_stagger"]
+[ext_resource type="Script" path="res://scripts/enemies/states/EnemyDeadState.gd" id="12_dead"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
+radius = 0.45
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_enemy"]
+radius = 0.45
+height = 1.8
+
+[node name="Enemy" type="CharacterBody3D" groups=["enemies"]]
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1_enemy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_enemy")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_enemy")
+
+[node name="StatsComponent" type="Node" parent="."]
+script = ExtResource("2_stats")
+resource_kind = 1
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+
+[node name="StatusEffectComponent" type="Node" parent="."]
+script = ExtResource("4_status")
+
+[node name="AbilityComponent" type="Node" parent="."]
+script = ExtResource("5_abilities")
+faction = 1
+
+[node name="HurtboxComponent" type="Area3D" parent="."]
+collision_layer = 64
+collision_mask = 0
+monitoring = false
+script = ExtResource("6_hurtbox")
+faction = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtboxComponent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_enemy")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("7_machine")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("8_idle")
+
+[node name="Chase" type="Node" parent="StateMachine"]
+script = ExtResource("9_chase")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("10_attack")
+
+[node name="Stagger" type="Node" parent="StateMachine"]
+script = ExtResource("11_stagger")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("12_dead")
