@@ -2,6 +2,7 @@
 extends TestCase
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player/Player.tscn")
+const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/Enemy.tscn")
 
 var player: Player
 
@@ -401,6 +402,35 @@ func test_stagger_interrupts_and_returns_control() -> void:
 	assert_eq(player.state_machine.get_current_state_name(), &"Stagger", "staggered")
 	await physics_frames(20)
 	assert_eq(player.state_machine.get_current_state_name(), &"Idle", "control returns")
+
+
+func test_a_real_melee_enemy_can_reach_and_hurt_the_player() -> void:
+	# Deliberately uses the real Player and Enemy scenes together. The enemy
+	# suite drives a stubbed player with no physics body, so it cannot see
+	# what happens when two character bodies meet: if they collide, capsule
+	# geometry lets the player ride up onto the mob's head, above every melee
+	# hitbox in the game, and standing still becomes immortality.
+	_add_floor()
+	_spawn_player(GameEnums.ClassId.WARRIOR)
+	var enemy := ENEMY_SCENE.instantiate() as Enemy
+	enemy.configure(EnemyLibrary.get_enemy(EnemyLibrary.GRUNT), 1)
+	track(enemy)
+	enemy.global_position = Vector3(0.0, 0.1, -3.0)
+	enemy.home_position = enemy.global_position
+	await physics_frames(3)
+
+	var before := player.health.current_health
+	var highest := player.global_position.y
+	for i in 300:
+		await physics_frames(1)
+		highest = maxf(highest, player.global_position.y)
+
+	assert_lt(highest, 0.5, "the player never climbs on top of an enemy")
+	assert_lt(
+		player.health.current_health,
+		before,
+		"and a melee enemy that walks up to the player can actually land a hit"
+	)
 
 
 func test_a_lunging_attack_travels_the_authored_distance() -> void:

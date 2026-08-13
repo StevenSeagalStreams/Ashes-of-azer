@@ -133,12 +133,44 @@ func _apply_body_appearance(data: PlayerClassData) -> void:
 			_body_material = StandardMaterial3D.new()
 			body_mesh.material_override = _body_material
 		_body_material.albedo_color = data.body_color
-	var capsule := collision_shape.shape as CapsuleShape3D
-	if capsule != null:
-		capsule = capsule.duplicate() as CapsuleShape3D
-		capsule.radius = data.body_radius
-		capsule.height = maxf(data.body_height, data.body_radius * 2.0 + 0.01)
-		collision_shape.shape = capsule
+	_resize_body(data.body_radius, data.body_height)
+
+
+## Resize the physics body and the hurtbox together, so a class with a
+## different silhouette is struck exactly where it looks like it should be.
+func _resize_body(radius: float, height: float) -> void:
+	var body_height := maxf(radius * 2.0 + 0.01, height)
+	var centre := body_height * 0.5
+
+	var body_shape := collision_shape.shape as CapsuleShape3D
+	if body_shape != null:
+		body_shape = body_shape.duplicate() as CapsuleShape3D
+		body_shape.radius = radius
+		body_shape.height = body_height
+		collision_shape.shape = body_shape
+	collision_shape.position.y = centre
+
+	var hurt_shape := _find_collision_shape(hurtbox)
+	if hurt_shape != null:
+		var capsule := hurt_shape.shape as CapsuleShape3D
+		if capsule != null:
+			capsule = capsule.duplicate() as CapsuleShape3D
+			capsule.radius = radius
+			capsule.height = maxf(body_height, radius * 2.0 + 0.01)
+			hurt_shape.shape = capsule
+		hurt_shape.position.y = centre
+
+	if body_mesh != null:
+		body_mesh.position.y = centre
+
+
+func _find_collision_shape(parent: Node) -> CollisionShape3D:
+	if parent == null:
+		return null
+	for child in parent.get_children():
+		if child is CollisionShape3D:
+			return child as CollisionShape3D
+	return null
 
 
 # --- Component accessors ----------------------------------------------------

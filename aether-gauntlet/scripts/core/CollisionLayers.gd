@@ -10,6 +10,23 @@ extends RefCounted
 const WORLD: int = 1 << 0          ## Static level geometry, walls, floor.
 const PLAYER_BODY: int = 1 << 1    ## The player's CharacterBody3D.
 const ENEMY_BODY: int = 1 << 2     ## Enemy CharacterBody3D instances.
+
+## Mask every character body uses: solid level geometry only.
+##
+## Characters deliberately do NOT collide with one another. Two capsules
+## pushing together produce an upward contact normal, which
+## [member CharacterBody3D.floor_max_angle] reads as walkable ground — so
+## bodies climb each other, and a player standing on a mob's head sits above
+## every melee hitbox in the game and cannot be touched. Godot's own
+## documentation rules out the obvious alternative: [CylinderShape3D] has
+## known collision bugs and will not even rest on a box floor.
+##
+## Characters are kept apart by steering instead — enemies hold their
+## archetype's preferred range and push off their neighbours in
+## [method Enemy._compute_separation] — which is both robust and the right feel
+## for a wave arena, where being physically boxed in by a pack would be a
+## death sentence rather than a challenge.
+const CHARACTER_BODY_MASK: int = WORLD
 const PLAYER_HITBOX: int = 1 << 3  ## Damage dealt *by* the player.
 const ENEMY_HITBOX: int = 1 << 4   ## Damage dealt *by* enemies.
 const PLAYER_HURTBOX: int = 1 << 5 ## The player's damageable volume.
