@@ -173,6 +173,52 @@ func test_arc_filter_excludes_targets_behind_the_swing() -> void:
 	)
 
 
+func test_the_arc_is_measured_from_the_swinger_not_the_volume() -> void:
+	# A melee swing's volume sits ahead of whoever swung it. If the cone is
+	# measured from the volume's own centre, everything closer than that offset
+	# reads as ~180° behind it and is filtered out, leaving a dead zone right
+	# in front of the attacker.
+	var swinger := Node3D.new()
+	swinger.name = "Swinger"
+	track(swinger)
+	swinger.global_position = Vector3.ZERO
+
+	# Target between the swinger and the volume's centre — point-blank.
+	var target := _make_target(Vector3(0.0, 0.0, -0.4))
+	_install_hitbox(Vector3(0.0, 0.0, -1.0))
+	hitbox.arc_degrees = 120.0
+	hitbox.arc_origin_node = swinger
+	await physics_frames(2)
+
+	hitbox.activate(0.0)
+	assert_lt(
+		(target["health"] as HealthComponent).current_health,
+		1000.0,
+		"a point-blank target is inside the swing, not behind it"
+	)
+
+
+func test_the_arc_still_excludes_targets_behind_the_swinger() -> void:
+	var swinger := Node3D.new()
+	swinger.name = "Swinger"
+	track(swinger)
+	swinger.global_position = Vector3.ZERO
+
+	var behind := _make_target(Vector3(0.0, 0.0, 2.0))
+	_install_hitbox(Vector3(0.0, 0.0, -1.0))
+	hitbox.arc_degrees = 120.0
+	hitbox.arc_origin_node = swinger
+	await physics_frames(2)
+
+	hitbox.activate(0.0)
+	assert_almost_eq(
+		(behind["health"] as HealthComponent).current_health,
+		1000.0,
+		0.001,
+		"anchoring the cone at the swinger must not make it hit backwards"
+	)
+
+
 func test_full_circle_hitboxes_hit_everything_around_them() -> void:
 	var north := _make_target(Vector3(0.0, 0.0, -2.0))
 	var south := _make_target(Vector3(0.0, 0.0, 2.0))

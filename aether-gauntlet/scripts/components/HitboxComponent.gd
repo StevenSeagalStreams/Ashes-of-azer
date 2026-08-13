@@ -39,6 +39,12 @@ signal scan_connected(targets_hit: int)
 @export var status_effects: Array[StringName] = []
 ## Cone half-width in degrees measured from -Z. 360 means a full circle.
 @export_range(1.0, 360.0, 1.0) var arc_degrees: float = 360.0
+## Node the cone is measured from. A melee volume is spawned ahead of whoever
+## swung it, so the cone's apex belongs at the swinger — measuring it from the
+## volume's own centre makes everything closer than that offset read as behind
+## the swing and leaves a dead zone at the attacker's feet. Null means "measure
+## from this hitbox", which is correct for volumes centred on their caster.
+var arc_origin_node: Node3D = null
 ## Seconds before the same target can be hit again. 0 means "hit once only".
 @export var tick_interval: float = 0.0
 ## Upper bound on targets damaged per scan; protects the frame budget.
@@ -242,10 +248,17 @@ func _can_hit(hurtbox: HurtboxComponent) -> bool:
 	return _is_within_arc(hurtbox)
 
 
+## World position the cone's apex sits at.
+func get_arc_origin() -> Vector3:
+	if is_instance_valid(arc_origin_node) and arc_origin_node.is_inside_tree():
+		return arc_origin_node.global_position
+	return global_position
+
+
 func _is_within_arc(hurtbox: HurtboxComponent) -> bool:
 	if arc_degrees >= 359.9:
 		return true
-	var to_target := hurtbox.global_position - global_position
+	var to_target := hurtbox.global_position - get_arc_origin()
 	to_target.y = 0.0
 	if to_target.length_squared() < 0.0001:
 		return true

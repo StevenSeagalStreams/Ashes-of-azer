@@ -287,6 +287,50 @@ func test_the_floating_number_matches_the_damage_actually_applied() -> void:
 	)
 
 
+func test_primary_attack_connects_at_point_blank_range() -> void:
+	# A melee volume is spawned forward_offset metres ahead of the swinger, so
+	# the cone must still be measured from the swinger. Measuring it from the
+	# offset volume puts anything closer than the offset "behind" the cone and
+	# silently filters it out — a dead zone directly in front of every swing.
+	# Cleave's own 0.5m lunge walks the player into that gap between swings.
+	_add_floor()
+	_spawn_player(GameEnums.ClassId.WARRIOR)
+	var dummy := _spawn_dummy(0.5)
+	await physics_frames(3)
+
+	var health: HealthComponent = dummy["health"]
+	var before := health.current_health
+	assert_true(player.try_cast(AbilityComponent.SLOT_PRIMARY), "cast started")
+	await physics_frames(24)
+	assert_lt(
+		health.current_health,
+		before,
+		"an enemy standing on top of you is still in front of you"
+	)
+
+
+func test_primary_attack_connects_across_its_whole_reach() -> void:
+	# Sweep the reach so a dead zone anywhere along it fails loudly, rather
+	# than only at the one distance a single test happens to pick.
+	_add_floor()
+	_spawn_player(GameEnums.ClassId.WARRIOR)
+	var dummy := _spawn_dummy(2.0)
+	var body: Node3D = dummy["body"]
+	var health: HealthComponent = dummy["health"]
+	await physics_frames(3)
+
+	for distance in [0.3, 0.8, 1.4, 2.2]:
+		player.global_position = Vector3.ZERO
+		body.global_position = Vector3(0.0, 0.0, -distance)
+		player.abilities.reset_cooldowns()
+		await physics_frames(3)
+
+		var before := health.current_health
+		player.try_cast(AbilityComponent.SLOT_PRIMARY)
+		await physics_frames(30)
+		assert_lt(health.current_health, before, "Cleave connects at %.1fm" % distance)
+
+
 func test_primary_attack_misses_an_enemy_behind_you() -> void:
 	_add_floor()
 	_spawn_player(GameEnums.ClassId.WARRIOR)

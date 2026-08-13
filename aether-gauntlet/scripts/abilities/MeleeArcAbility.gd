@@ -25,6 +25,9 @@ func execute(ctx: AbilityContext) -> void:
 	var area := spawn_area_hitbox(ctx, origin, radius, arc_degrees)
 	if area == null:
 		return
+	# The volume sits ahead of the caster, but the swing fans out from the
+	# caster. Without this the first forward_offset metres are a dead zone.
+	area.hitbox.arc_origin_node = ctx.caster
 	area.hitbox.activate(maxf(0.05, active_time))
 	_apply_lunge(ctx)
 
