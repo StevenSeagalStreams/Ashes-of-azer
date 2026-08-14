@@ -56,9 +56,15 @@ func _spawn_player_stub(position: Vector3) -> Dictionary:
 	hurtbox.health = health
 	hurtbox.faction = GameEnums.Faction.PLAYER
 	var shape := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
-	sphere.radius = 0.6
-	shape.shape = sphere
+	# Match the real Player's silhouette: an upright capsule centred at 0.85,
+	# not a sphere at the feet. A ground-level hurtbox is invisible to anything
+	# fired at muzzle height, so ranged attacks would appear to miss a target
+	# they would really hit — the harness must not be easier than the game.
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.42
+	capsule.height = 1.7
+	shape.shape = capsule
+	shape.position.y = 0.85
 	hurtbox.add_child(shape)
 	body.add_child(hurtbox)
 
@@ -238,6 +244,22 @@ func test_melee_enemies_attack_a_target_standing_inside_them() -> void:
 		)
 		cleanup()
 		await physics_frames(2)
+
+
+func test_ranged_enemies_can_actually_land_their_shots() -> void:
+	# The whole ranged archetype was untested end to end. Its projectiles leave
+	# the muzzle at chest height, so this only means anything against a target
+	# with a realistic upright hurtbox.
+	_add_floor()
+	var stub := _spawn_player_stub(Vector3(0.0, 0.0, -8.0))
+	_spawn_enemy(EnemyLibrary.ARCHER, 1, Vector3.ZERO)
+	await physics_frames(2)
+	assert_not_null(enemy.acquire_target(), "the archer sees the target")
+
+	var health: HealthComponent = stub["health"]
+	var before := health.current_health
+	await physics_frames(420)
+	assert_lt(health.current_health, before, "an archer at range actually hits")
 
 
 func test_ranged_enemies_still_open_the_gap_when_crowded() -> void:
